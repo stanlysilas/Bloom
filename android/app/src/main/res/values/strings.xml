@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appwidget_text">Test Widget</string>
+    <string name="add_widget">Add New Widget</string>
+    <string name="app_widget_description">This is a test app widget description</string>
+    <string name="tasksText1">tasksText1</string>
+</resources>

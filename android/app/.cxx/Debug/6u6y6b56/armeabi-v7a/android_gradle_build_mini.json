@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "/home/stanlysilas/Development/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/home/stanlysilas/Android/Sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/media/stanlysilas/Games \u0026 Productivity/Flutter Apps/bloom/bloom/android/app/.cxx/Debug/6u6y6b56/armeabi-v7a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/home/stanlysilas/Android/Sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/media/stanlysilas/Games \u0026 Productivity/Flutter Apps/bloom/bloom/android/app/.cxx/Debug/6u6y6b56/armeabi-v7a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "286072090024",
+    "project_id": "bloom-da824",
+    "storage_bucket": "bloom-da824.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:286072090024:android:467e47f76663bf1161419d",
+        "android_client_info": {
+          "package_name": "com.bloomproductive.bloom"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCn30wcImgifv2KeWyaKJhhsz_HJ2EDDIs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

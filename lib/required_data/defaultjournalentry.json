@@ -1,0 +1,62 @@
+[
+    {
+        "insert": "Today's goals:",
+        "attributes": {
+            "size": "huge",
+            "bold": true
+        }
+    },
+    {
+        "insert": "\n"
+    },
+    {
+        "insert": "Wake up early",
+        "attributes": {
+            "size": "large"
+        }
+    },
+    {
+        "insert": "\n",
+        "attributes": {
+            "list": "unchecked"
+        }
+    },
+    {
+        "insert": "\n"
+    },
+    {
+        "insert": "\n"
+    },
+    {
+        "insert": "What I did today:",
+        "attributes": {
+            "size": "huge",
+            "bold": true
+        }
+    },
+    {
+        "insert": "\n"
+    },
+    {
+        "insert": "\n"
+    },
+    {
+        "insert": "\n"
+    },
+    {
+        "insert": "Areas to improve:",
+        "attributes": {
+            "size": "huge",
+            "bold": true
+        }
+    },
+    {
+        "insert": "\n"
+    },
+    {
+        "insert": "\n",
+        "attributes": {
+            "list": "ordered"
+        }
+    }
+]
