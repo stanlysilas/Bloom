@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # bloom
 
 A new Flutter project.
@@ -14,3 +15,7 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+=======
+# Bloom
+Bloom by Everflow is a Productivity oriented application for Android, iOS, Windows, Linux and macOS.
+>>>>>>> 4f67f3e04f4c14e8426cfc961d687fbf9470c844
