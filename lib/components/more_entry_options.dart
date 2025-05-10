@@ -428,8 +428,12 @@ class _MoreEntryOptionsState extends State<MoreEntryOptions> {
                     ),
                   ),
                 ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 14.0),
+                child: Divider(),
+              ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
                 child: Container(
                   width: double.maxFinite,
                   padding:

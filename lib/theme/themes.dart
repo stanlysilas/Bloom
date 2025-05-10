@@ -20,6 +20,7 @@ final ThemeData lightTheme =
   iconTheme: const IconThemeData(color: Colors.black),
   textTheme: const TextTheme(
     bodyMedium: TextStyle(color: Colors.black),
+    labelMedium: TextStyle(color: Colors.white),
   ),
   checkboxTheme: CheckboxThemeData(
     shape: RoundedRectangleBorder(
@@ -44,7 +45,7 @@ final ThemeData lightTheme =
     ),
     cancelButtonStyle: ButtonStyle(
         foregroundColor:
-            WidgetStateProperty.all(secondaryColorLightMode.withAlpha(255))),
+            WidgetStateProperty.all(primaryColorLightMode)),
     confirmButtonStyle:
         ButtonStyle(foregroundColor: WidgetStateProperty.all(Colors.black)),
   ),
@@ -53,7 +54,7 @@ final ThemeData lightTheme =
     dayPeriodColor: primaryColorLightMode,
     dayPeriodTextColor: Colors.black,
     dialBackgroundColor: Colors.grey[50],
-    dialHandColor: secondaryColorLightMode.withAlpha(255),
+    dialHandColor: primaryColorLightMode,
     // dialTextColor: Colors.white,
     entryModeIconColor: Colors.black,
     hourMinuteColor: primaryColorLightMode,
@@ -67,11 +68,11 @@ final ThemeData lightTheme =
           borderSide: BorderSide(color: primaryColorLightMode)),
       enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
-          borderSide: const BorderSide(color: secondaryColorLightMode)),
+          borderSide: BorderSide(color: primaryColorLightMode)),
     ),
     cancelButtonStyle: ButtonStyle(
       foregroundColor:
-          WidgetStateProperty.all(secondaryColorLightMode.withAlpha(255)),
+          WidgetStateProperty.all(primaryColorLightMode),
     ),
     confirmButtonStyle: ButtonStyle(
       foregroundColor: WidgetStateProperty.all(Colors.black),
@@ -151,7 +152,7 @@ final ThemeData darkTheme =
         ),
       ),
       cancelButtonStyle: ButtonStyle(
-          foregroundColor: WidgetStateProperty.all(secondaryColorDarkMode)),
+          foregroundColor: WidgetStateProperty.all(primaryColorDarkMode)),
       confirmButtonStyle:
           ButtonStyle(foregroundColor: WidgetStateProperty.all(Colors.white))),
   timePickerTheme: TimePickerThemeData(
@@ -159,7 +160,7 @@ final ThemeData darkTheme =
     dayPeriodColor: primaryColorDarkMode,
     dayPeriodTextColor: Colors.white,
     dialBackgroundColor: boxBackgroundColorDarkMode,
-    dialHandColor: secondaryColorDarkMode.withAlpha(255),
+    dialHandColor: primaryColorDarkMode,
     dialTextColor: Colors.white,
     entryModeIconColor: Colors.white,
     hourMinuteColor: primaryColorDarkMode,
@@ -175,10 +176,10 @@ final ThemeData darkTheme =
         enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15),
             borderSide:
-                BorderSide(color: secondaryColorDarkMode.withAlpha(255)))),
+                const BorderSide(color: primaryColorDarkMode))),
     cancelButtonStyle: ButtonStyle(
       foregroundColor:
-          WidgetStateProperty.all(secondaryColorDarkMode.withAlpha(255)),
+          WidgetStateProperty.all(primaryColorDarkMode),
     ),
     confirmButtonStyle: ButtonStyle(
       foregroundColor: WidgetStateProperty.all(Colors.white),

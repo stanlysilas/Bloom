@@ -1,4 +1,12 @@
 {
+    "2.2.1": {
+        "title":"Quality-of-Life Update - 2.2.1",
+        "features": [
+            "Introducing Habits. Now get ready to transform your life by nurturing good habits.",
+            "Interface changes to the application in various areas.",
+            "And of course I squashed a few bugs that interrupted your productivity!"
+        ]
+    },
     "2.2.0": {
         "title": "What's new in version 2.2.0?",
         "features": [

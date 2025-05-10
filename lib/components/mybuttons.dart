@@ -5,7 +5,6 @@ import 'package:bloom/components/add_pomodoro.dart';
 import 'package:bloom/components/add_taskorhabit.dart';
 import 'package:bloom/models/book_layout.dart';
 import 'package:bloom/models/note_layout.dart';
-import 'package:bloom/required_data/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -283,8 +282,7 @@ class _ExtraOptionsButtonState extends State<ExtraOptionsButton> {
               if (widget.showTag == true)
                 Container(
                   decoration: BoxDecoration(
-                    color: widget.tagColor ??
-                        secondaryColorLightMode.withAlpha(60),
+                    color: widget.tagColor ?? Theme.of(context).primaryColor.withAlpha(100),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   padding:

@@ -94,6 +94,7 @@ class AuthService {
   }
 
   // Google signup & add user to database
+  // ignore: body_might_complete_normally_nullable
   Future<UserCredential?> signUpWithGoogle() async {
     if (Platform.isAndroid || Platform.isIOS) {
       try {

@@ -560,28 +560,29 @@ class _BookLayoutState extends State<BookLayout> {
 
                     // Button to add a new entry into the Book
                     InkWell(
-                      onTap: () async {if (bookLayoutMethod != BookLayoutMethod.display) {
-                        await saveBookLayout();
-                        Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => NoteLayout(
-                                    hasChildren: false,
-                                    mainId: bookId,
-                                    date: DateFormat('dd-MM-yyyy')
-                                        .format(widget.dateTime),
-                                    time: DateFormat('h:mm a')
-                                        .format(widget.dateTime),
-                                    type: widget.type,
-                                    mode: NoteMode.create,
-                                    dateTime: widget.dateTime,
-                                    isEntryLocked: false,
-                                    title: '',
-                                  ),
-                                ),
-                              );
-                      } else {
-                        null;
-                      }
+                      onTap: () async {
+                        if (bookLayoutMethod != BookLayoutMethod.display) {
+                          await saveBookLayout();
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => NoteLayout(
+                                hasChildren: false,
+                                mainId: bookId,
+                                date: DateFormat('dd-MM-yyyy')
+                                    .format(widget.dateTime),
+                                time: DateFormat('h:mm a')
+                                    .format(widget.dateTime),
+                                type: widget.type,
+                                mode: NoteMode.create,
+                                dateTime: widget.dateTime,
+                                isEntryLocked: false,
+                                title: '',
+                              ),
+                            ),
+                          );
+                        } else {
+                          null;
+                        }
                       },
                       child: const Icon(Iconsax.add),
                     ),
@@ -734,7 +735,7 @@ class _BookLayoutState extends State<BookLayout> {
                                       content: entryContent,
                                       emoji: entryEmoji,
                                       date: DateFormat('dd-MM-yyy')
-                                          .format(DateTime.now()),
+                                          .format(widget.dateTime),
                                       id: entryId,
                                       mainId: widget.bookId,
                                       type: 'book',
@@ -745,8 +746,8 @@ class _BookLayoutState extends State<BookLayout> {
                                       hasChildren: false,
                                       children: const [],
                                       isFavorite: false,
-                                      addedOn: DateTime.now(),
-                                      dateTime: DateTime.now(),
+                                      addedOn: widget.dateTime,
+                                      dateTime: widget.dateTime,
                                       title: entryTitle,
                                       isEntryLocked: false),
                                   // BookTile(
@@ -877,7 +878,8 @@ class _BookLayoutState extends State<BookLayout> {
                 child: Text(
                   'Use template',
                   style: TextStyle(
-                      color: Theme.of(context).textTheme.labelMedium?.color),
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).textTheme.bodyMedium?.color),
                 ),
               ),
             )

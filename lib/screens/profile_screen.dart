@@ -1,14 +1,14 @@
 // import 'package:bloom/authentication_screens/change_email_screen.dart';
 import 'package:bloom/authentication_screens/signup_screen.dart';
-// import 'package:bloom/components/mybuttons.dart';
+import 'package:bloom/components/mybuttons.dart';
 import 'package:bloom/components/mytextfield.dart';
 import 'package:bloom/components/overview_data.dart';
 import 'package:bloom/components/profile_pic.dart';
-// import 'package:bloom/screens/detailed_analytics_screen.dart';
+import 'package:bloom/screens/detailed_analytics_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-// import 'package:iconsax/iconsax.dart';
+import 'package:iconsax/iconsax.dart';
 
 class ProfileScreen extends StatefulWidget {
   final bool? isImageNetwork;
@@ -47,6 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int? completedTasksInYear;
   int? attendedEventsInYear;
   String? subscriptionPlan;
+  late Map<DateTime, int> completedTasksByDate = {};
 
   // Method to initialize the required variables and methods
   @override
@@ -57,6 +58,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
     mode = widget.mode;
     dataOverviewCheck();
     checkSubscription();
+    getCompletedTaskCountsByDate();
+  }
+
+  // check the completed task dates and add it to the variable
+  Future<Map<DateTime, int>> getCompletedTaskCountsByDate() async {
+    if (user == null) {
+      return {};
+    }
+
+    final QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+        .instance
+        .collection('users')
+        .doc(user?.uid)
+        .collection('tasks')
+        .where('isCompleted', isEqualTo: true)
+        .get();
+
+    for (final QueryDocumentSnapshot<Map<String, dynamic>> doc
+        in snapshot.docs) {
+      final Timestamp? completionTimestamp =
+          doc.data()['taskDateTime'] as Timestamp?;
+
+      if (completionTimestamp != null) {
+        // Convert Timestamp to DateTime and remove the time component
+        final DateTime completionDate = completionTimestamp.toDate();
+        final DateTime dateOnly = DateTime(
+            completionDate.year, completionDate.month, completionDate.day);
+
+        // Update the count for this date
+        completedTasksByDate[dateOnly] =
+            (completedTasksByDate[dateOnly] ?? 0) + 1;
+      }
+    }
+
+    return completedTasksByDate;
   }
 
   // Check the subscription plan of the user
@@ -328,7 +364,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     style: TextStyle(
                                         color: Theme.of(context)
                                             .textTheme
-                                            .labelMedium
+                                            .bodyMedium
                                             ?.color),
                                   ),
                                   Icon(
@@ -336,7 +372,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     size: 14,
                                     color: Theme.of(context)
                                         .textTheme
-                                        .labelMedium
+                                        .bodyMedium
                                         ?.color,
                                   )
                                 ],
@@ -375,9 +411,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                                 const VerticalDivider(),
                                 Expanded(
-                                  child: NumberOfTasksInYear(
-                                    completedTasksInYear:
-                                        completedTasksInYear ?? 0,
+                                  child: InkWell(
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  DetailedAnalyticsScreen(
+                                                      completedTasksPerDay:
+                                                          completedTasksByDate)));
+                                    },
+                                    child: NumberOfTasksInYear(
+                                      completedTasksInYear:
+                                          completedTasksInYear ?? 0,
+                                    ),
                                   ),
                                 ),
                                 const VerticalDivider(),
@@ -393,16 +439,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                     ),
-                    // const SizedBox(
-                    //   height: 10,
-                    // ),
-                    // const Padding(
-                    //   padding: EdgeInsets.symmetric(horizontal: 14.0),
-                    //   child: Divider(),
-                    // ),
-                    // const SizedBox(
-                    //   height: 10,
-                    // ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 14.0),
+                      child: Divider(),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
                     // // Heading for the content section
                     // const Padding(
                     //   padding: EdgeInsets.symmetric(horizontal: 12.0),
@@ -415,53 +461,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     // const SizedBox(
                     //   height: 5,
                     // ),
-                    // // Analytics button
-                    // ExtraOptionsButton(
-                    //   showTag: subscriptionPlan == 'free' ? true : false,
-                    //   icon: const Icon(Iconsax.graph),
-                    //   iconLabelSpace: 8,
-                    //   label: 'Analytics',
-                    //   labelStyle: const TextStyle(
-                    //       fontWeight: FontWeight.w600, fontSize: 16),
-                    //   innerPadding: const EdgeInsets.all(12),
-                    //   onTap: () {
-                    //     if (subscriptionPlan == 'pro' ||
-                    //         subscriptionPlan == 'ultra') {
-                    //       Navigator.of(context).push(
-                    //         MaterialPageRoute(
-                    //           builder: (context) => DetailedAnalyticsScreen(
-                    //             completedTasksPerDay: {
-                    //               DateTime(2024, 2, 12):
-                    //                   3, // Example: 3 tasks completed on 12th Feb
-                    //               DateTime(2024, 2, 13): 5,
-                    //               DateTime(2024, 2, 14): 2,
-                    //               DateTime(2024, 2, 15): 7,
-                    //             },
-                    //           ),
-                    //         ),
-                    //       );
-                    //     } else {
-                    //       ScaffoldMessenger.of(context).showSnackBar(
-                    //         SnackBar(
-                    //           margin: const EdgeInsets.all(6),
-                    //           behavior: SnackBarBehavior.floating,
-                    //           showCloseIcon: true,
-                    //           backgroundColor: Theme.of(context).primaryColor,
-                    //           shape: RoundedRectangleBorder(
-                    //               borderRadius: BorderRadius.circular(12)),
-                    //           content: Text(
-                    //             'Analytics are only available with Pro and Ultra subscriptions',
-                    //             style: TextStyle(
-                    //                 color: Theme.of(context)
-                    //                     .textTheme
-                    //                     .bodyMedium
-                    //                     ?.color),
-                    //           ),
-                    //         ),
-                    //       );
-                    //     }
-                    //   },
-                    // ),
+                    // Analytics button
+                    ExtraOptionsButton(
+                      showTag: subscriptionPlan == 'free' ? true : false,
+                      icon: const Icon(Iconsax.graph),
+                      iconLabelSpace: 8,
+                      label: 'Analytics',
+                      labelStyle: const TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 16),
+                      innerPadding: const EdgeInsets.all(12),
+                      onTap: () {
+                        if (subscriptionPlan == 'pro' ||
+                            subscriptionPlan == 'ultra') {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => DetailedAnalyticsScreen(
+                                completedTasksPerDay: completedTasksByDate,
+                              ),
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              margin: const EdgeInsets.all(6),
+                              behavior: SnackBarBehavior.floating,
+                              showCloseIcon: true,
+                              backgroundColor: Theme.of(context).primaryColor,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              content: Text(
+                                'Analytics are only available with Pro and Ultra subscriptions',
+                                style: TextStyle(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.color),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                    ),
                   ],
                 ),
               ),

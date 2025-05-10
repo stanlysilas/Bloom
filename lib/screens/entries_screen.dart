@@ -6,7 +6,6 @@ import 'package:bloom/components/book_card.dart';
 import 'package:bloom/components/entries_tile.dart';
 import 'package:bloom/components/mybuttons.dart';
 import 'package:bloom/components/mytextfield.dart';
-import 'package:bloom/required_data/colors.dart';
 import 'package:bloom/screens/custom_templates_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -490,8 +489,9 @@ class _EntriesScreenState extends State<EntriesScreen> {
                             weekdayStyle:
                                 TextStyle(fontWeight: FontWeight.w500)),
                         calendarStyle: CalendarStyle(
-                          todayDecoration: const BoxDecoration(
-                            color: secondaryColorLightMode,
+                          isTodayHighlighted: false,
+                          todayDecoration: BoxDecoration(
+                            color: Theme.of(context).primaryColor,
                             shape: BoxShape.circle,
                           ),
                           todayTextStyle: TextStyle(
@@ -506,13 +506,13 @@ class _EntriesScreenState extends State<EntriesScreen> {
                           selectedTextStyle: TextStyle(
                               color: Theme.of(context)
                                   .textTheme
-                                  .labelMedium
+                                  .bodyMedium
                                   ?.color),
                           weekendTextStyle: TextStyle(
                             color: Theme.of(context).primaryColorDark,
                           ),
-                          markerDecoration: const BoxDecoration(
-                            color: secondaryColorLightMode,
+                          markerDecoration: BoxDecoration(
+                            color: Theme.of(context).primaryColorDark,
                             shape: BoxShape.circle,
                           ),
                           markersAlignment: Alignment.bottomCenter,
@@ -576,35 +576,43 @@ class _EntriesScreenState extends State<EntriesScreen> {
                                 .fade(delay: const Duration(milliseconds: 50));
                           }
                           if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
-                            return SizedBox(
-                              height: MediaQuery.of(context).size.height,
-                              child: const Padding(
-                                padding:
-                                    EdgeInsets.only(left: 14.0, right: 14.0),
-                                child: Column(
-                                  children: [
-                                    Image(
-                                      image: AssetImage(
-                                          'assets/images/entriesEmptyBackground.png'),
-                                    ),
-                                    Text(
-                                      'No entries made on this day...',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.w600),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    Text(
-                                      'Click on the + icon to make a new entry.',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.w600),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
+                            return Center(
+                              child: SizedBox(
+                                height: MediaQuery.of(context).size.height,
+                                child: const Padding(
+                                  padding:
+                                      EdgeInsets.only(left: 14.0, right: 14.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Image(
+                                        height: 200,
+                                        width: 200,
+                                        image: AssetImage(
+                                            'assets/images/allCompletedBackground.png'),
+                                      ),
+                                      Text(
+                                        'No entries made on this day',
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w500),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      Text(
+                                        'Click on the + icon to make a new entry.',
+                                        style: TextStyle(
+                                            color: Colors.grey,
+                                            fontWeight: FontWeight.w500),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ).animate().fadeIn(
-                                  delay: const Duration(milliseconds: 100),
-                                );
+                              ).animate().fadeIn(
+                                    delay: const Duration(milliseconds: 100),
+                                  ),
+                            );
                           }
                           if (snapshot.hasError) {
                             return Center(
@@ -886,8 +894,7 @@ class _EntriesScreenState extends State<EntriesScreen> {
                               ).animate().fade(
                                   delay: const Duration(milliseconds: 50));
                             }
-                            if (snapshot.hasData &&
-                                snapshot.data!.isEmpty) {
+                            if (snapshot.hasData && snapshot.data!.isEmpty) {
                               return const SizedBox();
                             }
                             if (snapshot.hasError) {
@@ -910,16 +917,12 @@ class _EntriesScreenState extends State<EntriesScreen> {
                                     final book = books[index];
                                     final String bookId = book['bookId'];
                                     final String type = book['type'];
-                                    final String bookIcon =
-                                        book['bookEmoji'];
-                                    final String bookTitle =
-                                        book['bookTitle'];
+                                    final String bookIcon = book['bookEmoji'];
+                                    final String bookTitle = book['bookTitle'];
                                     final String bookDescription =
                                         book['bookDescription'];
-                                    final Timestamp timestamp =
-                                        book['addedOn'];
-                                    final DateTime addedOn =
-                                        timestamp.toDate();
+                                    final Timestamp timestamp = book['addedOn'];
+                                    final DateTime addedOn = timestamp.toDate();
                                     final bool hasChildren =
                                         book['hasChildren'];
                                     return BookCard(
@@ -977,8 +980,10 @@ class _EntriesScreenState extends State<EntriesScreen> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Image(
+                                        height: 200,
+                                        width: 200,
                                         image: AssetImage(
-                                            'assets/images/entriesEmptyBackground.png'),
+                                            'assets/images/allCompletedBackground.png'),
                                       ),
                                       Text(
                                         'Make a new entry',
@@ -1133,7 +1138,8 @@ class _EntriesScreenState extends State<EntriesScreen> {
                                       icon: Container(
                                           padding: const EdgeInsets.all(20),
                                           decoration: BoxDecoration(
-                                            color: Theme.of(context).primaryColor,
+                                            color:
+                                                Theme.of(context).primaryColor,
                                             shape: BoxShape.circle,
                                           ),
                                           child: Icon(
@@ -1143,8 +1149,8 @@ class _EntriesScreenState extends State<EntriesScreen> {
                                                 .bodyMedium
                                                 ?.color,
                                           )),
-                                      title:
-                                          const Text('Upgrade to use templates'),
+                                      title: const Text(
+                                          'Upgrade to use templates'),
                                       titleTextStyle: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w600,
@@ -1161,7 +1167,8 @@ class _EntriesScreenState extends State<EntriesScreen> {
                                       actions: [
                                         // Button to cancel and close the dialog box
                                         TextButton(
-                                          onPressed: () => Navigator.pop(context),
+                                          onPressed: () =>
+                                              Navigator.pop(context),
                                           style: const ButtonStyle(
                                             foregroundColor:
                                                 WidgetStatePropertyAll(
@@ -1171,7 +1178,8 @@ class _EntriesScreenState extends State<EntriesScreen> {
                                         ),
                                         // Button to redirect to the subscriptions page
                                         TextButton(
-                                          onPressed: () => Navigator.pop(context),
+                                          onPressed: () =>
+                                              Navigator.pop(context),
                                           style: ButtonStyle(
                                             foregroundColor:
                                                 WidgetStatePropertyAll(
@@ -1224,7 +1232,7 @@ class _EntriesScreenState extends State<EntriesScreen> {
           child: Icon(
             Icons.add,
             size: 25,
-            color: Theme.of(context).textTheme.labelMedium?.color,
+            color: Theme.of(context).textTheme.bodyMedium?.color,
           ),
         ).animate().scaleXY(
               curve: Curves.easeInOutBack,

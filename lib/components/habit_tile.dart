@@ -1,9 +1,11 @@
 import 'package:bloom/notifications/notification.dart';
+import 'package:bloom/screens/habits_details_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:intl/intl.dart';
 // import 'package:intl/intl.dart';
 
 class HabitTile extends StatefulWidget {
@@ -16,6 +18,7 @@ class HabitTile extends StatefulWidget {
   final List completedDaysOfWeek;
   final DateTime addedOn;
   final int habitUniqueId;
+  final List completedDates;
   final EdgeInsetsGeometry? innerPadding;
   const HabitTile(
       {super.key,
@@ -28,7 +31,8 @@ class HabitTile extends StatefulWidget {
       required this.completedDaysOfWeek,
       required this.addedOn,
       required this.habitUniqueId,
-      this.innerPadding});
+      this.innerPadding,
+      required this.completedDates});
 
   @override
   State<HabitTile> createState() => _HabitTileState();
@@ -37,39 +41,44 @@ class HabitTile extends StatefulWidget {
 class _HabitTileState extends State<HabitTile> {
   // Reuired variables
   final user = FirebaseAuth.instance.currentUser;
-  final List<String> daysOfWeekString = [
-    'S',
-    'M',
-    'T',
-    'W',
-    'T',
-    'F',
-    'S'
-  ];
+  final List<String> daysOfWeekString = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
-  // Method to update the completedDaysOfWeek accordingly
-  updateCompletedDaysOfWeek(int value) {
+  void updateCompletedDaysOfWeek(int value) {
     final firestore = FirebaseFirestore.instance
         .collection('users')
         .doc(user?.uid)
         .collection('habits')
         .doc(widget.habitId);
-    // Check if it is already added or not and then update accordingly
-    if (widget.completedDaysOfWeek.contains(value)) {
-      // If its already added
-      firestore.update({
-        'completedDaysOfWeek': FieldValue.arrayRemove([
-          value
-        ]), // Remove from the completedDaysOfWeek int list field the 'value'
-      });
-    } else {
-      // If its not already added
-      firestore.update({
-        'completedDaysOfWeek': FieldValue.arrayUnion([
-          value
-        ]), // Add to the completedDaysOfWeek int list field the 'value'
-      });
-    }
+
+    // Step 1: Get the date of the target weekday in current week
+    DateTime now = DateTime.now();
+    int currentWeekday = now.weekday % 7; // Convert Monday=1...Sunday=7 → 0-6
+    DateTime targetDate = now.subtract(Duration(days: currentWeekday - value));
+
+    // Step 2: Format the date
+    String dateKey = DateFormat('yyyy-MM-dd').format(targetDate);
+
+    // Step 3: Check if already completed
+    bool alreadyCompleted = widget.completedDaysOfWeek.contains(value);
+
+    // Step 4: Update Firestore
+    firestore.update({
+      'completedDaysOfWeek': alreadyCompleted
+          ? FieldValue.arrayRemove([value])
+          : FieldValue.arrayUnion([value]),
+      'completedDates': alreadyCompleted
+          ? FieldValue.arrayRemove([dateKey])
+          : FieldValue.arrayUnion([dateKey]),
+    });
+
+    // Step 5: Update local state (if needed)
+    setState(() {
+      if (alreadyCompleted) {
+        widget.completedDaysOfWeek.remove(value);
+      } else {
+        widget.completedDaysOfWeek.add(value);
+      }
+    });
   }
 
   @override
@@ -148,38 +157,20 @@ class _HabitTileState extends State<HabitTile> {
               context: context,
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               showDragHandle: true,
+              isScrollControlled: true,
+              useSafeArea: true,
               builder: (context) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  width: MediaQuery.of(context).size.width,
-                  child: Column(
-                    children: [
-                      const SizedBox(
-                        height: 6,
-                      ),
-                      const Text(
-                        'Habit details',
-                        style: TextStyle(
-                            fontSize: 22, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(
-                        height: 8,
-                      ),
-                      Text(
-                        widget.habitName,
-                        overflow: TextOverflow.clip,
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(
-                        height: 4,
-                      ),
-                      Text(
-                        widget.habitNotes,
-                        overflow: TextOverflow.clip,
-                      )
-                    ],
-                  ),
+                return HabitsDetailsScreen(
+                  habitName: widget.habitName,
+                  habitNotes: widget.habitNotes,
+                  habitDateTime: widget.habitDateTime,
+                  habitGroups: widget.habitGroups,
+                  habitId: widget.habitId,
+                  habitUniqueId: widget.habitUniqueId,
+                  addedOn: widget.addedOn,
+                  daysOfWeek: widget.daysOfWeek,
+                  completedDaysOfWeek: widget.completedDaysOfWeek,
+                  completedDates: widget.completedDates,
                 );
               });
         },
@@ -193,7 +184,7 @@ class _HabitTileState extends State<HabitTile> {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Theme.of(context).primaryColor.withAlpha(100)),
+                    color: Theme.of(context).primaryColorLight),
                 child: const Icon(Icons.repeat_rounded),
               ),
               const SizedBox(
@@ -230,12 +221,12 @@ class _HabitTileState extends State<HabitTile> {
               // Dates marked for the habit
               ...List.generate(7, (value) {
                 return Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
+                  padding: const EdgeInsets.only(right: 4.0),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(5),
                     onTap: () async {
                       // Update the completedDaysOfWeek in database
-                      await updateCompletedDaysOfWeek(value);
+                      updateCompletedDaysOfWeek(value);
                       // Update the completedDaysOfWeek locally when tapped on the particular day button
                       setState(() {
                         if (widget.completedDaysOfWeek.contains(value)) {
@@ -260,10 +251,18 @@ class _HabitTileState extends State<HabitTile> {
                         widget.daysOfWeek.contains(value)
                             ? daysOfWeekString[value]
                             : '',
-                        // style: TextStyle(
-                        //     color: widget.daysOfWeek.contains(value)
-                        //         ? Theme.of(context).textTheme.bodyMedium?.color
-                        //         : Theme.of(context).scaffoldBackgroundColor),
+                        style: TextStyle(
+                            color: widget.daysOfWeek.contains(value)
+                                ? widget.completedDaysOfWeek.contains(value)
+                                    ? Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.color
+                                    : Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.color
+                                : Colors.transparent),
                       ),
                     ),
                   ),

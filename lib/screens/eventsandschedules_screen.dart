@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:bloom/components/add_event.dart';
 import 'package:bloom/components/events_tile.dart';
 import 'package:bloom/components/mytextfield.dart';
-import 'package:bloom/required_data/colors.dart';
 import 'package:calendar_view/calendar_view.dart' as cv;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -229,37 +228,32 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: toggleDayView
-            ? Row(
-                children: [
-                  InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () async {
-                      final focusedDay = await showDatePicker(
-                        context: context,
-                        firstDate: DateTime.utc(2010, 10, 16),
-                        lastDate: DateTime.utc(2030, 3, 14),
-                        initialDate: _focusedDay,
-                        currentDate: _selectedDay,
-                      );
-                      onDaySelected(
-                          focusedDay ?? _focusedDay, focusedDay ?? _focusedDay);
-                      fetchAndSetEventsForDay(focusedDay!);
-                    },
-                    child: Row(
-                      children: [
-                        Text(
-                          DateFormat('LLL d, yy').format(_focusedDay),
-                          style: const TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                        const Icon(
-                          Icons.arrow_drop_down_rounded,
-                          size: 36,
-                        ),
-                      ],
+            ? InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () async {
+                  final focusedDay = await showDatePicker(
+                    context: context,
+                    firstDate: DateTime.utc(2010, 10, 16),
+                    lastDate: DateTime.utc(2030, 3, 14),
+                    initialDate: _focusedDay,
+                    currentDate: _selectedDay,
+                  );
+                  onDaySelected(
+                      focusedDay ?? _focusedDay, focusedDay ?? _focusedDay);
+                  fetchAndSetEventsForDay(focusedDay ?? _focusedDay);
+                },
+                child: Row(
+                  children: [
+                    Text(
+                      DateFormat('LLL d, yy').format(_focusedDay),
+                      style: const TextStyle(fontWeight: FontWeight.w500),
                     ),
-                  ),
-                  const Spacer()
-                ],
+                    const Icon(
+                      Icons.arrow_drop_down_rounded,
+                      size: 36,
+                    ),
+                  ],
+                ),
               ).animate().fadeIn(
                   duration: const Duration(milliseconds: 700),
                 )
@@ -498,8 +492,9 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                               weekdayStyle:
                                   TextStyle(fontWeight: FontWeight.w500)),
                           calendarStyle: tc.CalendarStyle(
-                            todayDecoration: const BoxDecoration(
-                              color: secondaryColorLightMode,
+                            isTodayHighlighted: false,
+                            todayDecoration: BoxDecoration(
+                              color: Theme.of(context).primaryColor,
                               shape: BoxShape.circle,
                             ),
                             todayTextStyle: TextStyle(
@@ -514,13 +509,13 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                             selectedTextStyle: TextStyle(
                                 color: Theme.of(context)
                                     .textTheme
-                                    .labelMedium
+                                    .bodyMedium
                                     ?.color),
                             weekendTextStyle: TextStyle(
                               color: Theme.of(context).primaryColorDark,
                             ),
-                            markerDecoration: const BoxDecoration(
-                              color: secondaryColorLightMode,
+                            markerDecoration: BoxDecoration(
+                              color: Theme.of(context).primaryColor,
                               shape: BoxShape.circle,
                             ),
                             markersAlignment: Alignment.bottomCenter,
@@ -594,8 +589,10 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                                     children: [
                                       Expanded(
                                         child: Image(
+                                          height: 200,
+                                          width: 200,
                                           image: AssetImage(
-                                              'assets/images/eventsCompletedBackground.png'),
+                                              'assets/images/allCompletedBackground.png'),
                                         ),
                                       ),
                                       Text(
@@ -746,7 +743,7 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
           child: Icon(
             Icons.add,
             size: 25,
-            color: Theme.of(context).textTheme.labelMedium?.color,
+            color: Theme.of(context).textTheme.bodyMedium?.color,
           ),
         ).animate().scaleXY(
               curve: Curves.easeInOutBack,

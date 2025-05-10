@@ -17,7 +17,8 @@ class SubscriptionsBanner extends StatelessWidget {
       Uri.parse('https://bloomproductive.wixsite.com/bloomproductive');
 
   Future<void> launchReportAnIssueUrl() async {
-    if (!await launchUrl(bloomproductiveSite, mode: LaunchMode.externalApplication)) {
+    if (!await launchUrl(bloomproductiveSite,
+        mode: LaunchMode.externalApplication)) {
       throw Exception('Could not launch $bloomproductiveSite');
     }
   }
@@ -26,8 +27,9 @@ class SubscriptionsBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return Container(
+      height: 150,
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withAlpha(70),
+        color: Theme.of(context).primaryColorLight,
         borderRadius: BorderRadius.circular(15),
       ),
       padding: const EdgeInsets.all(8),
@@ -35,21 +37,15 @@ class SubscriptionsBanner extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                    image: AssetImage(themeProvider.theme == 'dark'
-                        ? 'assets/custom_icons/subscriptions_dark.png'
-                        : themeProvider.theme == 'light'
-                            ? 'assets/custom_icons/subscriptions_light.png'
-                            : WidgetsBinding.instance.platformDispatcher
-                                        .platformBrightness ==
-                                    Brightness.dark
-                                ? 'assets/custom_icons/subscriptions_dark.png'
-                                : 'assets/custom_icons/subscriptions_light.png')),
-              ),
-            ),
-          ),
+              child: Image.asset(themeProvider.theme == 'dark'
+                  ? 'assets/custom_icons/subscriptions_dark.png'
+                  : themeProvider.theme == 'light'
+                      ? 'assets/custom_icons/subscriptions_light.png'
+                      : WidgetsBinding.instance.platformDispatcher
+                                  .platformBrightness ==
+                              Brightness.dark
+                          ? 'assets/custom_icons/subscriptions_dark.png'
+                          : 'assets/custom_icons/subscriptions_light.png')),
           const SizedBox(
             width: 10,
           ),
@@ -61,12 +57,16 @@ class SubscriptionsBanner extends StatelessWidget {
                 Text(
                   'Upgrade my Plan!',
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+                  overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(
                   height: 5,
                 ),
                 Text(
-                    'Adding a Habit? A Pomodoro? Upgrade now to the Pro or Ultra plans for more such productivity features to keep Blooming!'),
+                  'Adding a Habit? A Pomodoro? Upgrade now to the Pro or Ultra plans for more such productivity features to keep Blooming!',
+                  maxLines: 5,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),

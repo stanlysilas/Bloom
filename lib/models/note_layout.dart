@@ -274,6 +274,7 @@ class _NoteLayoutState extends State<NoteLayout> {
           'attachments': attachments,
           'synced': isEditing,
           'isFavorite': isFavorite,
+          'isEntryLocked': false,
         }, SetOptions(merge: true));
         // Set the syncing status to false after syncing
         setState(() {
@@ -281,7 +282,6 @@ class _NoteLayoutState extends State<NoteLayout> {
         });
       }
     } else if (widget.type == 'book') {
-      print("Main ID of Book: ${widget.mainId}");
       final firestore = FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
@@ -342,8 +342,7 @@ class _NoteLayoutState extends State<NoteLayout> {
       child: Scaffold(
         key: _scaffold,
         appBar: AppBar(
-          backgroundColor:
-              Theme.of(context).scaffoldBackgroundColor,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           title: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.start,
@@ -460,10 +459,11 @@ class _NoteLayoutState extends State<NoteLayout> {
                   Column(
                     children: [
                       InkWell(
-                        onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => EntriesBackgroundImages(
-                                backgroundImageNotifier:
-                                    backgroundImageNotifier))),
+                        onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                                builder: (context) => EntriesBackgroundImages(
+                                    backgroundImageNotifier:
+                                        backgroundImageNotifier))),
                         child: SizedBox(
                           width: MediaQuery.of(context).size.width,
                           height: Provider.of<BackgroundImageNotifier>(context)
@@ -474,7 +474,8 @@ class _NoteLayoutState extends State<NoteLayout> {
                                   ? MediaQuery.of(context).size.height * 0.22
                                   : Platform.isWindows
                                       ? MediaQuery.of(context).size.height * 0.3
-                                      : MediaQuery.of(context).size.height * 0.22,
+                                      : MediaQuery.of(context).size.height *
+                                          0.22,
                           child: Provider.of<BackgroundImageNotifier>(context)
                                       .backgroundImageUrl ==
                                   ''
@@ -496,15 +497,18 @@ class _NoteLayoutState extends State<NoteLayout> {
                         width: MediaQuery.of(context).size.width,
                       )
                     ],
-                  ).animate().fadeIn(duration: const Duration(milliseconds: 500)),
+                  )
+                      .animate()
+                      .fadeIn(duration: const Duration(milliseconds: 500)),
                   // Emoji box
                   Provider.of<EmojiNotifier>(context).emoji == '' ||
                           Provider.of<EmojiNotifier>(context).emoji == null
                       ? const SizedBox()
                       : Padding(
-                          padding: MediaQuery.of(context).size.width < mobileWidth
-                              ? const EdgeInsets.all(0)
-                              : const EdgeInsets.symmetric(horizontal: 250),
+                          padding:
+                              MediaQuery.of(context).size.width < mobileWidth
+                                  ? const EdgeInsets.all(0)
+                                  : const EdgeInsets.symmetric(horizontal: 250),
                           child: InkWell(
                             onTap: () =>
                                 Navigator.of(context).push(MaterialPageRoute(
@@ -593,7 +597,8 @@ class _NoteLayoutState extends State<NoteLayout> {
                   scrollController: ScrollController(),
                   configurations: QuillEditorConfigurations(
                     controller: descriptionController,
-                    padding: const EdgeInsets.only(left: 8, right: 8, bottom: 10),
+                    padding:
+                        const EdgeInsets.only(left: 8, right: 8, bottom: 10),
                     scrollable: true,
                     scrollBottomInset: 300,
                     requestKeyboardFocusOnCheckListChanged: true,
@@ -605,9 +610,11 @@ class _NoteLayoutState extends State<NoteLayout> {
                       leading: DefaultListBlockStyle(
                           TextStyle(
                             foreground: Paint()
-                              ..color =
-                                  Theme.of(context).textTheme.bodyMedium!.color ??
-                                      Colors.black,
+                              ..color = Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium!
+                                      .color ??
+                                  Colors.black,
                           ),
                           const VerticalSpacing(0, 0),
                           const VerticalSpacing(0, 0),
@@ -615,7 +622,8 @@ class _NoteLayoutState extends State<NoteLayout> {
                           null),
                       paragraph: DefaultTextBlockStyle(
                         TextStyle(
-                            color: Theme.of(context).textTheme.bodyMedium?.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                             fontSize: 16,
                             fontFamily: 'Nunito'),
                         const VerticalSpacing(0, 0),
@@ -644,9 +652,11 @@ class _NoteLayoutState extends State<NoteLayout> {
                       code: DefaultTextBlockStyle(
                         TextStyle(
                             foreground: Paint()
-                              ..color =
-                                  Theme.of(context).textTheme.bodyMedium!.color ??
-                                      Colors.black),
+                              ..color = Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium!
+                                      .color ??
+                                  Colors.black),
                         const VerticalSpacing(0, 0),
                         const VerticalSpacing(0, 0),
                         BoxDecoration(
@@ -668,9 +678,11 @@ class _NoteLayoutState extends State<NoteLayout> {
                       quote: DefaultTextBlockStyle(
                           TextStyle(
                             foreground: Paint()
-                              ..color =
-                                  Theme.of(context).textTheme.bodyMedium!.color ??
-                                      Colors.black,
+                              ..color = Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium!
+                                      .color ??
+                                  Colors.black,
                           ),
                           const VerticalSpacing(0, 0),
                           const VerticalSpacing(0, 0),
@@ -682,9 +694,11 @@ class _NoteLayoutState extends State<NoteLayout> {
                       lists: DefaultListBlockStyle(
                           TextStyle(
                             foreground: Paint()
-                              ..color =
-                                  Theme.of(context).textTheme.bodyMedium!.color ??
-                                      Colors.black,
+                              ..color = Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium!
+                                      .color ??
+                                  Colors.black,
                           ),
                           const VerticalSpacing(0, 0),
                           const VerticalSpacing(0, 0),
@@ -764,7 +778,8 @@ class _NoteLayoutState extends State<NoteLayout> {
                       : const SizedBox(),
                 ],
               ).animate().fade(
-                delay: const Duration(milliseconds: 600), curve: Curves.easeInOut)
+                delay: const Duration(milliseconds: 600),
+                curve: Curves.easeInOut)
             : const SizedBox(),
       ),
     );

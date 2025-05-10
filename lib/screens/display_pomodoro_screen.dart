@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:bloom/components/add_pomodoro.dart';
 import 'package:bloom/components/pomodoro_tile.dart';
-import 'package:bloom/required_data/colors.dart';
 import 'package:bloom/screens/pomodoro_timer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -178,8 +177,8 @@ class _DisplayPomodoroScreenState extends State<DisplayPomodoroScreen> {
                     daysOfWeekStyle: const DaysOfWeekStyle(
                         weekdayStyle: TextStyle(fontWeight: FontWeight.w500)),
                     calendarStyle: CalendarStyle(
-                      todayDecoration: const BoxDecoration(
-                        color: secondaryColorLightMode,
+                      todayDecoration:  BoxDecoration(
+                        color: Theme.of(context).primaryColor,
                         shape: BoxShape.circle,
                       ),
                       todayTextStyle: TextStyle(

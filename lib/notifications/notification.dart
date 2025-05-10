@@ -1,4 +1,5 @@
 import 'package:bloom/authentication_screens/firebase_api.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -7,6 +8,22 @@ class NotificationService {
   // Generate a unique id for each notification
   int generateUniqueId() {
     return DateTime.now().millisecondsSinceEpoch.remainder(100000);
+  }
+
+  // Check firebase for any app updates and send instant notification if yes
+  static Future<void> checkForUpdates() async {
+    FirebaseFirestore.instance
+        .collection('appData')
+        .doc('appData')
+        .get()
+        .then((value) {
+      if (value['latestAndroidVersion'] != '2.2.1') {
+        showInstantNotification(
+            'Bloom has an update!',
+            'Version ${value['latestAndroidVersion']} is now available to download',
+            DateTime.now().millisecondsSinceEpoch.remainder(100000));
+      }
+    });
   }
 
   // Intitialize the flutter_local_notifications instance

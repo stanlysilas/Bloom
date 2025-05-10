@@ -26,7 +26,7 @@ class _AddEventModalSheetState extends State<AddEventModalSheet> {
   late TimeOfDay startTime;
   late DateTime endDate;
   late TimeOfDay endTime;
-  Color? colorCode = const Color(0xFF69F0AE);
+  Color? colorCode = const Color(0xFF5E7CE2);
   int? uniqueId;
   DateTime? eventStartDateTime;
   DateTime? eventEndDateTime;
@@ -126,313 +126,318 @@ class _AddEventModalSheetState extends State<AddEventModalSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.maxFinite,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(
-            height: 20,
-          ),
-          // Event name heading
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.0),
-            child: Text(
-              'Name',
-              textAlign: TextAlign.left,
+    return SafeArea(
+      child: SizedBox(
+        width: double.maxFinite,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(
+              height: 20,
             ),
-          ),
-          const SizedBox(
-            height: 5,
-          ),
-          // Event name text field
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14.0),
-            child: MyTextfield(
-              controller: eventNameController,
-              hintText: "Attend the Zoom meeting",
-              obscureText: false,
-              textInputType: TextInputType.text,
-              autoFocus: false,
-              maxLines: 3,
-              minLines: 1,
-            ),
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          // Event notes heading
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.0),
-            child: Text(
-              'Notes',
-              textAlign: TextAlign.left,
-            ),
-          ),
-          const SizedBox(
-            height: 5,
-          ),
-          // Event details text field
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14.0),
-            child: MyTextfield(
-              controller: eventDetailsController,
-              hintText: 'Prepare a PPT for the meeting',
-              obscureText: false,
-              textInputType: TextInputType.text,
-              autoFocus: false,
-              maxLines: 6,
-              minLines: 1,
-            ),
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          // Group the start, end and color code
-          // Event other heading
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.0),
-            child: Text(
-              'Other',
-              textAlign: TextAlign.left,
-            ),
-          ),
-          const SizedBox(
-            height: 5,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14.0),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColorLight,
-                borderRadius: BorderRadius.circular(10),
+            // Event name heading
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.0),
+              child: Text(
+                'Name',
+                textAlign: TextAlign.left,
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  // Event start date and time
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Starts',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      const Spacer(),
-                      // Start Event date selection field
-                      Flexible(
-                        child: ExtraOptionsButton(
-                          outerPadding: const EdgeInsets.only(left: 14),
-                          decoration: BoxDecoration(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              borderRadius: BorderRadius.circular(8)),
-                          label: DateFormat('dd-MM-yy').format(startDate),
-                          textAlign: TextAlign.center,
-                          onTap: () {
-                            selectDate(true);
-                          },
+            ),
+            const SizedBox(
+              height: 5,
+            ),
+            // Event name text field
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14.0),
+              child: MyTextfield(
+                controller: eventNameController,
+                hintText: "Attend the Zoom meeting",
+                obscureText: false,
+                textInputType: TextInputType.text,
+                autoFocus: false,
+                maxLines: 3,
+                minLines: 1,
+              ),
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            // Event notes heading
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.0),
+              child: Text(
+                'Notes',
+                textAlign: TextAlign.left,
+              ),
+            ),
+            const SizedBox(
+              height: 5,
+            ),
+            // Event details text field
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14.0),
+              child: MyTextfield(
+                controller: eventDetailsController,
+                hintText: 'Prepare a PPT for the meeting',
+                obscureText: false,
+                textInputType: TextInputType.text,
+                autoFocus: false,
+                maxLines: 6,
+                minLines: 1,
+              ),
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            // Group the start, end and color code
+            // Event other heading
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.0),
+              child: Text(
+                'Other',
+                textAlign: TextAlign.left,
+              ),
+            ),
+            const SizedBox(
+              height: 5,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14.0),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColorLight,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    // Event start date and time
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Starts',
+                          style: TextStyle(fontSize: 16),
                         ),
-                      ),
-                      // Start Event time selection field
-                      Flexible(
-                        child: ExtraOptionsButton(
-                          outerPadding: const EdgeInsets.only(left: 14),
-                          decoration: BoxDecoration(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              borderRadius: BorderRadius.circular(8)),
-                          label: startTime.format(context),
-                          textAlign: TextAlign.center,
-                          onTap: () {
-                            selectTime(true);
-                          },
+                        const Spacer(),
+                        // Start Event date selection field
+                        Flexible(
+                          child: ExtraOptionsButton(
+                            outerPadding: const EdgeInsets.only(left: 14),
+                            decoration: BoxDecoration(
+                                color: Theme.of(context).scaffoldBackgroundColor,
+                                borderRadius: BorderRadius.circular(8)),
+                            label: DateFormat('dd-MM-yy').format(startDate),
+                            textAlign: TextAlign.center,
+                            onTap: () {
+                              selectDate(true);
+                            },
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const Divider(),
-                  // Event end date and time
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Ends',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      const Spacer(),
-                      // End Event date selection field
-                      Flexible(
-                        child: ExtraOptionsButton(
-                          outerPadding: const EdgeInsets.only(left: 14),
-                          decoration: BoxDecoration(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              borderRadius: BorderRadius.circular(8)),
-                          label: DateFormat('dd-MM-yy').format(endDate),
-                          onTap: () {
-                            selectDate(false);
-                          },
-                          textAlign: TextAlign.center,
+                        // Start Event time selection field
+                        Flexible(
+                          child: ExtraOptionsButton(
+                            outerPadding: const EdgeInsets.only(left: 14),
+                            decoration: BoxDecoration(
+                                color: Theme.of(context).scaffoldBackgroundColor,
+                                borderRadius: BorderRadius.circular(8)),
+                            label: startTime.format(context),
+                            textAlign: TextAlign.center,
+                            onTap: () {
+                              selectTime(true);
+                            },
+                          ),
                         ),
-                      ),
-                      // End Event time selection field
-                      Flexible(
-                        child: ExtraOptionsButton(
-                          outerPadding: const EdgeInsets.only(left: 14),
-                          decoration: BoxDecoration(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              borderRadius: BorderRadius.circular(8)),
-                          label: endTime.format(context),
-                          textAlign: TextAlign.center,
-                          onTap: () {
-                            selectTime(false);
-                          },
+                      ],
+                    ),
+                    const Divider(),
+                    // Event end date and time
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Ends',
+                          style: TextStyle(fontSize: 16),
                         ),
-                      ),
-                    ],
-                  ),
-                  const Divider(),
-                  // Color picker for events
-                  Row(
-                    children: [
-                      const Text(
-                        'Color code',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      const Spacer(),
-                      InkWell(
-                        onTap: () {
-                          // Show Color picker dialog for event color
-                          void changeColor(Color color) {
-                            setState(() => colorCode = color);
-                          }
-
-                          showDialog(
-                            context: context,
-                            builder: (context) {
-                              return AlertDialog(
-                                backgroundColor:
-                                    Theme.of(context).scaffoldBackgroundColor,
-                                title: Text('Select color',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.color)),
-                                content: SingleChildScrollView(
-                                  child: MaterialPicker(
-                                    pickerColor: colorCode!,
-                                    onColorChanged: changeColor,
-                                  ),
-                                ),
-                                actions: <Widget>[
-                                  InkWell(
-                                    borderRadius: BorderRadius.circular(100),
-                                    onTap: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(10.0),
-                                      child: Text(
-                                        'Select',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.color),
-                                      ),
+                        const Spacer(),
+                        // End Event date selection field
+                        Flexible(
+                          child: ExtraOptionsButton(
+                            outerPadding: const EdgeInsets.only(left: 14),
+                            decoration: BoxDecoration(
+                                color: Theme.of(context).scaffoldBackgroundColor,
+                                borderRadius: BorderRadius.circular(8)),
+                            label: DateFormat('dd-MM-yy').format(endDate),
+                            onTap: () {
+                              selectDate(false);
+                            },
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        // End Event time selection field
+                        Flexible(
+                          child: ExtraOptionsButton(
+                            outerPadding: const EdgeInsets.only(left: 14),
+                            decoration: BoxDecoration(
+                                color: Theme.of(context).scaffoldBackgroundColor,
+                                borderRadius: BorderRadius.circular(8)),
+                            label: endTime.format(context),
+                            textAlign: TextAlign.center,
+                            onTap: () {
+                              selectTime(false);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(),
+                    // Color picker for events
+                    Row(
+                      children: [
+                        const Text(
+                          'Color code',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        const Spacer(),
+                        InkWell(
+                          onTap: () {
+                            // Show Color picker dialog for event color
+                            void changeColor(Color color) {
+                              setState(() => colorCode = color);
+                            }
+      
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  backgroundColor:
+                                      Theme.of(context).scaffoldBackgroundColor,
+                                  title: Text('Select color',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.color)),
+                                  content: SingleChildScrollView(
+                                    child: MaterialPicker(
+                                      pickerColor: colorCode!,
+                                      onColorChanged: changeColor,
                                     ),
                                   ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                        child: Container(
-                          width: 20,
-                          height: 20,
-                          decoration: BoxDecoration(
-                              color: colorCode,
-                              borderRadius: BorderRadius.circular(1000)),
-                        ),
-                      )
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const Spacer(),
-          // Submit / add event button
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8),
-            child: InkWell(
-              onTap: () async {
-                // Create and merge the start date, time into one variable
-                DateTime startDateTime = DateTime(
-                    startDate.year,
-                    startDate.month,
-                    startDate.day,
-                    startTime.hour,
-                    startTime.minute,
-                    startDate.second);
-                // Create and merge the start date, time into one variable
-                DateTime endDateTime = DateTime(endDate.year, endDate.month,
-                    endDate.day, endTime.hour, endTime.minute, endDate.second);
-                // Logic to add event to firebase firestore
-                addEventToFirebase();
-                // Schedule notifications
-                // Event start notification
-                await NotificationService.scheduleEventsNotification(
-                  uniqueId!,
-                  'Event start reminder!',
-                  eventNameController.text.trim(),
-                  startDateTime,
-                  Importance.defaultImportance,
-                  Priority.defaultPriority,
-                );
-                // Event end notification
-                await NotificationService.scheduleEventsNotification(
-                  uniqueId!,
-                  'Event end reminder!',
-                  eventNameController.text.trim(),
-                  endDateTime,
-                  Importance.defaultImportance,
-                  Priority.defaultPriority,
-                );
-                // Show confirmation of added
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    margin: const EdgeInsets.all(6),
-                    behavior: SnackBarBehavior.floating,
-                    showCloseIcon: true,
-                    backgroundColor: Theme.of(context).primaryColor,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    content: Text(
-                      'Event succesfully scheduled!',
-                      style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyMedium?.color),
+                                  actions: <Widget>[
+                                    InkWell(
+                                      borderRadius: BorderRadius.circular(100),
+                                      onTap: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(10.0),
+                                        child: Text(
+                                          'Select',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              color: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium
+                                                  ?.color),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          child: Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                                color: colorCode,
+                                borderRadius: BorderRadius.circular(1000)),
+                          ),
+                        )
+                      ],
                     ),
-                  ),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                width: double.maxFinite,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(1000),
-                  color: Theme.of(context).primaryColor,
+                  ],
                 ),
-                child: const Text('Add new event',
-                    style:
-                        TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
               ),
             ),
-          )
-        ],
+            const Spacer(),
+            // Submit / add event button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8),
+              child: InkWell(
+                onTap: () async {
+                  // Create and merge the start date, time into one variable
+                  DateTime startDateTime = DateTime(
+                      startDate.year,
+                      startDate.month,
+                      startDate.day,
+                      startTime.hour,
+                      startTime.minute,
+                      startDate.second);
+                  // Create and merge the start date, time into one variable
+                  DateTime endDateTime = DateTime(endDate.year, endDate.month,
+                      endDate.day, endTime.hour, endTime.minute, endDate.second);
+                  // Logic to add event to firebase firestore
+                  addEventToFirebase();
+                  // Schedule notifications
+                  // Event start notification
+                  await NotificationService.scheduleEventsNotification(
+                    uniqueId!,
+                    'Event start reminder!',
+                    eventNameController.text.trim(),
+                    startDateTime,
+                    Importance.defaultImportance,
+                    Priority.defaultPriority,
+                  );
+                  // Event end notification
+                  await NotificationService.scheduleEventsNotification(
+                    uniqueId!,
+                    'Event end reminder!',
+                    eventNameController.text.trim(),
+                    endDateTime,
+                    Importance.defaultImportance,
+                    Priority.defaultPriority,
+                  );
+                  // Show confirmation of added
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      margin: const EdgeInsets.all(6),
+                      behavior: SnackBarBehavior.floating,
+                      showCloseIcon: true,
+                      backgroundColor: Theme.of(context).primaryColor,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      content: Text(
+                        'Event succesfully scheduled!',
+                        style: TextStyle(
+                            color:
+                                Theme.of(context).textTheme.labelMedium?.color),
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  width: double.maxFinite,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(1000),
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  child: Text('Add new event',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: Theme.of(context).textTheme.bodyMedium?.color)),
+                ),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

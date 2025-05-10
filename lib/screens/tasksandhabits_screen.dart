@@ -4,7 +4,6 @@ import 'package:bloom/components/add_taskorhabit.dart';
 import 'package:bloom/components/mybuttons.dart';
 import 'package:bloom/components/mytextfield.dart';
 import 'package:bloom/components/tasktile.dart';
-import 'package:bloom/required_data/colors.dart';
 import 'package:bloom/screens/habitstabview.dart';
 import 'package:bloom/screens/taskstabview.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -480,8 +479,9 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
                 daysOfWeekStyle: const DaysOfWeekStyle(
                     weekdayStyle: TextStyle(fontWeight: FontWeight.w500)),
                 calendarStyle: CalendarStyle(
-                  todayDecoration: const BoxDecoration(
-                    color: secondaryColorLightMode,
+                  isTodayHighlighted: false,
+                  todayDecoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor,
                     shape: BoxShape.circle,
                   ),
                   todayTextStyle: TextStyle(
@@ -491,12 +491,12 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
                     shape: BoxShape.circle,
                   ),
                   selectedTextStyle: TextStyle(
-                      color: Theme.of(context).textTheme.labelMedium?.color),
+                      color: Theme.of(context).textTheme.bodyMedium?.color),
                   weekendTextStyle: TextStyle(
                     color: Theme.of(context).primaryColorDark,
                   ),
-                  markerDecoration: const BoxDecoration(
-                    color: secondaryColorLightMode,
+                  markerDecoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor,
                     shape: BoxShape.circle,
                   ),
                   markersAlignment: Alignment.bottomCenter,
@@ -607,7 +607,7 @@ class _TaskScreenState extends State<TaskScreen> with TickerProviderStateMixin {
           child: Icon(
             Icons.add,
             size: 25,
-            color: Theme.of(context).textTheme.labelMedium?.color,
+            color: Theme.of(context).textTheme.bodyMedium?.color,
           ),
         ).animate().scaleXY(
               curve: Curves.easeInOutBack,

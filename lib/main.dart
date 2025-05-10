@@ -5,6 +5,7 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:bloom/ads/ad_service.dart';
 import 'package:bloom/authentication_screens/authenticateuser.dart';
 import 'package:bloom/models/note_layout.dart';
+import 'package:bloom/notifications/notification.dart';
 import 'package:bloom/screens/pomodoro_timer.dart';
 import 'package:bloom/theme/color_scheme_provider.dart';
 import 'package:bloom/theme/theme_provider.dart';
@@ -30,6 +31,9 @@ Future<void> main() async {
   ADService().initializeADS();
   final prefs = await SharedPreferences.getInstance();
   final showHome = prefs.getBool('showHome') ?? false;
+
+  // Check for the app update if any
+  await NotificationService.checkForUpdates();
 
   runApp(
     BetterFeedback(

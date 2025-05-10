@@ -92,44 +92,43 @@ class _HabitstabviewState extends State<Habitstabview> {
                       ).animate().fade(delay: const Duration(milliseconds: 50));
                     }
                     if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
-                      return const SizedBox(
-                        child: Padding(
+                      return Center(
+                        child: const Padding(
                           padding: EdgeInsets.only(left: 14.0, right: 14.0),
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Image(
-                                  image: AssetImage(
-                                      'assets/images/allCompletedBackground.png'),
-                                ),
-                                Text(
-                                  'No habits...',
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w500),
-                                  textAlign: TextAlign.center,
-                                ),
-                                SizedBox(
-                                  height: 4,
-                                ),
-                                Text(
-                                  'Click on the + icon to create and nurture a new good habit',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.grey),
-                                  textAlign: TextAlign.center,
-                                ),
-                                SizedBox(
-                                  height: 14,
-                                )
-                              ],
-                            ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image(
+                                height: 200,
+                                width: 200,
+                                image: AssetImage(
+                                    'assets/images/allCompletedBackground.png'),
+                              ),
+                              Text(
+                                'No habits...',
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.w500),
+                                textAlign: TextAlign.center,
+                              ),
+                              SizedBox(
+                                height: 4,
+                              ),
+                              Text(
+                                'Click on the + icon to create and nurture a new good habit',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey),
+                                textAlign: TextAlign.center,
+                              ),
+                              SizedBox(
+                                height: 14,
+                              )
+                            ],
                           ),
-                        ),
-                      )
-                          .animate()
-                          .fade(delay: const Duration(milliseconds: 100));
+                        )
+                            .animate()
+                            .fade(delay: const Duration(milliseconds: 100)),
+                      );
                     }
                     if (snapshot.hasError) {
                       return const Center(
@@ -155,6 +154,7 @@ class _HabitstabviewState extends State<Habitstabview> {
                           List daysOfWeek = data['daysOfWeek'] ?? [];
                           List completedDaysOfWeek =
                               data['completedDaysOfWeek'] ?? [];
+                          List completedDates = data['completedDates'] ?? [];
                           DateTime habitDateTime = timestamp.toDate();
                           List habitGroups = data['habitGroups'];
                           Timestamp timeStamp = data['addedOn'];
@@ -162,8 +162,8 @@ class _HabitstabviewState extends State<Habitstabview> {
                           return Column(
                             children: [
                               HabitTile(
-                                innerPadding: const EdgeInsets.only(
-                                    right: 14, top: 4, bottom: 4),
+                                innerPadding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 4),
                                 habitId: habitId,
                                 habitName: habitName,
                                 habitNotes: habitNotes,
@@ -173,6 +173,7 @@ class _HabitstabviewState extends State<Habitstabview> {
                                 completedDaysOfWeek: completedDaysOfWeek,
                                 addedOn: addedOn,
                                 habitUniqueId: habitUniqueId,
+                                completedDates: completedDates,
                               ),
                               Padding(
                                 padding: const EdgeInsets.symmetric(

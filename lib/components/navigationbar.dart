@@ -34,30 +34,41 @@ class _NavigationbarState extends State<Navigationbar> {
     return Scaffold(
       body: screens[currentPageIndex],
       bottomNavigationBar: NavigationBar(
-        indicatorColor: Theme.of(context).scaffoldBackgroundColor,
+        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+        indicatorColor: Theme.of(context).primaryColor,
         destinations: const [
           NavigationDestination(
-            icon: Icon(Iconsax.home),
+            icon: Icon(
+              Iconsax.home,
+            ),
             label: 'Home',
             tooltip: 'Home',
           ),
           NavigationDestination(
-            icon: Icon(Iconsax.task_square4),
+            icon: Icon(
+              Iconsax.task_square4,
+            ),
             label: 'Goals',
             tooltip: 'Goals',
           ),
           NavigationDestination(
-            icon: Icon(Iconsax.calendar_1),
+            icon: Icon(
+              Iconsax.calendar_1,
+            ),
             label: 'Schedules',
             tooltip: 'Schedules',
           ),
           NavigationDestination(
-            icon: Icon(Iconsax.book),
+            icon: Icon(
+              Iconsax.book,
+            ),
             label: 'Entries',
             tooltip: 'Entries',
           ),
           NavigationDestination(
-            icon: Icon(Iconsax.more),
+            icon: Icon(
+              Iconsax.more,
+            ),
             label: 'More',
             tooltip: 'More',
           ),

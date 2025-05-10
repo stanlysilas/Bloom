@@ -12,7 +12,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AddTaskOrHabitModal extends StatefulWidget {
   final DateTime currentDateTime;
   final bool? isHabit;
-  const AddTaskOrHabitModal({super.key, required this.currentDateTime, this.isHabit});
+  const AddTaskOrHabitModal(
+      {super.key, required this.currentDateTime, this.isHabit});
 
   @override
   State<AddTaskOrHabitModal> createState() => AddTaskOrHabitModalState();
@@ -157,6 +158,7 @@ class AddTaskOrHabitModalState extends State<AddTaskOrHabitModal> {
         'habitNotes': taskNotesController.text,
         'daysOfWeek': daysOfWeekInt,
         'completedDaysOfWeek': [],
+        'completedDates': [],
         'habitGroups': taskGroups,
         'habitDateTime': dateTime,
         'addedOn': DateTime.now(),
@@ -219,7 +221,7 @@ class AddTaskOrHabitModalState extends State<AddTaskOrHabitModal> {
                         const SizedBox(height: 18),
                         // Details about habits
                         const Text(
-                          "When you enable 'Repeat' on a task it becomes a Habit.",
+                          "When you enable 'Habit' on a task it becomes a Habit.",
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 15),
@@ -880,7 +882,7 @@ class AddTaskOrHabitModalState extends State<AddTaskOrHabitModal> {
                                     style: TextStyle(
                                         color: Theme.of(context)
                                             .textTheme
-                                            .bodyMedium
+                                            .labelMedium
                                             ?.color),
                                   ),
                                 ),
@@ -957,16 +959,16 @@ class AddTaskOrHabitModalState extends State<AddTaskOrHabitModal> {
                   if (isHabit == true) {
                     await addToFirebase(taskDateTime);
                     // Schedule recurring notification for habit
-                    await NotificationService
-                        .scheduleRecurringHabitNotification(
-                      habitsUniqueId!,
-                      'Habit reminder!',
-                      taskNameController.text,
-                      taskDateTime,
-                      daysOfWeekInt,
-                      importance,
-                      priority,
-                    );
+                    // await NotificationService
+                    //     .scheduleRecurringHabitNotification(
+                    //   habitsUniqueId!,
+                    //   'Habit reminder!',
+                    //   taskNameController.text,
+                    //   taskDateTime,
+                    //   daysOfWeekInt,
+                    //   importance,
+                    //   priority,
+                    // );
                     // Show confirmation that habit is added
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -1032,8 +1034,11 @@ class AddTaskOrHabitModalState extends State<AddTaskOrHabitModal> {
                   child: Center(
                     child: Text(
                       isHabit == true ? 'Create new habit' : 'Create new task',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 16),
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color:
+                              Theme.of(context).textTheme.bodyMedium?.color),
                     ),
                   ),
                 ),

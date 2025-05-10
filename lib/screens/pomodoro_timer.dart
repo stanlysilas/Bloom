@@ -95,7 +95,7 @@ class _PomodoroTimerScreenState extends State<PomodoroTimerScreen> {
       ),
       body: Container(
         height: double.maxFinite,
-        padding: EdgeInsets.symmetric(horizontal: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: const BoxDecoration(
             // image: DecorationImage(
             //     fit: BoxFit.cover,
@@ -197,7 +197,7 @@ class _PomodoroTimerScreenState extends State<PomodoroTimerScreen> {
             // Button to change or turn off background ambient music
             ElevatedButton(
                 onPressed: () {},
-                child: Row(
+                child: const Row(
                   children: [Icon(Iconsax.play)],
                 )),
             const SizedBox(height: 20),

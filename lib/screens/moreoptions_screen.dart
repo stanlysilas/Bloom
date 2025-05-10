@@ -134,7 +134,6 @@ class _MoreOptionsScreenState extends State<MoreOptionsScreen> {
           } else {
             subscriptionPlan = 'ultra';
           }
-          print(subscriptionPlan);
         });
       }
     } catch (e) {

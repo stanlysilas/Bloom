@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:bloom/components/mybuttons.dart';
 import 'package:bloom/components/overview_data.dart';
 import 'package:bloom/models/dashboard_card_layout.dart';
-import 'package:bloom/required_data/colors.dart';
 // import 'package:bloom/screens/garden.dart';
 import 'package:bloom/screens/profile_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -243,7 +242,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               height: 12,
               width: 12,
               decoration: BoxDecoration(
-                color: secondaryColorLightMode,
+                color: Theme.of(context).primaryColor,
                 borderRadius: BorderRadius.circular(100),
               ),
             ),
@@ -604,18 +603,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 dataOverviewCheck(focusedDay);
               },
               calendarStyle: CalendarStyle(
-                todayDecoration: const BoxDecoration(
-                  color: secondaryColorLightMode,
+                isTodayHighlighted: false,
+                todayDecoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor,
                   shape: BoxShape.circle,
                 ),
                 todayTextStyle: TextStyle(
-                    color: Theme.of(context).textTheme.labelMedium?.color),
+                    color: Theme.of(context).textTheme.bodyMedium?.color),
                 selectedDecoration: BoxDecoration(
                   color: Theme.of(context).primaryColor,
                   shape: BoxShape.circle,
                 ),
                 selectedTextStyle: TextStyle(
-                    color: Theme.of(context).textTheme.labelMedium?.color),
+                    color: Theme.of(context).textTheme.bodyMedium?.color),
                 weekendTextStyle: TextStyle(
                   color: Theme.of(context).primaryColorDark,
                 ),
@@ -641,6 +641,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           children: [
                             Expanded(
                               child: Image(
+                                height: 200,
+                                width: 200,
                                 image: AssetImage(
                                     'assets/images/allCompletedBackground.png'),
                               ),
@@ -736,7 +738,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Icon(
             Icons.add,
             size: 25,
-            color: Theme.of(context).textTheme.labelMedium?.color,
+            color: Theme.of(context).textTheme.bodyMedium?.color,
           ),
         ).animate().scaleXY(
               curve: Curves.easeInOutBack,

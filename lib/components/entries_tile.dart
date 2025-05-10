@@ -339,6 +339,7 @@ class EntriesTile extends StatelessWidget {
                 ),
               ),
               Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   // Date and time of the entry
                   Text(

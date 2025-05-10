@@ -1,5 +1,4 @@
 import 'package:bloom/components/mybuttons.dart';
-import 'package:bloom/required_data/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -68,12 +67,19 @@ class _NotificationPreferencesState extends State<NotificationPreferences> {
                 showDialog(
                     context: context,
                     builder: (context) {
-                      return AlertDialog(
+                      return AlertDialog.adaptive(
                         backgroundColor:
                             Theme.of(context).scaffoldBackgroundColor,
-                        icon: Icon(notificationEnabled == true
-                            ? Icons.warning_amber_rounded
-                            : Icons.notifications_active_outlined),
+                        icon: Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).primaryColor,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(notificationEnabled == true
+                              ? Icons.warning_amber_rounded
+                              : Icons.notifications_active_outlined),
+                        ),
                         iconColor: notificationEnabled == true
                             ? Colors.red
                             : Theme.of(context).primaryColor,
@@ -103,13 +109,10 @@ class _NotificationPreferencesState extends State<NotificationPreferences> {
                               // Cancel and close the dialog
                               Navigator.pop(context);
                             },
-                            child: Padding(
-                              padding: const EdgeInsets.all(6),
+                            child: const Padding(
+                              padding: EdgeInsets.all(6),
                               child: Text(
                                 'Cancel',
-                                style: TextStyle(
-                                    color:
-                                        secondaryColorLightMode.withAlpha(255)),
                               ),
                             ),
                           ),
@@ -120,10 +123,17 @@ class _NotificationPreferencesState extends State<NotificationPreferences> {
                               await openAppSettings();
                               Navigator.pop(context);
                             },
-                            child: const Padding(
-                              padding: EdgeInsets.all(10),
+                            child: Padding(
+                              padding: const EdgeInsets.all(10),
                               child: Text(
                                 'Turn off',
+                                style: TextStyle(
+                                    color: notificationEnabled == false
+                                        ? Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.color
+                                        : Colors.red),
                               ),
                             ),
                           ),

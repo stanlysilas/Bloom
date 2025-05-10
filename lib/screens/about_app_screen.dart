@@ -17,7 +17,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
   final Uri downloadLatestVersionUri = Uri.parse(
       'https://drive.google.com/drive/folders/1-1yrxBKQtcWMIEDnDUZDLJVOPFsAtx6n?usp=drive_link');
 
-  final String currentVersion = "2.2.0";
+  final String currentVersion = "2.2.1";
   late BannerAd bannerAd;
   bool isAdLoaded = false;
   bool? isUpdateAvailable;
