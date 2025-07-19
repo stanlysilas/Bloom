@@ -3,7 +3,7 @@
 
 Bloom by Everflow is an all-in-one Productivity application for Android and Windows.
 
-['Bloom official website'](https://bloomproductive.wixsite.com/bloomproductive)
+['Bloom official website'](https://bloomproductive.framer.website/)
 
 ## How to Download
 
