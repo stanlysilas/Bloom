@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:bloom/components/custom_textediting_toolbar.dart';
 import 'package:bloom/components/more_entry_options.dart';
 import 'package:bloom/components/textfield_nobackground.dart';
+// import 'package:bloom/models/bloom_ai.dart';
 import 'package:bloom/responsive/dimensions.dart';
 import 'package:bloom/screens/entries_background_images.dart';
 import 'package:bloom/screens/entries_icon_picker.dart';
@@ -16,7 +17,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -117,6 +117,8 @@ class _NoteLayoutState extends State<NoteLayout> {
   final GlobalKey _scaffold = GlobalKey();
   late BackgroundImageNotifier backgroundImageNotifier;
   late EmojiNotifier emojiNotifier;
+  bool textFormatEnabled = false;
+  bool bloomAIEnabled = false;
 //   CharacterShortcutEvent openToolbar = CharacterShortcutEvent(
 //     key: 'Show the toolbar for desktop when / is typed',
 //     character: '/',
@@ -338,177 +340,200 @@ class _NoteLayoutState extends State<NoteLayout> {
   @override
   Widget build(BuildContext mainContext) {
     final focusProvider = Provider.of<EditorFocusProvider>(context);
-    return SafeArea(
-      child: Scaffold(
-        key: _scaffold,
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          title: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Text(
-                Provider.of<EmojiNotifier>(context).emoji.toString(),
-              ),
-              const SizedBox(
-                height: 3,
-              ),
-              Expanded(
-                child: Text(
-                  widget.title!.isEmpty || widget.title == null
-                      ? 'Untitled'
-                      : widget.title!,
-                  style: const TextStyle(fontWeight: FontWeight.w500),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            // Sync status of the entry
-            Padding(
-              padding: const EdgeInsets.only(left: 8.0, top: 2),
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
-                  color: Theme.of(context).primaryColorLight,
-                ),
-                child: isSynced
-                    ? Tooltip(
-                        message: 'Syncing',
-                        child: Container(
-                          height: 8,
-                          width: 8,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(25),
-                            color: Colors.blue,
-                          ),
-                        ),
-                      )
-                    : Tooltip(
-                        message: 'Synced',
-                        child: Container(
-                          height: 8,
-                          width: 8,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(25),
-                            color: Colors.green,
-                          ),
-                        ),
-                      ),
-              ),
+    return Scaffold(
+      key: _scaffold,
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        title: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Text(
+              Provider.of<EmojiNotifier>(context).emoji.toString(),
             ),
             const SizedBox(
-              width: 6,
+              height: 3,
             ),
-            // More options button
-            Padding(
-              padding: const EdgeInsets.only(top: 2.0, right: 4),
-              child: IconButton(
-                tooltip: 'Show menu',
-                onPressed: () async {
-                  countWords();
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    useSafeArea: true,
-                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width,
-                      maxHeight: MediaQuery.of(context).size.height,
-                    ),
-                    builder: (BuildContext context) {
-                      return SizedBox(
-                        height: MediaQuery.of(context).size.height,
-                        child: MoreEntryOptions(
-                          entryId: widget.noteId ?? '',
-                          syncingStatus: isEditing,
-                          numberOfWords: wordNum,
-                          emoji: emoji,
-                          emojiNotifier: emojiNotifier,
-                          backgroundImageNotifier: backgroundImageNotifier,
-                          isFavorite: isFavorite,
-                          onDataChanged: onDataChanged,
-                          dateTime: widget.dateTime,
-                          isEntryLocked: widget.isEntryLocked,
-                          controller: descriptionController,
-                          type: type!,
-                          mainId: widget.mainId,
-                        ),
-                      );
-                    },
-                    showDragHandle: true,
-                  );
-                },
-                icon: const Icon(
-                  Iconsax.more,
-                ),
-              ),
+            Expanded(
+              child: Text(widget.title!.isEmpty || widget.title == null
+                  ? 'Untitled'
+                  : widget.title!),
             ),
           ],
         ),
-        body: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Stack for displaying background image and emoji on top of each other
-              // Baackground Image
-              Stack(
-                alignment: Alignment.bottomLeft,
-                children: [
-                  Column(
-                    children: [
-                      InkWell(
-                        onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                                builder: (context) => EntriesBackgroundImages(
-                                    backgroundImageNotifier:
-                                        backgroundImageNotifier))),
-                        child: SizedBox(
-                          width: MediaQuery.of(context).size.width,
-                          height: Provider.of<BackgroundImageNotifier>(context)
-                                      .backgroundImageUrl ==
-                                  ''
-                              ? 100
-                              : Platform.isAndroid
-                                  ? MediaQuery.of(context).size.height * 0.22
-                                  : Platform.isWindows
-                                      ? MediaQuery.of(context).size.height * 0.3
-                                      : MediaQuery.of(context).size.height *
-                                          0.22,
-                          child: Provider.of<BackgroundImageNotifier>(context)
-                                      .backgroundImageUrl ==
-                                  ''
-                              ? const SizedBox()
-                              : Image.asset(
-                                  Provider.of<BackgroundImageNotifier>(context)
-                                      .backgroundImageUrl
-                                      .toString(),
-                                  fit: BoxFit.cover,
-                                ).animate().fadeIn(
-                                    duration: const Duration(
-                                      milliseconds: 500,
-                                    ),
-                                  ),
+        actions: [
+          // Sync status of the entry
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0, top: 2),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                color: Theme.of(context).primaryColorLight,
+              ),
+              child: isSynced
+                  ? Tooltip(
+                      message: 'Syncing',
+                      child: Container(
+                        height: 8,
+                        width: 8,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(25),
+                          color: Colors.blue,
                         ),
                       ),
-                      SizedBox(
-                        height: 36,
+                    )
+                  : Tooltip(
+                      message: 'Synced',
+                      child: Container(
+                        height: 8,
+                        width: 8,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(25),
+                          color: Colors.green,
+                        ),
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(
+            width: 6,
+          ),
+          // More options button
+          Padding(
+            padding: const EdgeInsets.only(top: 2.0, right: 4),
+            child: IconButton(
+              tooltip: 'Menu',
+              onPressed: () async {
+                countWords();
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  useSafeArea: true,
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                  // constraints: BoxConstraints(
+                  //   maxWidth: MediaQuery.of(context).size.width,
+                  //   maxHeight: MediaQuery.of(context).size.height,
+                  // ),
+                  builder: (BuildContext context) {
+                    return MoreEntryOptions(
+                      entryId: widget.noteId ?? '',
+                      syncingStatus: isEditing,
+                      numberOfWords: wordNum,
+                      emoji: emoji,
+                      emojiNotifier: emojiNotifier,
+                      backgroundImageNotifier: backgroundImageNotifier,
+                      isFavorite: isFavorite,
+                      onDataChanged: onDataChanged,
+                      dateTime: widget.dateTime,
+                      isEntryLocked: widget.isEntryLocked,
+                      controller: descriptionController,
+                      type: type!,
+                      mainId: widget.mainId,
+                      titleController: titleController,
+                    );
+                  },
+                  showDragHandle: true,
+                );
+              },
+              icon: const Icon(
+                Icons.more_horiz_rounded,
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Stack for displaying background image and emoji on top of each other
+            // Baackground Image
+            Stack(
+              alignment: Alignment.bottomLeft,
+              children: [
+                Column(
+                  children: [
+                    InkWell(
+                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => EntriesBackgroundImages(
+                              backgroundImageNotifier:
+                                  backgroundImageNotifier))),
+                      child: SizedBox(
                         width: MediaQuery.of(context).size.width,
-                      )
-                    ],
-                  )
-                      .animate()
-                      .fadeIn(duration: const Duration(milliseconds: 500)),
-                  // Emoji box
+                        height: Provider.of<BackgroundImageNotifier>(context)
+                                    .backgroundImageUrl ==
+                                ''
+                            ? 100
+                            : Platform.isAndroid
+                                ? MediaQuery.of(context).size.height * 0.22
+                                : Platform.isWindows
+                                    ? MediaQuery.of(context).size.height * 0.3
+                                    : MediaQuery.of(context).size.height * 0.22,
+                        child: Provider.of<BackgroundImageNotifier>(context)
+                                    .backgroundImageUrl ==
+                                ''
+                            ? const SizedBox()
+                            : Image.asset(
+                                Provider.of<BackgroundImageNotifier>(context)
+                                    .backgroundImageUrl
+                                    .toString(),
+                                fit: BoxFit.cover,
+                              ).animate().fadeIn(
+                                  duration: const Duration(
+                                    milliseconds: 500,
+                                  ),
+                                ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 36,
+                      width: MediaQuery.of(context).size.width,
+                    )
+                  ],
+                ).animate().fadeIn(duration: const Duration(milliseconds: 500)),
+                // Emoji box
+                Provider.of<EmojiNotifier>(context).emoji == '' ||
+                        Provider.of<EmojiNotifier>(context).emoji == null
+                    ? const SizedBox()
+                    : Padding(
+                        padding: MediaQuery.of(context).size.width < mobileWidth
+                            ? const EdgeInsets.all(0)
+                            : const EdgeInsets.symmetric(horizontal: 250),
+                        child: InkWell(
+                          onTap: () =>
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => EntriesIconPicker(
+                                        icon: emoji,
+                                        iconNotifier: emojiNotifier,
+                                      ))),
+                          // Emoji container
+                          child: Container(
+                            height: 70,
+                            width: 70,
+                            alignment: Alignment.bottomCenter,
+                            child: Text(
+                              Provider.of<EmojiNotifier>(context)
+                                  .emoji
+                                  .toString(),
+                              style: const TextStyle(fontSize: 45),
+                            ),
+                          ),
+                        ),
+                      ),
+              ],
+            ),
+            // Display the add icon button if no icon exists
+            Padding(
+              padding: MediaQuery.of(context).size.width < mobileWidth
+                  ? const EdgeInsets.all(0)
+                  : const EdgeInsets.symmetric(horizontal: 250),
+              child: Row(
+                children: [
                   Provider.of<EmojiNotifier>(context).emoji == '' ||
                           Provider.of<EmojiNotifier>(context).emoji == null
-                      ? const SizedBox()
-                      : Padding(
-                          padding:
-                              MediaQuery.of(context).size.width < mobileWidth
-                                  ? const EdgeInsets.all(0)
-                                  : const EdgeInsets.symmetric(horizontal: 250),
+                      ? Padding(
+                          padding: const EdgeInsets.only(left: 8.0, top: 2),
                           child: InkWell(
                             onTap: () =>
                                 Navigator.of(context).push(MaterialPageRoute(
@@ -516,272 +541,249 @@ class _NoteLayoutState extends State<NoteLayout> {
                                           icon: emoji,
                                           iconNotifier: emojiNotifier,
                                         ))),
-                            // Emoji container
                             child: Container(
-                              height: 70,
-                              width: 70,
-                              alignment: Alignment.bottomCenter,
-                              child: Text(
-                                Provider.of<EmojiNotifier>(context)
-                                    .emoji
-                                    .toString(),
-                                style: const TextStyle(fontSize: 45),
-                              ),
-                            ),
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(4),
+                                  color: Theme.of(context).primaryColorLight,
+                                ),
+                                child: const Text(
+                                  'Add icon',
+                                  style: TextStyle(
+                                      fontSize: 12, color: Colors.grey),
+                                )),
                           ),
-                        ),
+                        )
+                      : const SizedBox(),
                 ],
               ),
-              // Display the add icon button if no icon exists
-              Padding(
-                padding: MediaQuery.of(context).size.width < mobileWidth
-                    ? const EdgeInsets.all(0)
-                    : const EdgeInsets.symmetric(horizontal: 250),
-                child: Row(
-                  children: [
-                    Provider.of<EmojiNotifier>(context).emoji == '' ||
-                            Provider.of<EmojiNotifier>(context).emoji == null
-                        ? Padding(
-                            padding: const EdgeInsets.only(left: 8.0, top: 2),
-                            child: InkWell(
-                              onTap: () =>
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (context) => EntriesIconPicker(
-                                            icon: emoji,
-                                            iconNotifier: emojiNotifier,
-                                          ))),
-                              child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(4),
-                                    color: Theme.of(context).primaryColorLight,
-                                  ),
-                                  child: const Text(
-                                    'Add icon',
-                                    style: TextStyle(
-                                        fontSize: 12, color: Colors.grey),
-                                  )),
-                            ),
-                          )
-                        : const SizedBox(),
-                  ],
-                ),
+            ),
+            // Title of the note should be displayed here
+            Padding(
+              padding: MediaQuery.of(context).size.width < mobileWidth
+                  ? const EdgeInsets.symmetric(horizontal: 8)
+                  : const EdgeInsets.symmetric(horizontal: 250),
+              child: MyTextfieldNobackground(
+                readOnly: false,
+                controller: titleController,
+                focusNode: titleFocusNode,
+                maxLines: 1,
+                hintText: 'Title',
+                style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).textTheme.bodyMedium?.color),
               ),
-              // Title of the note should be displayed here
-              Padding(
-                padding: MediaQuery.of(context).size.width < mobileWidth
-                    ? const EdgeInsets.symmetric(horizontal: 8)
-                    : const EdgeInsets.symmetric(horizontal: 250),
-                child: MyTextfieldNobackground(
-                  readOnly: false,
-                  controller: titleController,
-                  focusNode: titleFocusNode,
-                  maxLines: 1,
-                  hintText: 'Title',
-                  style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).textTheme.bodyMedium?.color),
-                ),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              // Description of the note should be displayed here
-              Padding(
-                padding: MediaQuery.of(context).size.width < mobileWidth
-                    ? const EdgeInsets.all(0)
-                    : const EdgeInsets.symmetric(horizontal: 250),
-                child: QuillEditor(
-                  focusNode: focusProvider.editorFocusNode,
-                  scrollController: ScrollController(),
-                  configurations: QuillEditorConfigurations(
-                    controller: descriptionController,
-                    padding:
-                        const EdgeInsets.only(left: 8, right: 8, bottom: 10),
-                    scrollable: true,
-                    scrollBottomInset: 300,
-                    requestKeyboardFocusOnCheckListChanged: true,
-                    placeholder: 'Start typing here',
-                    enableScribble: true,
-                    isOnTapOutsideEnabled: true,
-                    customStyles: DefaultStyles(
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
-                      leading: DefaultListBlockStyle(
-                          TextStyle(
-                            foreground: Paint()
-                              ..color = Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium!
-                                      .color ??
-                                  Colors.black,
-                          ),
-                          const VerticalSpacing(0, 0),
-                          const VerticalSpacing(0, 0),
-                          null,
-                          null),
-                      paragraph: DefaultTextBlockStyle(
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            // Description of the note should be displayed here
+            Padding(
+              padding: MediaQuery.of(context).size.width < mobileWidth
+                  ? const EdgeInsets.all(0)
+                  : const EdgeInsets.symmetric(horizontal: 250),
+              child: QuillEditor(
+                focusNode: focusProvider.editorFocusNode,
+                scrollController: ScrollController(),
+                controller: descriptionController,
+                config: QuillEditorConfig(
+                  padding: const EdgeInsets.only(left: 8, right: 8, bottom: 10),
+                  scrollable: true,
+                  scrollBottomInset: 300,
+                  requestKeyboardFocusOnCheckListChanged: true,
+                  placeholder: 'Start typing here',
+                  enableScribble: true,
+                  onTapOutsideEnabled: true,
+                  customStyles: DefaultStyles(
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                    leading: DefaultListBlockStyle(
+                        TextStyle(
+                          foreground: Paint()
+                            ..color =
+                                Theme.of(context).textTheme.bodyMedium!.color ??
+                                    Colors.black,
+                        ),
+                        const HorizontalSpacing(0, 0),
+                        const VerticalSpacing(0, 0),
+                        const VerticalSpacing(0, 0),
+                        null,
+                        null),
+                    paragraph: DefaultTextBlockStyle(
                         TextStyle(
                             color:
                                 Theme.of(context).textTheme.bodyMedium?.color,
                             fontSize: 16,
                             fontFamily: 'Nunito'),
+                        const HorizontalSpacing(0, 0),
                         const VerticalSpacing(0, 0),
                         const VerticalSpacing(0, 0),
-                        const BoxDecoration(),
-                      ),
-                      bold: TextStyle(
-                          color: Theme.of(context).textTheme.bodyMedium?.color,
-                          fontWeight: FontWeight.bold),
-                      italic: TextStyle(
-                          color: Theme.of(context).textTheme.bodyMedium?.color,
-                          fontStyle: FontStyle.italic),
-                      underline:
-                          const TextStyle(decoration: TextDecoration.underline),
-                      small: TextStyle(
-                          color: Theme.of(context).textTheme.bodyMedium?.color),
-                      sizeHuge: TextStyle(
-                          color: Theme.of(context).textTheme.bodyMedium?.color,
-                          fontSize: 22),
-                      sizeLarge: TextStyle(
-                          color: Theme.of(context).textTheme.bodyMedium?.color,
-                          fontSize: 18),
-                      sizeSmall: TextStyle(
-                          color: Theme.of(context).textTheme.bodyMedium?.color,
-                          fontSize: 16),
-                      code: DefaultTextBlockStyle(
-                        TextStyle(
+                        null),
+                    bold: TextStyle(
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                        fontWeight: FontWeight.bold),
+                    italic: TextStyle(
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                        fontStyle: FontStyle.italic),
+                    underline:
+                        const TextStyle(decoration: TextDecoration.underline),
+                    small: TextStyle(
+                        color: Theme.of(context).textTheme.bodyMedium?.color),
+                    sizeHuge: TextStyle(
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                        fontSize: 22),
+                    sizeLarge: TextStyle(
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                        fontSize: 18),
+                    sizeSmall: TextStyle(
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                        fontSize: 16),
+                    code: DefaultTextBlockStyle(
+                      TextStyle(
+                          foreground: Paint()
+                            ..color =
+                                Theme.of(context).textTheme.bodyMedium!.color ??
+                                    Colors.black),
+                      const HorizontalSpacing(0, 0),
+                      const VerticalSpacing(0, 0),
+                      const VerticalSpacing(0, 0),
+                      BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: Theme.of(context).primaryColorLight),
+                    ),
+                    inlineCode: InlineCodeStyle(
+                        radius: const Radius.circular(8),
+                        backgroundColor: Colors.transparent,
+                        style: TextStyle(
+                            background: Paint()
+                              ..color = Theme.of(context).primaryColorDark,
                             foreground: Paint()
                               ..color = Theme.of(context)
                                       .textTheme
                                       .bodyMedium!
                                       .color ??
-                                  Colors.black),
+                                  Colors.black)),
+                    quote: DefaultTextBlockStyle(
+                        TextStyle(
+                          foreground: Paint()
+                            ..color =
+                                Theme.of(context).textTheme.bodyMedium!.color ??
+                                    Colors.black,
+                        ),
+                        const HorizontalSpacing(0, 0),
                         const VerticalSpacing(0, 0),
                         const VerticalSpacing(0, 0),
                         BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            color: Theme.of(context).primaryColorLight),
-                      ),
-                      inlineCode: InlineCodeStyle(
-                          radius: const Radius.circular(8),
-                          backgroundColor: Colors.transparent,
-                          style: TextStyle(
-                              background: Paint()
-                                ..color = Theme.of(context).primaryColorDark,
-                              foreground: Paint()
-                                ..color = Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium!
-                                        .color ??
-                                    Colors.black)),
-                      quote: DefaultTextBlockStyle(
-                          TextStyle(
-                            foreground: Paint()
-                              ..color = Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium!
-                                      .color ??
-                                  Colors.black,
-                          ),
-                          const VerticalSpacing(0, 0),
-                          const VerticalSpacing(0, 0),
-                          BoxDecoration(
-                              border: Border(
-                                  left: BorderSide(
-                                      color: Theme.of(context).primaryColorDark,
-                                      width: 4)))),
-                      lists: DefaultListBlockStyle(
-                          TextStyle(
-                            foreground: Paint()
-                              ..color = Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium!
-                                      .color ??
-                                  Colors.black,
-                          ),
-                          const VerticalSpacing(0, 0),
-                          const VerticalSpacing(0, 0),
-                          const BoxDecoration(),
-                          null),
-                    ),
-                    onTapOutside: (event, focusNode) {
-                      focusNode.unfocus();
-                    },
-                    onScribbleActivated: () {
-                      // Add the functionality for writing with apple pencil and others here
-                    },
-                    onImagePaste: (imageBytes) async {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content: Text(
-                              'User pasted an image. Process and display it properly.')));
-                      return;
-                    },
+                            border: Border(
+                                left: BorderSide(
+                                    color: Theme.of(context).primaryColorDark,
+                                    width: 4)))),
+                    lists: DefaultListBlockStyle(
+                        TextStyle(
+                          foreground: Paint()
+                            ..color =
+                                Theme.of(context).textTheme.bodyMedium!.color ??
+                                    Colors.black,
+                        ),
+                        const HorizontalSpacing(0, 0),
+                        const VerticalSpacing(0, 0),
+                        const VerticalSpacing(0, 0),
+                        const BoxDecoration(),
+                        null),
                   ),
+                  onTapOutside: (event, focusNode) {
+                    focusNode.unfocus();
+                  },
+                  onScribbleActivated: () {
+                    // Add the functionality for writing with apple pencil and others here
+                  },
+                  // onImagePaste: (imageBytes) async {
+                  //   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  //       content: Text(
+                  //           'User pasted an image. Process and display it properly.')));
+                  //   return;
+                  // },
                 ),
               ),
-              const SizedBox(
-                height: 100,
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(
+              height: 100,
+            ),
+          ],
         ),
-        bottomSheet: isEditing
-            ? Row(
-                children: [
-                  // Text formatting options button
-                  Expanded(
-                    child: Container(
-                      color: Theme.of(context).primaryColorLight,
-                      width: MediaQuery.of(context).size.width * 0.9,
-                      height: 50,
-                      child: CustomHorizontalTextEditingToolbar(
-                        controller: descriptionController,
-                        focusNode: focusProvider.editorFocusNode,
+      ),
+      bottomSheet: isEditing
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  decoration:
+                      BoxDecoration(color: Theme.of(context).primaryColorLight),
+                  child: Row(
+                    children: [
+                      // Bloom AI button
+                      // IconButton(
+                      //   onPressed: () {
+                      //     setState(() {
+                      //       focusProvider.unfocusEditor();
+                      //       textFormatEnabled = false;
+                      //       bloomAIEnabled = !bloomAIEnabled;
+                      //     });
+                      //     // Show a bottomSheet with the TextField for Google Gemini
+                      //     showBloomAI(context);
+                      //   },
+                      //   icon: Icon(Icons.g_mobiledata_rounded),
+                      // ),
+                      // Text formatting options button
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            textFormatEnabled = !textFormatEnabled;
+                            bloomAIEnabled = false;
+                            focusProvider.editorFocusNode.requestFocus();
+                          });
+                        },
+                        icon: Icon(textFormatEnabled
+                            ? Icons.close_rounded
+                            : Icons.format_size_rounded),
                       ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 28,
-                    child: VerticalDivider(
-                      width: 2,
-                    ),
-                  ),
-                  isEditing
-                      ? InkWell(
-                          borderRadius: BorderRadius.circular(5),
-                          onTap: () {
+                      if (textFormatEnabled)
+                        Expanded(
+                          child: CustomHorizontalTextEditingToolbar(
+                            controller: descriptionController,
+                            focusNode: focusProvider.editorFocusNode,
+                          ),
+                        ),
+                      const SizedBox(
+                        height: 28,
+                        child: VerticalDivider(
+                          width: 2,
+                        ),
+                      ),
+                      if (focusProvider.editorFocusNode.hasFocus)
+                        IconButton(
+                          onPressed: () {
                             setState(() {
                               isEditing = false;
                               focusProvider.unfocusEditor();
                               titleFocusNode.unfocus();
                             });
                           },
-                          child: Container(
-                            height: 50,
-                            padding: const EdgeInsets.symmetric(horizontal: 3),
-                            alignment: Alignment.center,
-                            color: Theme.of(context).primaryColorLight,
-                            child: const Stack(
-                              alignment: Alignment.bottomCenter,
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.only(top: 2, bottom: 10),
-                                  child: Icon(Icons.keyboard),
-                                ),
-                                SizedBox(),
-                                Icon(Icons.keyboard_arrow_down_rounded),
-                              ],
-                            ),
-                          ),
-                        )
-                      : const SizedBox(),
-                ],
-              ).animate().fade(
-                delay: const Duration(milliseconds: 600),
-                curve: Curves.easeInOut)
-            : const SizedBox(),
-      ),
+                          icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                        ),
+                    ],
+                  ).animate().fade(
+                      delay: const Duration(milliseconds: 600),
+                      curve: Curves.easeInOut),
+                ),
+                if (!focusProvider.editorFocusNode.hasFocus)
+                  const SizedBox(
+                    height: 24,
+                  )
+              ],
+            )
+          : const SizedBox(),
     );
   }
 }
@@ -843,11 +845,11 @@ class EditorFocusProvider extends ChangeNotifier {
 
   void unfocusEditor() {
     controller = QuillController(
-        document: Document(),
-        selection: const TextSelection.collapsed(offset: 0),
-        editorFocusNode: editorFocusNode);
+      document: Document(),
+      selection: const TextSelection.collapsed(offset: 0),
+    );
     dummyFocusNode.requestFocus();
-    controller.editorFocusNode!.unfocus();
+    editorFocusNode.unfocus();
     notifyListeners();
   }
 

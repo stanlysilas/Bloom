@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.2.1+13
+version: 2.2.1+16
 
 environment:
   sdk: '>=3.4.1 <4.0.0'
@@ -43,47 +43,50 @@ dependencies:
   desktop_context_menu: ^0.1.1
   emoji_picker_flutter: ^4.3.0
   feedback: ^3.1.0
+  firebase_ai: ^2.1.0
   firebase_auth: ^5.4.1
   firebase_core: ^3.10.1
   firebase_messaging: ^15.2.1
   firebase_ui_firestore: ^1.6.3
   firebase_ui_oauth_google: ^1.3.2
-  fl_chart: ^0.68.0
+  fl_chart: ^1.0.0
   fluent_ui: ^4.11.2
   flutter_acrylic: ^1.1.4
   flutter_animate: ^4.5.0
   flutter_background_service: ^5.1.0
   flutter_colorpicker: ^1.1.0
-  flutter_email_sender: ^6.0.3
+  flutter_email_sender: ^7.0.0
   flutter_heatmap_calendar: ^1.0.5
-  flutter_local_notifications: ^17.2.1+2
+  flutter_local_notifications: ^19.2.1
   flutter_native_splash: ^2.4.1
-  flutter_slidable: ^3.1.1
-  flutter_quill: ^9.5.10
-  flutter_quill_to_pdf: ^1.2.2
-  google_mobile_ads: ^5.3.0
+  flutter_slidable: ^4.0.0
+  flutter_quill: ^11.4.1
+  flutter_quill_to_pdf: ^2.3.7
+  google_mobile_ads: ^6.0.0
   google_sign_in: ^6.2.1
   hive_ce: ^2.8.0+3
   hive_ce_flutter: ^2.2.0
   # home_widget: ^0.7.0
-  iconsax: ^0.0.8
-  intl: ^0.19.0
+  # iconsax: ^0.0.8
+  in_app_purchase: ^3.2.3
+  intl: ^0.20.2
   local_auth: ^2.3.0
   lottie: ^3.3.1
-  permission_handler: ^11.3.1
+  permission_handler: ^12.0.0+1
   provider: ^6.1.2
   redacted: ^1.0.13
+  share_plus: ^11.0.0
   shared_preferences: ^2.2.3
-  skeletonizer: ^1.4.2
+  skeletonizer: ^2.0.1
   smooth_page_indicator: ^1.1.0
   table_calendar: ^3.1.2
-  timezone: ^0.9.3
+  timezone: ^0.10.1
   url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.3
   hive_ce_generator: ^1.8.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -91,7 +94,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^3.0.0
+  flutter_lints: ^5.0.0
 
 # Flutter native splash
 flutter_native_splash:
@@ -123,14 +126,14 @@ flutter_native_splash:
   # The branding property allows you to specify an image used as branding in the splash screen.
   # It must be a png file. It is supported for Android, iOS and the Web.  For Android 12,
   # see the Android 12 section below.
-  branding: assets/splash_screen/EverflowLogoAppBranding_Light.png
+  # branding: assets/splash_screen/EverflowLogoAppBranding_Light.png
 
   # To position the branding image at the bottom of the screen you can use bottom, bottomRight,
   # and bottomLeft. The default values is bottom if not specified or specified something else.
-  branding_mode: bottom
+  # branding_mode: bottom
   
   # Set the branding padding from the bottom of the screen.  The default value is 0
-  branding_bottom_padding: 24
+  # branding_bottom_padding: 24
 
   # The color_dark, background_image_dark, image_dark, branding_dark are parameters that set the background
   # and image when the device is in dark mode. If they are not specified, the app will use the
@@ -140,7 +143,7 @@ flutter_native_splash:
   color_dark: "#1A1A1A"
   #background_image_dark: "assets/dark-background.png"
   image_dark: assets/splash_screen/default_splash_icon_dark.png
-  branding_dark: assets/splash_screen/EverflowLogoAppBranding_Dark.png
+  # branding_dark: assets/splash_screen/EverflowLogoAppBranding_Dark.png
 
   # From Android 12 onwards, the splash screen is handled differently than in previous versions.
   # Please visit https://developer.android.com/guide/topics/ui/splash-screen
@@ -162,7 +165,7 @@ flutter_native_splash:
     icon_background_color: "#FFFFFF"
 
     # The branding property allows you to specify an image used as branding in the splash screen.
-    branding: assets/splash_screen/EverflowLogoAppBranding_Light.png
+    # branding: assets/splash_screen/EverflowLogoAppBranding_Light.png
 
     # The image_dark, color_dark, icon_background_color_dark, and branding_dark set values that
     # apply when the device is in dark mode. If they are not specified, the app will use the
@@ -170,7 +173,7 @@ flutter_native_splash:
     image_dark: assets/splash_screen/default_splash_icon_dark.png
     color_dark: "#1A1A1A"
     icon_background_color_dark: "#1A1A1A"
-    branding_dark: assets/splash_screen/EverflowLogoAppBranding_Dark.png
+    # branding_dark: assets/splash_screen/EverflowLogoAppBranding_Dark.png
 
   # The android, ios and web parameters can be used to disable generating a splash screen on a given
   # platform.
@@ -270,7 +273,6 @@ flutter:
     - assets/garden/
     - lib/required_data/
     - assets/custom_icons/
-    # - assets/images/Profile_Picture_Male.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

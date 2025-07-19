@@ -1,6 +1,5 @@
 import 'package:bloom/models/book_layout.dart';
 import 'package:flutter/material.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 
 class BookCard extends StatefulWidget {
@@ -86,22 +85,16 @@ class _BookCardState extends State<BookCard> {
                 overflow: TextOverflow.ellipsis,
                 maxLines: 2,
                 style:
-                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                    const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
               ),
-              widget.tags == null
-                  ? const SizedBox()
-                  : const Icon(
-                      Iconsax.tag,
-                      size: 16,
-                    ),
-              widget.tags == null
-                  ? const SizedBox()
-                  : widget.tags!.length >= 3
-                      ? Text(" ${widget.tags!.first}... ")
-                      : Text(" ${widget.tags!.join(', ')}"),
+              if (widget.tags != null)
+                widget.tags!.length >= 3
+                    ? Text(" ${widget.tags!.first}... ")
+                    : Text(" ${widget.tags!.join(', ')}"),
               Text(
                 DateFormat('dd-MM, h:mm a').format(widget.dateTime),
-                style: const TextStyle(fontSize: 12),
+                maxLines: 1,
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ],
           ),

@@ -118,8 +118,9 @@ class NotificationService {
     );
     await flutterLocalNotificationsPlugin.zonedSchedule(uniqueId, title, body,
         tz.TZDateTime.from(scheduledDate, tz.local), platformChannelSpecifics,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        // uiLocalNotificationDateInterpretation:
+        //     UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.dateAndTime);
   }
 
@@ -148,8 +149,9 @@ class NotificationService {
     );
     await flutterLocalNotificationsPlugin.zonedSchedule(uniqueId, title, body,
         tz.TZDateTime.from(scheduledDate, tz.local), platformChannelSpecifics,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
+        // uiLocalNotificationDateInterpretation:
+        //     UILocalNotificationDateInterpretation.absoluteTime,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.dateAndTime);
   }
 
@@ -178,8 +180,9 @@ class NotificationService {
     );
     await flutterLocalNotificationsPlugin.zonedSchedule(uniqueId, title, body,
         tz.TZDateTime.from(scheduledDate, tz.local), platformChannelSpecifics,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
+        // uiLocalNotificationDateInterpretation:
+        //     UILocalNotificationDateInterpretation.absoluteTime,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.dateAndTime);
   }
 
@@ -222,8 +225,9 @@ class NotificationService {
             importance: importance, priority: priority),
       ),
       matchDateTimeComponents: DateTimeComponents.time,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
+      // uiLocalNotificationDateInterpretation:
+      //     UILocalNotificationDateInterpretation.absoluteTime,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
   }
 
@@ -273,8 +277,9 @@ class NotificationService {
         ),
         matchDateTimeComponents: DateTimeComponents
             .dayOfWeekAndTime, // Repeats every selected weekday
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
+        // uiLocalNotificationDateInterpretation:
+        //     UILocalNotificationDateInterpretation.absoluteTime,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       );
     }
   }

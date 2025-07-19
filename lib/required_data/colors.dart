@@ -8,4 +8,4 @@ const Color boxBackgroundColorLightMode = Color(0xFFF3F3F3);
 // Dark mode colors
 const Color primaryColorDarkMode = Color(0xFF5E7CE2);
 // const Color secondaryColorDarkMode = Color(0x60FB6D6C);
-const Color boxBackgroundColorDarkMode = Color(0xFF303030);
+Color? boxBackgroundColorDarkMode = Colors.grey[900];

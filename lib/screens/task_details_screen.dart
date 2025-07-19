@@ -5,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -25,23 +24,22 @@ class ShowTaskDetailsScreen extends StatefulWidget {
   final String priorityLevelString;
   final String taskMode;
   final String? subtaskId;
-  final bool isHabit;
-  ShowTaskDetailsScreen(
-      {super.key,
-      required this.isCompleted,
-      required this.taskTitle,
-      required this.taskNotes,
-      required this.taskId,
-      required this.taskUniqueId,
-      required this.taskGroup,
-      required this.taskGroups,
-      required this.taskDateTime,
-      required this.priorityLevel,
-      required this.addedOn,
-      required this.priorityLevelString,
-      required this.taskMode,
-      this.subtaskId,
-      required this.isHabit});
+  ShowTaskDetailsScreen({
+    super.key,
+    required this.isCompleted,
+    required this.taskTitle,
+    required this.taskNotes,
+    required this.taskId,
+    required this.taskUniqueId,
+    required this.taskGroup,
+    required this.taskGroups,
+    required this.taskDateTime,
+    required this.priorityLevel,
+    required this.addedOn,
+    required this.priorityLevelString,
+    required this.taskMode,
+    this.subtaskId,
+  });
 
   @override
   State<ShowTaskDetailsScreen> createState() => _ShowTaskDetailsScreenState();
@@ -95,10 +93,7 @@ class _ShowTaskDetailsScreenState extends State<ShowTaskDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Task Details',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Details'),
         actions: [
           // Checkbox to mark the mainTask as completed
           Checkbox(
@@ -156,43 +151,37 @@ class _ShowTaskDetailsScreenState extends State<ShowTaskDetailsScreen> {
                 showDragHandle: true,
               );
             },
-            icon: const Icon(Iconsax.add),
+            icon: const Icon(Icons.add_rounded),
             tooltip: 'Add subtask',
           ),
           // Button for more options like edit, delete etc
           PopupMenuButton(
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(context).primaryColorLight,
             popUpAnimationStyle:
                 AnimationStyle(duration: const Duration(milliseconds: 500)),
             itemBuilder: (context) => [
-              widget.taskMode == 'MainTask'
-                  ? PopupMenuItem(
-                      value: 'edit',
-                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => TaskEditingScreen(
-                                taskNotes: widget.taskNotes,
-                                taskName: widget.taskTitle,
-                                taskDateTime: widget.taskDateTime,
-                                isMaintask: widget.taskMode == 'MainTask'
-                                    ? true
-                                    : false,
-                                taskId: widget.taskId,
-                                taskUniqueId: widget.taskUniqueId,
-                                priorityLevel: widget.priorityLevel,
-                                priorityLevelString: widget.priorityLevelString,
-                                subTaskId: widget.taskId,
-                              ))),
-                      child: Text(
-                        'Edit',
-                        style: TextStyle(
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color),
-                      ),
-                    )
-                  : const PopupMenuItem(
-                      enabled: false,
-                      child: SizedBox(),
-                    ),
+              PopupMenuItem(
+                value: 'edit',
+                enabled: widget.taskMode == 'MainTask' ? true : false,
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => TaskEditingScreen(
+                          taskNotes: widget.taskNotes,
+                          taskName: widget.taskTitle,
+                          taskDateTime: widget.taskDateTime,
+                          isMaintask:
+                              widget.taskMode == 'MainTask' ? true : false,
+                          taskId: widget.taskId,
+                          taskUniqueId: widget.taskUniqueId,
+                          priorityLevel: widget.priorityLevel,
+                          priorityLevelString: widget.priorityLevelString,
+                          subTaskId: widget.taskId,
+                        ))),
+                child: Text(
+                  'Edit',
+                  style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyMedium?.color),
+                ),
+              ),
               PopupMenuItem(
                 value: 'Delete',
                 child: const Text(
@@ -209,10 +198,22 @@ class _ShowTaskDetailsScreenState extends State<ShowTaskDetailsScreen> {
                       .delete();
                   // Show confirmation that task is deleted
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Task deleted succesfully.'),
+                  SnackBar(
+                    margin: const EdgeInsets.all(6),
+                    behavior: SnackBarBehavior.floating,
+                    showCloseIcon: true,
+                    closeIconColor:
+                        Theme.of(context).textTheme.bodyMedium?.color,
+                    backgroundColor: Theme.of(context).primaryColor,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    content: Text(
+                      'Task deleted succesfully',
+                      style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyMedium?.color),
                     ),
-                  );
+                  ),
+                );
                   Navigator.pop(context);
                 },
               ),
@@ -254,10 +255,7 @@ class _ShowTaskDetailsScreenState extends State<ShowTaskDetailsScreen> {
               ],
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 14.0),
-            child: Divider(),
-          ),
+          Divider(),
           // Task groups of the maintask
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 14.0),
@@ -273,10 +271,7 @@ class _ShowTaskDetailsScreenState extends State<ShowTaskDetailsScreen> {
               overflow: TextOverflow.clip,
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 14.0),
-            child: Divider(),
-          ),
+          Divider(),
           // Display notes of the maintask
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 14.0),
@@ -292,10 +287,7 @@ class _ShowTaskDetailsScreenState extends State<ShowTaskDetailsScreen> {
               overflow: TextOverflow.clip,
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 14.0),
-            child: Divider(),
-          ),
+          Divider(),
           // Display subtasks
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 14.0),
@@ -369,30 +361,20 @@ class _ShowTaskDetailsScreenState extends State<ShowTaskDetailsScreen> {
                             data['priorityLevelString'];
                         Timestamp timeStamp = data['addedOn'];
                         DateTime addedOn = timeStamp.toDate();
-                        return Column(
-                          children: [
-                            SubTaskTile(
-                              innerPadding: const EdgeInsets.only(
-                                  right: 14, top: 4, bottom: 4),
-                              taskTitle: subtaskName,
-                              taskNotes: subTaskNotes,
-                              isCompleted: isCompleted,
-                              mainTaskId: widget.taskId,
-                              taskUniqueId: subTaskUniqueId ?? 0,
-                              taskDateTime: subTaskDateTime,
-                              priorityLevel: priorityLevel,
-                              priorityLevelString: priorityLevelString,
-                              addedOn: addedOn,
-                              taskMode: 'subTask',
-                              subTaskId: subTaskId,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 14.0, right: 14.0),
-                              child: const Divider().animate().fade(
-                                  delay: const Duration(milliseconds: 250)),
-                            )
-                          ],
+                        return SubTaskTile(
+                          innerPadding: const EdgeInsets.only(
+                              right: 14, top: 4, bottom: 4),
+                          taskTitle: subtaskName,
+                          taskNotes: subTaskNotes,
+                          isCompleted: isCompleted,
+                          mainTaskId: widget.taskId,
+                          taskUniqueId: subTaskUniqueId ?? 0,
+                          taskDateTime: subTaskDateTime,
+                          priorityLevel: priorityLevel,
+                          priorityLevelString: priorityLevelString,
+                          addedOn: addedOn,
+                          taskMode: 'subTask',
+                          subTaskId: subTaskId,
                         );
                       }),
                 );

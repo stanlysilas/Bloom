@@ -1,0 +1,1 @@
+/home/stanlysilas/Development/flutter_projects/bloom/Bloom/build/app/intermediates/cxx/RelWithDebInfo/43z6q3r8/obj/arm64-v8a

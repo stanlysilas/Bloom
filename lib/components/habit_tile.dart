@@ -4,9 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
-// import 'package:intl/intl.dart';
 
 class HabitTile extends StatefulWidget {
   final String habitId;
@@ -139,8 +137,8 @@ class _HabitTileState extends State<HabitTile> {
                 decoration: BoxDecoration(
                     color: Colors.red, borderRadius: BorderRadius.circular(8)),
                 child: Icon(
-                  Iconsax.trash,
-                  color: Theme.of(context).scaffoldBackgroundColor,
+                  Icons.delete_rounded,
+                  // color: Theme.of(context).scaffoldBackgroundColor,
                 ),
               ),
             ),
@@ -153,26 +151,39 @@ class _HabitTileState extends State<HabitTile> {
       child: InkWell(
         onTap: () {
           // Navigate to habits screen or show a modal bottom sheet
-          showModalBottomSheet(
-              context: context,
-              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-              showDragHandle: true,
-              isScrollControlled: true,
-              useSafeArea: true,
-              builder: (context) {
-                return HabitsDetailsScreen(
-                  habitName: widget.habitName,
-                  habitNotes: widget.habitNotes,
-                  habitDateTime: widget.habitDateTime,
-                  habitGroups: widget.habitGroups,
-                  habitId: widget.habitId,
-                  habitUniqueId: widget.habitUniqueId,
-                  addedOn: widget.addedOn,
-                  daysOfWeek: widget.daysOfWeek,
-                  completedDaysOfWeek: widget.completedDaysOfWeek,
-                  completedDates: widget.completedDates,
-                );
-              });
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => HabitsDetailsScreen(
+                    habitName: widget.habitName,
+                    habitNotes: widget.habitNotes,
+                    habitDateTime: widget.habitDateTime,
+                    habitGroups: widget.habitGroups,
+                    habitId: widget.habitId,
+                    habitUniqueId: widget.habitUniqueId,
+                    addedOn: widget.addedOn,
+                    daysOfWeek: widget.daysOfWeek,
+                    completedDaysOfWeek: widget.completedDaysOfWeek,
+                    completedDates: widget.completedDates,
+                  )));
+          // showModalBottomSheet(
+          //     context: context,
+          //     backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          //     showDragHandle: true,
+          //     isScrollControlled: true,
+          //     useSafeArea: true,
+          //     builder: (context) {
+          //       return HabitsDetailsScreen(
+          //         habitName: widget.habitName,
+          //         habitNotes: widget.habitNotes,
+          //         habitDateTime: widget.habitDateTime,
+          //         habitGroups: widget.habitGroups,
+          //         habitId: widget.habitId,
+          //         habitUniqueId: widget.habitUniqueId,
+          //         addedOn: widget.addedOn,
+          //         daysOfWeek: widget.daysOfWeek,
+          //         completedDaysOfWeek: widget.completedDaysOfWeek,
+          //         completedDates: widget.completedDates,
+          //       );
+          //     });
         },
         child: Padding(
           padding: widget.innerPadding ?? const EdgeInsets.all(0),
@@ -180,10 +191,10 @@ class _HabitTileState extends State<HabitTile> {
             children: [
               // Icon or emoji of the habit
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(10),
                     color: Theme.of(context).primaryColorLight),
                 child: const Icon(Icons.repeat_rounded),
               ),
@@ -198,7 +209,8 @@ class _HabitTileState extends State<HabitTile> {
                   children: [
                     Text(
                       widget.habitName,
-                      style: const TextStyle(fontSize: 16),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w500),
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (widget.habitNotes != '')
@@ -208,10 +220,10 @@ class _HabitTileState extends State<HabitTile> {
                             const TextStyle(fontSize: 14, color: Colors.grey),
                         overflow: TextOverflow.ellipsis,
                       ),
-                    // Text(
-                    //   "${DateFormat.MEd().format(widget.habitDateTime)}, ${DateFormat('h:mm a').format(widget.habitDateTime)}",
-                    //   style: const TextStyle(fontSize: 14, color: Colors.grey),
-                    // ),
+                    Text(
+                      "At ${DateFormat('h:mm a').format(widget.habitDateTime)}",
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
                   ],
                 ),
               ),
@@ -226,7 +238,9 @@ class _HabitTileState extends State<HabitTile> {
                     borderRadius: BorderRadius.circular(5),
                     onTap: () async {
                       // Update the completedDaysOfWeek in database
-                      updateCompletedDaysOfWeek(value);
+                      if (widget.daysOfWeek.contains(value)) {
+                        updateCompletedDaysOfWeek(value);
+                      }
                       // Update the completedDaysOfWeek locally when tapped on the particular day button
                       setState(() {
                         if (widget.completedDaysOfWeek.contains(value)) {
@@ -237,33 +251,33 @@ class _HabitTileState extends State<HabitTile> {
                       });
                     },
                     child: Container(
-                      height: 25,
-                      width: 25,
+                      height: 16,
+                      width: 16,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(5),
+                          borderRadius: BorderRadius.circular(4),
                           color: widget.daysOfWeek.contains(value)
                               ? widget.completedDaysOfWeek.contains(value)
                                   ? Theme.of(context).primaryColor
                                   : Theme.of(context).primaryColorLight
                               : Colors.transparent),
-                      child: Text(
-                        widget.daysOfWeek.contains(value)
-                            ? daysOfWeekString[value]
-                            : '',
-                        style: TextStyle(
-                            color: widget.daysOfWeek.contains(value)
-                                ? widget.completedDaysOfWeek.contains(value)
-                                    ? Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.color
-                                    : Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.color
-                                : Colors.transparent),
-                      ),
+                      // child: Text(
+                      //   widget.daysOfWeek.contains(value)
+                      //       ? daysOfWeekString[value]
+                      //       : '',
+                      //   style: TextStyle(
+                      //       color: widget.daysOfWeek.contains(value)
+                      //           ? widget.completedDaysOfWeek.contains(value)
+                      //               ? Theme.of(context)
+                      //                   .textTheme
+                      //                   .bodyMedium
+                      //                   ?.color
+                      //               : Theme.of(context)
+                      //                   .textTheme
+                      //                   .bodyMedium
+                      //                   ?.color
+                      //           : Colors.transparent),
+                      // ),
                     ),
                   ),
                 );

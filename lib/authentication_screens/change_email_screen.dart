@@ -8,6 +8,7 @@ class ChangeEmailScreen extends StatelessWidget {
   });
 
   final emailController = TextEditingController();
+  final emailFocusNode = FocusNode();
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +34,7 @@ class ChangeEmailScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14.0),
             child: MyTextfield(
               controller: emailController,
+              focusNode: emailFocusNode,
               hintText: 'Enter your registered email',
               obscureText: false,
               autoFocus: false,

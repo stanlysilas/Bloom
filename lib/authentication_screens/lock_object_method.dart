@@ -9,22 +9,48 @@ Future<bool> checkForBiometrics(
   bool didAuthenticate = false;
   final bool canAuthenticate =
       canAuthenticateWithBiometrics || await auth.isDeviceSupported();
-  debugPrint("Can Authenticate: $canAuthenticate");
   if (canAuthenticate == true) {
     try {
       didAuthenticate = await auth.authenticate(
           localizedReason: localizedReason,
           options: const AuthenticationOptions(stickyAuth: true));
-      debugPrint("Did Authenticate: $didAuthenticate");
       // ···
     } on PlatformException catch (e) {
       // ...
       if (e.code == 'NotAvailable') {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Set a screen lock to the device and try again.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            margin: const EdgeInsets.all(6),
+            behavior: SnackBarBehavior.floating,
+            showCloseIcon: true,
+            backgroundColor: Theme.of(context).primaryColor,
+            closeIconColor: Theme.of(context).textTheme.bodyMedium?.color,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: Text(
+              'Set a screen lock to the device and try again.',
+              style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyMedium?.color),
+            ),
+          ),
+        );
       } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Exception: ${e.code}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            margin: const EdgeInsets.all(6),
+            behavior: SnackBarBehavior.floating,
+            showCloseIcon: true,
+            backgroundColor: Theme.of(context).primaryColor,
+            closeIconColor: Theme.of(context).textTheme.bodyMedium?.color,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: Text(
+              'Exception: ${e.code}',
+              style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyMedium?.color),
+            ),
+          ),
+        );
       }
     }
   }

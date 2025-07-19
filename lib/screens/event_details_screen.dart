@@ -35,10 +35,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Event Details',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Details'),
         actions: [
           // Button to mark event as attended
           IconButton(
@@ -61,12 +58,12 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
               );
               Navigator.pop(context);
             },
-            icon: const Icon(Icons.task_alt_rounded),
+            icon: const Icon(Icons.event_available_rounded),
             tooltip: 'Mark as attended',
           ),
           // Button for more options like edit, delete etc
           PopupMenuButton(
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(context).primaryColorLight,
             popUpAnimationStyle:
                 AnimationStyle(duration: const Duration(milliseconds: 500)),
             itemBuilder: (context) => [
@@ -104,7 +101,13 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                       .delete();
                   // Show confirmation that task is deleted
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
+                    SnackBar(
+                      margin: const EdgeInsets.all(6),
+                      behavior: SnackBarBehavior.floating,
+                      showCloseIcon: true,
+                      backgroundColor: Theme.of(context).primaryColor,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       content: Text('Event deleted succesfully.'),
                     ),
                   );
@@ -115,23 +118,26 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Name of the event
-            Text(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Name of the event
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
+            child: Text(
               widget.eventName,
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
             ),
-            const SizedBox(
-              height: 12,
-            ),
-            // Event dates and time
-            widget.eventEndDateTime != null &&
-                    widget.eventEndDateTime != widget.eventStartDateTime
-                ? Column(
+          ),
+          const SizedBox(
+            height: 12,
+          ),
+          // Event dates and time
+          widget.eventEndDateTime != null &&
+                  widget.eventEndDateTime != widget.eventStartDateTime
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -143,8 +149,11 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                         style: TextStyle(color: Colors.grey[700]),
                       ),
                     ],
-                  )
-                : Column(
+                  ),
+                )
+              : Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                  child: Column(
                     children: [
                       Text(
                         DateFormat('EEEE dd LLL, yyyy h:mm a')
@@ -153,9 +162,12 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                       ),
                     ],
                   ),
-            const Divider(),
-            // Event color code
-            Row(
+                ),
+          const Divider(),
+          // Event color code
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
@@ -171,17 +183,23 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                 ),
               ],
             ),
-            const Divider(),
-            // Event notes
-            const Text(
+          ),
+          const Divider(),
+          // Event notes
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
+            child: const Text(
               'Notes',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
-            Text(
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
+            child: Text(
               widget.eventNotes,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

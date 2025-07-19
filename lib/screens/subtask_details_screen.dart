@@ -1,13 +1,8 @@
-// import 'package:bloom/components/add_sub_task.dart';
-// import 'package:bloom/components/subtask_tile.dart';
 import 'package:bloom/screens/task_editing_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-// import 'package:flutter_animate/flutter_animate.dart';
-// import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
-// import 'package:skeletonizer/skeletonizer.dart';
 
 // Displaying the details of tasks
 // ignore: must_be_immutable
@@ -90,10 +85,7 @@ class _SubTaskDetailsScreenState extends State<SubTaskDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Task Details',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Details'),
         actions: [
           // Checkbox to mark the mainTask as completed
           Checkbox(
@@ -129,38 +121,32 @@ class _SubTaskDetailsScreenState extends State<SubTaskDetailsScreen> {
           ),
           // Button for more options like edit, delete etc
           PopupMenuButton(
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(context).primaryColorLight,
             popUpAnimationStyle:
                 AnimationStyle(duration: const Duration(milliseconds: 500)),
             itemBuilder: (context) => [
-              widget.taskMode == 'MainTask'
-                  ? PopupMenuItem(
-                      value: 'edit',
-                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => TaskEditingScreen(
-                                taskNotes: widget.taskNotes,
-                                taskName: widget.taskTitle,
-                                taskDateTime: widget.taskDateTime,
-                                isMaintask: widget.taskMode == 'MainTask'
-                                    ? true
-                                    : false,
-                                taskId: widget.mainTaskId,
-                                taskUniqueId: widget.taskUniqueId,
-                                priorityLevel: widget.priorityLevel,
-                                priorityLevelString: widget.priorityLevelString,
-                                subTaskId: widget.subtaskId,
-                              ))),
-                      child: Text(
-                        'Edit',
-                        style: TextStyle(
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color),
-                      ),
-                    )
-                  : const PopupMenuItem(
-                      enabled: false,
-                      child: SizedBox(),
-                    ),
+              PopupMenuItem(
+                value: 'edit',
+                enabled: widget.taskMode == 'MainTask' ? true : false,
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => TaskEditingScreen(
+                          taskNotes: widget.taskNotes,
+                          taskName: widget.taskTitle,
+                          taskDateTime: widget.taskDateTime,
+                          isMaintask:
+                              widget.taskMode == 'MainTask' ? true : false,
+                          taskId: widget.mainTaskId,
+                          taskUniqueId: widget.taskUniqueId,
+                          priorityLevel: widget.priorityLevel,
+                          priorityLevelString: widget.priorityLevelString,
+                          subTaskId: widget.subtaskId,
+                        ))),
+                child: Text(
+                  'Edit',
+                  style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyMedium?.color),
+                ),
+              ),
               PopupMenuItem(
                 value: 'Delete',
                 child: const Text(
@@ -179,10 +165,22 @@ class _SubTaskDetailsScreenState extends State<SubTaskDetailsScreen> {
                       .delete();
                   // Show confirmation that task is deleted
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Task deleted succesfully.'),
+                  SnackBar(
+                    margin: const EdgeInsets.all(6),
+                    behavior: SnackBarBehavior.floating,
+                    showCloseIcon: true,
+                    closeIconColor:
+                        Theme.of(context).textTheme.bodyMedium?.color,
+                    backgroundColor: Theme.of(context).primaryColor,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    content: Text(
+                      'Task deleted succesfully',
+                      style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyMedium?.color),
                     ),
-                  );
+                  ),
+                );
                   Navigator.pop(context);
                 },
               ),
@@ -190,21 +188,24 @@ class _SubTaskDetailsScreenState extends State<SubTaskDetailsScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Name of the mainTask
-            Text(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Name of the mainTask
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
+            child: Text(
               widget.taskTitle,
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
               overflow: TextOverflow.clip,
             ),
-            const SizedBox(
-              height: 12,
-            ),
-            Column(
+          ),
+          const SizedBox(
+            height: 12,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Date and time of the mainTask
@@ -220,110 +221,24 @@ class _SubTaskDetailsScreenState extends State<SubTaskDetailsScreen> {
                 ),
               ],
             ),
-            const Divider(),
-            // Display notes of the maintask
-            const Text(
+          ),
+          const Divider(),
+          // Display notes of the maintask
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
+            child: const Text(
               'Notes',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
-            Text(
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
+            child: Text(
               widget.taskNotes,
               overflow: TextOverflow.clip,
             ),
-            // const Divider(),
-            // // Display subtasks
-            // const Text(
-            //   'Sub tasks',
-            //   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            // ),
-            // const SizedBox(
-            //   height: 8,
-            // ),
-            // Expanded(
-            //   child: StreamBuilder<QuerySnapshot>(
-            //     stream: fetchSubTasks(),
-            //     builder: (context, snapshot) {
-            //       if (snapshot.connectionState == ConnectionState.waiting) {
-            //         return const Skeletonizer(
-            //           enabled: true,
-            //           child: ListTile(
-            //             leading: Icon(Icons.abc),
-            //             title: Text(
-            //               'So this is the text of the title of the object here...',
-            //               style: TextStyle(
-            //                 fontWeight: FontWeight.bold,
-            //                 fontSize: 18,
-            //               ),
-            //               maxLines: 1,
-            //             ),
-            //             subtitle: Text(
-            //               'So this is the text of the subtitle of the object here...',
-            //               maxLines: 1,
-            //             ),
-            //             trailing: Text('End'),
-            //           ),
-            //         ).animate().fade(delay: const Duration(milliseconds: 50));
-            //       }
-            //       if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
-            //         return Text(
-            //           'Click on the + icon above to add a sub task.',
-            //           style: TextStyle(color: Colors.grey[700]),
-            //         );
-            //       }
-            //       if (snapshot.hasError) {
-            //         return const Center(
-            //           child: Text(
-            //               'Encountered an error while getting subtasks...'),
-            //         );
-            //       }
-            //       final subTasks = snapshot.data!.docs;
-            //       return SizedBox(
-            //         height: MediaQuery.of(context).size.height,
-            //         child: ListView.builder(
-            //             itemCount: subTasks.length,
-            //             itemBuilder: (context, index) {
-            //               final data = subTasks[index];
-            //               String subtaskName = data['subTaskName'];
-            //               String subTaskNotes = data['subTaskNotes'];
-            //               String subTaskId = data['subTaskId'];
-            //               bool isCompleted = data['isCompleted'];
-            //               int? subTaskUniqueId = data['subTaskUniqueId'];
-            //               Timestamp timestamp = data['subTaskDateTime'];
-            //               DateTime subTaskDateTime = timestamp.toDate();
-            //               int priorityLevel = data['priorityLevel'];
-            //               String priorityLevelString =
-            //                   data['priorityLevelString'];
-            //               Timestamp timeStamp = data['addedOn'];
-            //               DateTime addedOn = timeStamp.toDate();
-            //               return Column(
-            //                 children: [
-            //                   SubTaskTile(
-            //                     taskTitle: subtaskName,
-            //                     taskNotes: subTaskNotes,
-            //                     isCompleted: isCompleted,
-            //                     mainTaskId: subTaskId,
-            //                     taskUniqueId: subTaskUniqueId ?? 0,
-            //                     taskDateTime: subTaskDateTime,
-            //                     priorityLevel: priorityLevel,
-            //                     priorityLevelString: priorityLevelString,
-            //                     addedOn: addedOn,
-            //                     taskMode: 'SubTask',
-            //                   ),
-            //                   Padding(
-            //                     padding: const EdgeInsets.only(
-            //                         left: 52.0, right: 14.0),
-            //                     child: const Divider().animate().fade(
-            //                         delay: const Duration(milliseconds: 250)),
-            //                   )
-            //                 ],
-            //               );
-            //             }),
-            //       );
-            //     },
-            //   ),
-            // ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

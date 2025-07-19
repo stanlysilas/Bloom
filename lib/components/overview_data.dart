@@ -1,7 +1,6 @@
-import 'package:bloom/screens/eventsandschedules_screen.dart';
-import 'package:bloom/screens/tasksandhabits_screen.dart';
+import 'package:bloom/screens/entries_screen.dart';
+import 'package:bloom/screens/goals_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:iconsax/iconsax.dart';
 
 class TaskData extends StatelessWidget {
   final int? numberOfTasks;
@@ -10,32 +9,63 @@ class TaskData extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () => Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => const TaskScreen())),
-      child: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          const Icon(
-            Iconsax.task_square5,
-            size: 16,
-          ),
-          numberOfTasks == null
-              ? const Text(
-                  "... tasks",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                )
-              : Text(
-                  "$numberOfTasks tasks",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-        ],
+    return Container(
+      height: 70,
+      width: 70,
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          color: Theme.of(context).primaryColorLight),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(15),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => const GoalsScreen(
+                  tabIndex: 0,
+                ))),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              numberOfTasks == null ? "0" : "$numberOfTasks",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w400),
+            ),
+            Text('Pending')
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class HabitData extends StatelessWidget {
+  final int numberOfHabits;
+  const HabitData({super.key, required this.numberOfHabits});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 70,
+      width: 70,
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          color: Theme.of(context).primaryColorLight),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(15),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => const GoalsScreen(
+                  tabIndex: 1,
+                ))),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              "$numberOfHabits",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w400),
+            ),
+            Text('Habits')
+          ],
+        ),
       ),
     );
   }
@@ -48,32 +78,61 @@ class SchedulesData extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const SchedulesScreen())),
-      child: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          const Icon(
-            Iconsax.calendar5,
-            size: 18,
-          ),
-          numberOfSchedules == null
-              ? const Text(
-                  "... events",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                )
-              : Text(
-                  "$numberOfSchedules events",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-        ],
+    return Container(
+      height: 70,
+      width: 70,
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          color: Theme.of(context).primaryColorLight),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(15),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => const GoalsScreen(
+                  tabIndex: 2,
+                ))),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              numberOfSchedules == null ? "0" : "$numberOfSchedules",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w400),
+            ),
+            Text('Events')
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class EntriesData extends StatelessWidget {
+  final int numberOfEntries;
+  const EntriesData({super.key, required this.numberOfEntries});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 70,
+      width: 70,
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          color: Theme.of(context).primaryColorLight),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(15),
+        onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const EntriesScreen())),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              "$numberOfEntries",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w400),
+            ),
+            Text('Entries')
+          ],
+        ),
       ),
     );
   }

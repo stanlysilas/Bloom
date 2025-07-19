@@ -4,10 +4,8 @@ import 'package:bloom/background_services/background_service.dart';
 import 'package:bloom/notifications/notification.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-// import 'package:iconsax/iconsax.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 
 class PomodoroTimerScreen extends StatefulWidget {
@@ -198,7 +196,7 @@ class _PomodoroTimerScreenState extends State<PomodoroTimerScreen> {
             ElevatedButton(
                 onPressed: () {},
                 child: const Row(
-                  children: [Icon(Iconsax.play)],
+                  children: [Icon(Icons.play_arrow_rounded)],
                 )),
             const SizedBox(height: 20),
             Row(

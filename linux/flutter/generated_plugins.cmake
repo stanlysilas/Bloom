@@ -8,6 +8,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   contextual_menu
   desktop_webview_auth
   emoji_picker_flutter
+  file_selector_linux
   flutter_acrylic
   url_launcher_linux
 )

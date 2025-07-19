@@ -1,14 +1,13 @@
 import 'dart:math';
 
 import 'package:bloom/components/add_event.dart';
-import 'package:bloom/components/add_pomodoro.dart';
+// import 'package:bloom/components/add_pomodoro.dart';
 import 'package:bloom/components/add_taskorhabit.dart';
 import 'package:bloom/models/book_layout.dart';
 import 'package:bloom/models/note_layout.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 
 // Multiple entries button
@@ -22,24 +21,26 @@ class TypesOfObjects extends StatefulWidget {
 }
 
 List typesOfEntries = [
-  'Task', 'Event', 'Note',
-  'Pomodoro',
+  'Task', 'Habit', 'Event', 'Note',
+  // 'Pomodoro',
   'Book',
   //  'Habit',
 // 'Book', 'Page', 'Collection'
 ];
 List iconsForTypesOfEntries = [
-  Iconsax.task_square,
-  Iconsax.calendar_1,
-  Iconsax.book,
-  Iconsax.timer,
-  Iconsax.book_1
+  Icons.task_alt_rounded,
+  Icons.repeat_rounded,
+  Icons.event_rounded,
+  Icons.notes_rounded,
+  // Iconsax.timer,
+  Icons.menu_book_rounded
 ];
 List descriptionForTypesOfEntries = [
   'This is a task you can check after completed.',
+  'This is a habit that repeats at a set interval.',
   'This is an event that you can schedule.',
   'This is a note with rich text editing.',
-  'This is a timer that helps to you stay focused.',
+  // 'This is a timer that helps to you stay focused.',
   'This is a collection of notes as pages.'
 ];
 
@@ -47,6 +48,8 @@ class _TypesOfObjectsState extends State<TypesOfObjects> {
   final now = DateTime.now();
   String date = '';
   String time = '';
+  bool? isFreeSubscription = true;
+  final userId = FirebaseAuth.instance.currentUser?.uid;
   @override
   void initState() {
 // Formate intial date and time to strings
@@ -54,7 +57,29 @@ class _TypesOfObjectsState extends State<TypesOfObjects> {
       date = DateFormat('dd-MM-yyyy').format(now);
       time = DateFormat('h:mm a').format(now);
     });
+    checkSubscription();
     super.initState();
+  }
+
+  // Check the subscription plan of the user
+  void checkSubscription() async {
+    try {
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data();
+        final plan = data?['subscriptionPlan'];
+
+        setState(() {
+          isFreeSubscription = (plan == null || plan == 'free') ? true : false;
+        });
+      }
+    } catch (e) {
+      //
+    }
   }
 
   @override
@@ -62,148 +87,176 @@ class _TypesOfObjectsState extends State<TypesOfObjects> {
     return ListView.builder(
       itemCount: typesOfEntries.length,
       itemBuilder: (context, index) {
-        return Column(
-          children: [
-            InkWell(
-              onTap: () {
-                // Navigate to appropriate page
-                if (index == 0) {
-                  Navigator.pop(context);
-                  // Add new task process
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    useSafeArea: true,
-                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width,
-                      maxHeight: MediaQuery.of(context).size.height,
-                    ),
-                    builder: (BuildContext context) {
-                      return Scaffold(
-                        body: AddTaskOrHabitModal(
-                          currentDateTime: DateTime.now(),
-                        ),
-                      );
-                    },
-                    showDragHandle: true,
-                  );
-                } else if (index == 1) {
-                  Navigator.pop(context);
-                  // Add new event process
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    useSafeArea: true,
-                    enableDrag: true,
-                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width,
-                      maxHeight: MediaQuery.of(context).size.height,
-                    ),
-                    builder: (BuildContext context) {
-                      return AddEventModalSheet(
-                        currentDateTime: DateTime.now(),
-                      );
-                    },
-                    showDragHandle: true,
-                  );
-                } else if (index == 2) {
-                  // Navigator to the note layout page
-                  Navigator.pop(context);
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => NoteLayout(
-                        hasChildren: false,
-                        date: date,
-                        time: time,
-                        type: 'note',
-                        mode: NoteMode.create,
-                        dateTime: DateTime.now(),
-                        title: '',
-                        isEntryLocked: false,
-                      ),
+        return ListTile(
+          onTap: () {
+            // Navigate to appropriate page
+            if (index == 0) {
+              Navigator.pop(context);
+              // Add new task process
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                useSafeArea: true,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                // constraints: BoxConstraints(
+                //   maxWidth: MediaQuery.of(context).size.width,
+                //   maxHeight: MediaQuery.of(context).size.height,
+                // ),
+                builder: (BuildContext context) {
+                  return SafeArea(
+                    child: AddTaskOrHabitModal(
+                      isHabit: false,
+                      currentDateTime: DateTime.now(),
                     ),
                   );
-                } else if (index == 3) {
-                  // Add new pomodoro process
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    useSafeArea: true,
-                    enableDrag: true,
-                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width,
-                      maxHeight: MediaQuery.of(context).size.height,
-                    ),
-                    builder: (BuildContext context) {
-                      return AddPomodoro(
-                        currentDateTime: DateTime.now(),
-                      );
-                    },
-                    showDragHandle: true,
-                  );
-                } else if (index == 4) {
-                  // Navigate to the book Layout page
-                  Navigator.pop(context);
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => BookLayout(
-                        type: 'book',
-                        bookId: 'default',
-                        dateTime: now,
-                        isFirstTime: true,
-                        emoji: '📓',
-                        title: 'Book',
-                        description:
-                            "A Book is a group or collection of similar types of entries with pages and other features.",
-                        bookLayoutMethod: BookLayoutMethod.edit,
-                        hasChildren: false,
-                        isTemplate: false,
-                        isFavorite: false,
-                        children: const [],
-                      ),
+                },
+                showDragHandle: true,
+              );
+            } else if (index == 1 && isFreeSubscription == false) {
+              Navigator.pop(context);
+              // Add new event process
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                useSafeArea: true,
+                enableDrag: true,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                // constraints: BoxConstraints(
+                //   maxWidth: MediaQuery.of(context).size.width,
+                //   maxHeight: MediaQuery.of(context).size.height,
+                // ),
+                builder: (BuildContext context) {
+                  return SafeArea(
+                    child: AddTaskOrHabitModal(
+                      isHabit: true,
+                      currentDateTime: DateTime.now(),
                     ),
                   );
-                }
-              },
-              child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14),
-                dense: true,
-                minVerticalPadding: 0,
-                leading: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    color: Theme.of(context).primaryColorLight,
-                  ),
-                  child: Icon(
-                    iconsForTypesOfEntries[index],
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                },
+                showDragHandle: true,
+              );
+            } else if (index == 1 && isFreeSubscription == true) {
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                    margin: const EdgeInsets.all(6),
+                    behavior: SnackBarBehavior.floating,
+                    showCloseIcon: true,
+                    backgroundColor: Colors.green,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    content: Text(
+                        'Upgrade to Pro subscription or Lifetime plan to use Habits')),
+              );
+            } else if (index == 2) {
+              Navigator.pop(context);
+              // Add new event process
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                useSafeArea: true,
+                enableDrag: true,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                // constraints: BoxConstraints(
+                //   maxWidth: MediaQuery.of(context).size.width,
+                //   maxHeight: MediaQuery.of(context).size.height,
+                // ),
+                builder: (BuildContext context) {
+                  return AddEventModalSheet(
+                    currentDateTime: DateTime.now(),
+                  );
+                },
+                showDragHandle: true,
+              );
+            } else if (index == 3) {
+              // Navigator to the note layout page
+              Navigator.pop(context);
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => NoteLayout(
+                    hasChildren: false,
+                    date: date,
+                    time: time,
+                    type: 'note',
+                    mode: NoteMode.create,
+                    dateTime: DateTime.now(),
+                    title: '',
+                    isEntryLocked: false,
                   ),
                 ),
-                title: Text(
-                  typesOfEntries[index],
-                  style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: Theme.of(context).textTheme.bodyMedium?.color),
+              );
+            }
+            // else if (index == 3) {
+            //   // Add new pomodoro process
+            //   showModalBottomSheet(
+            //     context: context,
+            //     isScrollControlled: true,
+            //     useSafeArea: true,
+            //     enableDrag: true,
+            //     backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            //     constraints: BoxConstraints(
+            //       maxWidth: MediaQuery.of(context).size.width,
+            //       maxHeight: MediaQuery.of(context).size.height,
+            //     ),
+            //     builder: (BuildContext context) {
+            //       return AddPomodoro(
+            //         currentDateTime: DateTime.now(),
+            //       );
+            //     },
+            //     showDragHandle: true,
+            //   );
+            // }
+            else if (index == 4) {
+              // Navigate to the book Layout page
+              Navigator.pop(context);
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => BookLayout(
+                    type: 'book',
+                    bookId: 'default',
+                    dateTime: now,
+                    isFirstTime: true,
+                    emoji: '📓',
+                    title: 'Book',
+                    description:
+                        "A Book is a group or collection of similar types of entries with pages and other features.",
+                    bookLayoutMethod: BookLayoutMethod.edit,
+                    hasChildren: false,
+                    isTemplate: false,
+                    isFavorite: false,
+                    children: const [],
+                  ),
                 ),
-                subtitle: Text(
-                  descriptionForTypesOfEntries[index],
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                      color: Theme.of(context).textTheme.bodyMedium?.color),
-                ),
-              ),
+              );
+            }
+          },
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+          dense: true,
+          minVerticalPadding: 0,
+          leading: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Theme.of(context).primaryColorLight,
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 14.0, vertical: 0),
-              child: Divider(),
+            child: Icon(
+              iconsForTypesOfEntries[index],
+              color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
-          ],
+          ),
+          title: Text(
+            typesOfEntries[index],
+            style: TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+                color: Theme.of(context).textTheme.bodyMedium?.color),
+          ),
+          subtitle: Text(
+            descriptionForTypesOfEntries[index],
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: Colors.grey),
+          ),
         );
       },
     );
@@ -225,6 +278,7 @@ class ExtraOptionsButton extends StatefulWidget {
   final String? tagLabel;
   final Widget? tagIcon;
   final Color? tagColor;
+  final bool? useSpacer;
   const ExtraOptionsButton({
     super.key,
     this.label,
@@ -241,6 +295,7 @@ class ExtraOptionsButton extends StatefulWidget {
     this.tagLabel,
     this.tagIcon,
     this.tagColor,
+    this.useSpacer,
   });
 
   @override
@@ -257,23 +312,25 @@ class _ExtraOptionsButtonState extends State<ExtraOptionsButton> {
       child: InkWell(
         onTap: widget.onTap,
         child: Container(
+          width: double.maxFinite,
           padding: widget.innerPadding ??
               const EdgeInsets.only(left: 6, right: 6, top: 2, bottom: 2),
           decoration: widget.decoration,
           child: Row(
-            mainAxisSize: MainAxisSize.max,
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               widget.icon ?? const SizedBox(),
               SizedBox(width: widget.iconLabelSpace ?? 0),
-              Text(
-                widget.label ?? '',
-                maxLines: 1,
-                textAlign: widget.textAlign,
-                style: widget.labelStyle,
-                overflow: TextOverflow.ellipsis,
-              ),
+              if (widget.label != '' || widget.label != null)
+                Text(
+                  widget.label!,
+                  maxLines: 1,
+                  textAlign: widget.textAlign,
+                  style: widget.labelStyle,
+                  overflow: TextOverflow.ellipsis,
+                ),
               if (widget.showTag == true)
                 const SizedBox(
                   width: 10,
@@ -282,7 +339,8 @@ class _ExtraOptionsButtonState extends State<ExtraOptionsButton> {
               if (widget.showTag == true)
                 Container(
                   decoration: BoxDecoration(
-                    color: widget.tagColor ?? Theme.of(context).primaryColor.withAlpha(100),
+                    color: widget.tagColor ??
+                        Theme.of(context).primaryColor.withAlpha(100),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   padding:
@@ -304,8 +362,8 @@ class _ExtraOptionsButtonState extends State<ExtraOptionsButton> {
                     ],
                   ),
                 ),
-              const Spacer(),
-              widget.endIcon ?? const SizedBox(),
+              if (widget.useSpacer == true) const Spacer(),
+              if (widget.endIcon != null) widget.endIcon!,
             ],
           ),
         ),
@@ -371,177 +429,22 @@ class _SmallIconButtonState extends State<SmallIconButton> {
   }
 }
 
-void showMyCustomModalBottomSheet(BuildContext context) {
+void showObjectsModalBottomSheet(BuildContext context) {
   showModalBottomSheet(
     context: context,
     showDragHandle: true,
     enableDrag: true,
     backgroundColor: Theme.of(context).scaffoldBackgroundColor,
     builder: (context) {
-      return const Column(
-        children: [
-          Text(
-            'Basic objects',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-          ),
-          // Display all the basic objects
-          Expanded(
-            child: TypesOfObjects(),
-          ),
-          // Display a button to more templates
-          // Row(
-          //   mainAxisAlignment: MainAxisAlignment.center,
-          //   children: [
-          //     const Text(
-          //       'More object ',
-          //     ),
-          //     InkWell(
-          //       onTap: () => Navigator.of(context).push(MaterialPageRoute(
-          //           builder: (context) => const CustomTemplatesScreen())),
-          //       child: const Row(
-          //         children: [
-          //           Text(
-          //             'templates',
-          //             style: TextStyle(
-          //                 decoration: TextDecoration.underline,
-          //                 fontWeight: FontWeight.w700),
-          //           ),
-          //           Icon(
-          //             Icons.open_in_new_rounded,
-          //             size: 14,
-          //           )
-          //         ],
-          //       ),
-          //     ),
-          //   ],
-          // ),
-          SizedBox(height: 8)
-        ],
-      );
+      return SafeArea(child: TypesOfObjects());
     },
   );
 }
 
 void showStreakDialogBox(BuildContext context, String fieldReference,
     String dialogTitle, bool isTodayCompleted, bool? streakCleared) {
-  Future<int> getTasksStreakNumber() async {
-    final user = FirebaseAuth.instance.currentUser;
-    final firestore = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user?.uid)
-        .collection('streaks')
-        .doc('streaks')
-        .get();
-    return firestore.data()?[fieldReference].length ?? 0;
-  }
-
-  showDialog(
-    context: context,
-    builder: (context) {
-      return Dialog(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        child: Container(
-          height: 300,
-          padding: const EdgeInsets.all(14),
-          child: FutureBuilder<int>(
-            future: getTasksStreakNumber(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                    child: CircularProgressIndicator(
-                  color: Theme.of(context).primaryColorLight,
-                ));
-              } else if (snapshot.hasError) {
-                return const Center(child: Text('Error fetching streak.'));
-              }
-
-              int streak = snapshot.data ?? 0;
-
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: isTodayCompleted == true
-                        ? const Text(
-                            '🔥',
-                            style: TextStyle(fontSize: 28),
-                          )
-                        : streakCleared == false
-                            ? const Text(
-                                '⚠️',
-                                style: TextStyle(fontSize: 28),
-                              )
-                            : const Text(
-                                '❄️',
-                                style: TextStyle(fontSize: 28),
-                              ),
-                  ),
-                  const SizedBox(
-                    height: 14,
-                  ),
-                  isTodayCompleted == true
-                      ? Text(
-                          '$streak days',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        )
-                      : isTodayCompleted == true && streakCleared == false
-                          ? const Text(
-                              "Start your streak anew",
-                              style: TextStyle(fontSize: 16),
-                            )
-                          : const Text(
-                              'Task streak not extended for today',
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w500),
-                            ),
-                  const SizedBox(
-                    height: 18,
-                  ),
-                  isTodayCompleted == false
-                      ? const Text(
-                          'Complete a task today to earn a streak point',
-                          textAlign: TextAlign.center,
-                        )
-                      : const Text(
-                          'Good job on completing your tasks! Take a break and relax a bit.',
-                          textAlign: TextAlign.center,
-                        ),
-                  const Spacer(),
-                  const MotivationalQuoteWidget(),
-                ],
-              );
-            },
-          ),
-        ),
-      );
-    },
-  );
-}
-
-// Motivational quotes widget
-
-class MotivationalQuoteWidget extends StatefulWidget {
-  const MotivationalQuoteWidget({super.key});
-
-  @override
-  State<MotivationalQuoteWidget> createState() =>
-      _MotivationalQuoteWidgetState();
-}
-
-class _MotivationalQuoteWidgetState extends State<MotivationalQuoteWidget> {
+  int streak = 0;
+  String selectedQuote = "";
   final List<String> motivationalQuotes = [
     "Believe in yourself and all that you are.",
     "Your limitation—it's only your imagination.",
@@ -554,30 +457,73 @@ class _MotivationalQuoteWidgetState extends State<MotivationalQuoteWidget> {
     "Do something today that your future self will thank you for.",
     "It’s going to be hard, but hard does not mean impossible."
   ];
-
-  String selectedQuote = "";
-
-  @override
-  void initState() {
-    super.initState();
-    getRandomQuote(); // Select a random quote when the widget initializes
-  }
-
   void getRandomQuote() {
     final random = Random();
-    setState(() {
-      selectedQuote =
-          motivationalQuotes[random.nextInt(motivationalQuotes.length)];
-    });
+    selectedQuote =
+        motivationalQuotes[random.nextInt(motivationalQuotes.length)];
   }
+  // Future<int> getTasksStreakNumber() async {
+  //   final user = FirebaseAuth.instance.currentUser;
+  //   final firestore = await FirebaseFirestore.instance
+  //       .collection('users')
+  //       .doc(user?.uid)
+  //       .collection('streaks')
+  //       .doc('streaks')
+  //       .get();
+  //   streak = firestore.data()?[fieldReference].length ?? 0;
+  //   return firestore.data()?[fieldReference].length ?? 0;
+  // }
 
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      selectedQuote,
-      textAlign: TextAlign.center,
-    );
-  }
+  showAdaptiveDialog(
+    context: context,
+    builder: (context) {
+      getRandomQuote();
+      return AlertDialog.adaptive(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        icon: isTodayCompleted == true
+            ? const Text(
+                '🔥',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 24),
+              )
+            : streakCleared == false
+                ? const Text(
+                    '⚠️',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 24),
+                  )
+                : const Text(
+                    '❄️',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 24),
+                  ),
+        title: isTodayCompleted == true
+            ? Text('$streak days')
+            : isTodayCompleted == true && streakCleared == false
+                ? const Text("Start your streak anew")
+                : Text('Streak not extended for today'),
+        titleTextStyle: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.w400,
+        ),
+        content: isTodayCompleted == false
+            ? Text(
+                "Complete a goal today to earn a streak point. \t $selectedQuote")
+            : Text(
+                "Good job on completing your tasks! Take a break and relax a bit. $selectedQuote"),
+        contentTextStyle: TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
+        actions: [
+          TextButton(
+              onPressed: () {
+                // Close the dialog box
+                Navigator.of(context).pop();
+                return;
+              },
+              child: Text('Close'))
+        ],
+      );
+    },
+  );
 }
 
 // Modal Bottom sheet to display the types of entries in entries screen
@@ -591,7 +537,7 @@ class TypesOfEntries extends StatefulWidget {
 class _TypesOfEntriesState extends State<TypesOfEntries> {
   // Lists of required variables and objects
   List<String> titleOfEntry = ['Note', 'Book'];
-  List<IconData> iconOfEntry = [Iconsax.book, Iconsax.book_1];
+  List<IconData> iconOfEntry = [Icons.notes_rounded, Icons.menu_book_rounded];
   List<String> descriptionOfEntry = [
     'This is a note with rich text editing.',
     'This is a collection of notes as pages.'
@@ -615,87 +561,219 @@ class _TypesOfEntriesState extends State<TypesOfEntries> {
     return ListView.builder(
         itemCount: titleOfEntry.length,
         itemBuilder: (context, index) {
-          return Column(
-            children: [
-              InkWell(
-                onTap: () {
-                  if (index == 0) {
-                    // Navigate to the note layout page
-                    Navigator.pop(context);
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => NoteLayout(
-                          hasChildren: false,
-                          date: date,
-                          time: time,
-                          type: 'note',
-                          mode: NoteMode.create,
-                          dateTime: DateTime.now(),
-                          title: '',
-                          isEntryLocked: false,
-                        ),
-                      ),
-                    );
-                  } else if (index == 1) {
-                    // Navigate to the book Layout page
-                    Navigator.pop(context);
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => BookLayout(
-                          type: 'book',
-                          bookId: 'default',
-                          dateTime: now,
-                          isFirstTime: true,
-                          emoji: '📓',
-                          title: 'Book',
-                          description:
-                              "A Book is a group or collection of similar types of entries with pages and other features.",
-                          bookLayoutMethod: BookLayoutMethod.edit,
-                          hasChildren: false,
-                          isTemplate: false,
-                          isFavorite: false,
-                          children: const [],
-                        ),
-                      ),
-                    );
-                  }
-                },
-                child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14),
-                  dense: true,
-                  minVerticalPadding: 0,
-                  leading: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Theme.of(context).primaryColorLight,
-                    ),
-                    child: Icon(
-                      iconOfEntry[index],
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
+          return ListTile(
+            onTap: () {
+              if (index == 0) {
+                // Navigate to the note layout page
+                Navigator.pop(context);
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => NoteLayout(
+                      hasChildren: false,
+                      date: date,
+                      time: time,
+                      type: 'note',
+                      mode: NoteMode.create,
+                      dateTime: DateTime.now(),
+                      title: '',
+                      isEntryLocked: false,
                     ),
                   ),
-                  title: Text(
-                    titleOfEntry[index],
-                    style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: Theme.of(context).textTheme.bodyMedium?.color),
+                );
+              } else if (index == 1) {
+                // Navigate to the book Layout page
+                Navigator.pop(context);
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => BookLayout(
+                      type: 'book',
+                      bookId: 'default',
+                      dateTime: now,
+                      isFirstTime: true,
+                      emoji: '📓',
+                      title: 'Book',
+                      description:
+                          "A Book is a group or collection of similar types of entries with pages and other features.",
+                      bookLayoutMethod: BookLayoutMethod.edit,
+                      hasChildren: false,
+                      isTemplate: false,
+                      isFavorite: false,
+                      children: const [],
+                    ),
                   ),
-                  subtitle: Text(
-                    descriptionOfEntry[index],
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color),
-                  ),
-                ),
+                );
+              }
+            },
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+            dense: true,
+            minVerticalPadding: 0,
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Theme.of(context).primaryColorLight,
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 14.0, vertical: 0),
-                child: Divider(),
+              child: Icon(
+                iconOfEntry[index],
+                color: Theme.of(context).textTheme.bodyMedium?.color,
               ),
-            ],
+            ),
+            title: Text(
+              titleOfEntry[index],
+              style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                  color: Theme.of(context).textTheme.bodyMedium?.color),
+            ),
+            subtitle: Text(
+              descriptionOfEntry[index],
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: Colors.grey),
+            ),
+          );
+        });
+  }
+}
+
+// Modal sheet class for displaying the goals (tasks, habits, events) adding sheet
+class GoalObjectsModalSheet extends StatefulWidget {
+  const GoalObjectsModalSheet({super.key});
+
+  @override
+  State<GoalObjectsModalSheet> createState() => _GoalObjectsModalSheetState();
+}
+
+class _GoalObjectsModalSheetState extends State<GoalObjectsModalSheet> {
+  // Lists of required variables and objects
+  final userId = FirebaseAuth.instance.currentUser?.uid;
+  List<String> titleOfEntry = ['Task', 'Habit', 'Event'];
+  List<IconData> iconOfEntry = [
+    Icons.task_alt_rounded,
+    Icons.repeat_rounded,
+    Icons.event_rounded
+  ];
+  List<String> descriptionOfEntry = [
+    'This is a task you can check after completed.',
+    'This is a habit that repeats at a set interval.',
+    'This is an event that you can schedule.',
+  ];
+  final now = DateTime.now();
+  bool? isFreeSubscription = true;
+
+  @override
+  void initState() {
+    super.initState();
+    checkSubscription();
+  }
+
+  // Check the subscription plan of the user
+  void checkSubscription() async {
+    try {
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data();
+        final plan = data?['subscriptionPlan'];
+
+        setState(() {
+          isFreeSubscription = (plan == null || plan == 'free') ? true : false;
+        });
+      }
+    } catch (e) {
+      //
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+        itemCount: titleOfEntry.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            onTap: () {
+              if (index == 0) {
+                // Navigate to the tasks screen
+                Navigator.pop(context);
+                showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    useSafeArea: true,
+                    showDragHandle: true,
+                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                    builder: (context) => AddTaskOrHabitModal(
+                          currentDateTime: now,
+                          isHabit: false,
+                        ));
+              } else if (index == 1 && isFreeSubscription == false) {
+                // Navigate to the habits screen
+                Navigator.pop(context);
+                showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    useSafeArea: true,
+                    showDragHandle: true,
+                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                    builder: (context) => AddTaskOrHabitModal(
+                          currentDateTime: now,
+                          isHabit: true,
+                        ));
+              } else if (index == 1 && isFreeSubscription == true) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      margin: const EdgeInsets.all(6),
+                      behavior: SnackBarBehavior.floating,
+                      showCloseIcon: true,
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      content: Text(
+                          'Upgrade to Pro subscription or Lifetime plan to use Habits')),
+                );
+              } else if (index == 2) {
+                // Navigate to the events screen
+                Navigator.pop(context);
+                showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    useSafeArea: true,
+                    showDragHandle: true,
+                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                    builder: (context) =>
+                        AddEventModalSheet(currentDateTime: now));
+              }
+            },
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+            dense: true,
+            minVerticalPadding: 0,
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Theme.of(context).primaryColorLight,
+              ),
+              child: Icon(
+                iconOfEntry[index],
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
+            ),
+            title: Text(
+              titleOfEntry[index],
+              style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                  color: Theme.of(context).textTheme.bodyMedium?.color),
+            ),
+            subtitle: Text(
+              descriptionOfEntry[index],
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: Colors.grey),
+            ),
           );
         });
   }

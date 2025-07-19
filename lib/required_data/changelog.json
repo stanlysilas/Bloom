@@ -53,5 +53,11 @@
         "features": [
             "Squashed few bugs that interrupted your productivity!"
         ]
+    },
+    "default": {
+        "title": "Encountered an error while checking for changelog",
+        "features": [
+            "..."
+        ]
     }
 }

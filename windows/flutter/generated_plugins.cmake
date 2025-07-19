@@ -10,15 +10,18 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_context_menu_windows
   desktop_webview_auth
   emoji_picker_flutter
+  file_selector_windows
   firebase_auth
   firebase_core
   flutter_acrylic
   local_auth_windows
   permission_handler_windows
+  share_plus
   url_launcher_windows
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
+  flutter_local_notifications_windows
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

@@ -7,12 +7,10 @@ import 'package:bloom/components/textfield_nobackground.dart';
 import 'package:bloom/models/book_entry.dart';
 import 'package:bloom/models/note_layout.dart';
 import 'package:bloom/responsive/dimensions.dart';
-// import 'package:bloom/screens/entries_icon_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -234,145 +232,142 @@ class _BookLayoutState extends State<BookLayout> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-          title: Text(
-            titleController.text.trim(),
-            style: const TextStyle(fontWeight: FontWeight.w500),
-          ),
-          actions: [
-            // Sync status of the entry
-            // Show only if its not a template displaying
-            if (widget.isTemplate == false)
-              Padding(
-                padding: const EdgeInsets.only(left: 8.0, top: 2),
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
-                    color: Theme.of(context).primaryColorLight,
-                  ),
-                  child: isSynced
-                      ? Tooltip(
-                          message: 'Syncing',
-                          child: Container(
-                            height: 8,
-                            width: 8,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(25),
-                              color: Colors.blue,
-                            ),
-                          ),
-                        )
-                      : Tooltip(
-                          message: 'Synced',
-                          child: Container(
-                            height: 8,
-                            width: 8,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(25),
-                              color: Colors.green,
-                            ),
-                          ),
-                        ),
-                ),
+      appBar: AppBar(title: Text(titleController.text.trim()), actions: [
+        // Sync status of the entry
+        // Show only if its not a template displaying
+        if (widget.isTemplate == false)
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0, top: 2),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                color: Theme.of(context).primaryColorLight,
               ),
-            const SizedBox(
-              width: 6,
-            ),
-            IconButton(
-              onPressed: () {
-                if (widget.bookLayoutMethod == BookLayoutMethod.edit) {
-                  showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      showDragHandle: true,
-                      useSafeArea: true,
-                      backgroundColor:
-                          Theme.of(context).scaffoldBackgroundColor,
-                      constraints: BoxConstraints(
-                        minWidth: MediaQuery.of(context).size.width,
-                        minHeight: MediaQuery.of(context).size.height / 2,
+              child: isSynced
+                  ? Tooltip(
+                      message: 'Syncing',
+                      child: Container(
+                        height: 8,
+                        width: 8,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(25),
+                          color: Colors.blue,
+                        ),
                       ),
-                      builder: (context) {
-                        return Container(
-                          padding: const EdgeInsets.all(8),
-                          alignment: Alignment.center,
-                          child: Column(
-                            children: [
-                              const SizedBox(
-                                height: 14,
-                              ),
-                              // Delete entry option shown only if there is entryId
-                              if (widget.bookId != 'default')
-                                ExtraOptionsButton(
-                                  icon: Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(8),
-                                        color:
-                                            Theme.of(context).primaryColorLight,
-                                      ),
-                                      child: const Icon(
-                                        Iconsax.trash,
-                                        color: Colors.red,
-                                      )),
-                                  label: 'Delete entry',
-                                  iconLabelSpace: 8,
-                                  labelStyle: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 16,
-                                      color: Colors.red),
-                                  innerPadding: const EdgeInsets.all(12),
-                                  onTap: () async {
-                                    await FirebaseFirestore.instance
-                                        .collection('users')
-                                        .doc(user?.uid)
-                                        .collection('books')
-                                        .doc(widget.bookId)
-                                        .delete();
-
-                                    Navigator.pop(context);
-                                    Navigator.pop(context);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        margin: const EdgeInsets.all(6),
-                                        behavior: SnackBarBehavior.floating,
-                                        showCloseIcon: true,
-                                        closeIconColor: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.color,
-                                        backgroundColor:
-                                            Theme.of(context).primaryColor,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(12)),
-                                        content: Text(
-                                          'Succesfully deleted book',
-                                          style: TextStyle(
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.color),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  endIcon: const Icon(
-                                    Iconsax.arrow_right,
-                                    color: Colors.red,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        );
-                      });
-                }
-              },
-              icon: const Icon(Iconsax.more),
-              tooltip: 'Show menu',
+                    )
+                  : Tooltip(
+                      message: 'Synced',
+                      child: Container(
+                        height: 8,
+                        width: 8,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(25),
+                          color: Colors.green,
+                        ),
+                      ),
+                    ),
             ),
-          ]),
+          ),
+        const SizedBox(
+          width: 6,
+        ),
+        if (widget.isFirstTime != null && widget.isFirstTime! == false)
+          IconButton(
+            onPressed: () {
+              if (widget.bookLayoutMethod == BookLayoutMethod.edit) {
+                showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    showDragHandle: true,
+                    useSafeArea: true,
+                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                    // constraints: BoxConstraints(
+                    //   minWidth: MediaQuery.of(context).size.width,
+                    //   minHeight: MediaQuery.of(context).size.height / 2,
+                    // ),
+                    builder: (context) {
+                      return Container(
+                        padding: const EdgeInsets.all(8),
+                        alignment: Alignment.center,
+                        child: Column(
+                          children: [
+                            const SizedBox(
+                              height: 14,
+                            ),
+                            // Delete entry option shown only if there is entryId
+                            if (widget.bookId != 'default')
+                              ExtraOptionsButton(
+                                icon: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color:
+                                          Theme.of(context).primaryColorLight,
+                                    ),
+                                    child: const Icon(
+                                      Icons.delete_rounded,
+                                      color: Colors.red,
+                                    )),
+                                label: 'Delete ${widget.title}',
+                                iconLabelSpace: 8,
+                                useSpacer: true,
+                                labelStyle: const TextStyle(
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 16,
+                                    overflow: TextOverflow.ellipsis,
+                                    color: Colors.red),
+                                innerPadding: const EdgeInsets.all(12),
+                                onTap: () async {
+                                  await FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(user?.uid)
+                                      .collection('books')
+                                      .doc(widget.bookId)
+                                      .delete();
+
+                                  Navigator.pop(context);
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      margin: const EdgeInsets.all(6),
+                                      behavior: SnackBarBehavior.floating,
+                                      showCloseIcon: true,
+                                      closeIconColor: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.color,
+                                      backgroundColor:
+                                          Theme.of(context).primaryColor,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12)),
+                                      content: Text(
+                                        'Succesfully deleted book',
+                                        style: TextStyle(
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.color),
+                                      ),
+                                    ),
+                                  );
+                                },
+                                endIcon: const Icon(
+                                  Icons.keyboard_arrow_right_rounded,
+                                  color: Colors.red,
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    });
+              }
+            },
+            icon: const Icon(Icons.more_horiz_rounded),
+            tooltip: 'Show menu',
+          ),
+      ]),
       body: SingleChildScrollView(
         child: Padding(
           padding: MediaQuery.of(context).size.width < mobileWidth
@@ -485,7 +480,7 @@ class _BookLayoutState extends State<BookLayout> {
                       ),
               ),
               const SizedBox(
-                height: 8,
+                height: 14,
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 14.0),
@@ -556,7 +551,7 @@ class _BookLayoutState extends State<BookLayout> {
                             ),
                           ),
                     if (!isSearchToggled) const Spacer(),
-                    // Sorting the Book pages below option
+                    // TO:DO Sorting the Book pages below option
 
                     // Button to add a new entry into the Book
                     InkWell(
@@ -584,27 +579,28 @@ class _BookLayoutState extends State<BookLayout> {
                           null;
                         }
                       },
-                      child: const Icon(Iconsax.add),
+                      child: const Icon(Icons.add_rounded),
                     ),
                   ],
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 14.0),
-                child: Divider(),
+              const SizedBox(
+                height: 14,
               ),
               // List all the entries of the Book here
               StreamBuilder(
                   stream: fetchBookChildren(),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
-                      return const Center(
-                        child: Text('Error...'),
+                      return Center(
+                        child: Text(
+                            'An error occurred while fetching pages for ${widget.title}'),
                       );
                     }
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Skeletonizer(
+                      return Skeletonizer(
                         enabled: true,
+                        containersColor: Theme.of(context).primaryColorLight,
                         child: ListTile(
                           leading: Icon(Icons.abc),
                           title: Text(
@@ -624,35 +620,34 @@ class _BookLayoutState extends State<BookLayout> {
                       ).animate().fade(delay: const Duration(milliseconds: 50));
                     }
                     if (snapshot.hasData && snapshot.data!.isEmpty) {
-                      return SizedBox(
-                        child: Padding(
-                          padding:
-                              const EdgeInsets.only(left: 14.0, right: 14.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Image(
-                                image: AssetImage(
-                                    'assets/images/entriesEmptyBackground.png'),
-                              ),
-                              Text(
-                                'Make a new ${titleController.text} entry',
-                                style: const TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.w500),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(
-                                height: 4,
-                              ),
-                              Text(
-                                'Click on the + icon to make a new page in your ${titleController.text}',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.grey),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 14.0, right: 14.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Image(
+                              height: 200,
+                              width: 200,
+                              image: AssetImage(
+                                  'assets/images/allCompletedBackground.png'),
+                            ),
+                            Text(
+                              'Make a new ${titleController.text} entry',
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.w500),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(
+                              height: 4,
+                            ),
+                            Text(
+                              'Click on the + icon to make a new page in your ${titleController.text}',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
                       );
                     }
@@ -668,45 +663,39 @@ class _BookLayoutState extends State<BookLayout> {
                           itemCount: snapshot.data!.length,
                           itemBuilder: (context, index) {
                             // Default entries for the book type
-                            return Column(
-                              children: [
-                                BookCard(
-                                  isTemplate: false,
-                                  innerPadding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 4),
-                                  onTap: () {
-                                    // Navigate to the tapped entry in the default book type
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) => BookEntry(
-                                          dateTime: widget.dateTime,
-                                          mode: BookMode.display,
-                                          mainBookTitle: widget.title ??
-                                              'Book default title',
-                                          mainType: 'book',
-                                          mainBookId: 'default',
-                                          mainBookHasChildren: true,
-                                          mainBookEmoji: '📓',
-                                          mainBookDescription:
-                                              descriptionController.text,
-                                          entryTitle:
-                                              "Default title's first page",
-                                          entryId: 'default',
-                                          entryContent: "",
-                                          entryEmoji: '📓',
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  emoji: '📓',
-                                  title: "Default title's first page ",
-                                  description:
-                                      'This is the first page of the Book. This is the area for writing anything and everything you want.',
-                                  dateTime: widget.dateTime,
-                                  tags: const ['Personal', 'Daily'],
-                                ),
-                                const Divider(),
-                              ],
+                            return BookCard(
+                              isTemplate: false,
+                              innerPadding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 4),
+                              onTap: () {
+                                // Navigate to the tapped entry in the default book type
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => BookEntry(
+                                      dateTime: widget.dateTime,
+                                      mode: BookMode.display,
+                                      mainBookTitle:
+                                          widget.title ?? 'Book default title',
+                                      mainType: 'book',
+                                      mainBookId: 'default',
+                                      mainBookHasChildren: true,
+                                      mainBookEmoji: '📓',
+                                      mainBookDescription:
+                                          descriptionController.text,
+                                      entryTitle: "Default title's first page",
+                                      entryId: 'default',
+                                      entryContent: "",
+                                      entryEmoji: '📓',
+                                    ),
+                                  ),
+                                );
+                              },
+                              emoji: '📓',
+                              title: "Default title's first page ",
+                              description:
+                                  'This is the first page of the Book. This is the area for writing anything and everything you want.',
+                              dateTime: widget.dateTime,
+                              tags: const ['Personal', 'Daily'],
                             );
                           },
                         ),
@@ -727,67 +716,27 @@ class _BookLayoutState extends State<BookLayout> {
                               final entryTitle = entryData['objectTitle'];
                               final entryContent =
                                   entryData['objectDescription'];
-                              return Column(
-                                children: [
-                                  EntriesTile(
-                                      innerPadding: const EdgeInsets.symmetric(
-                                          horizontal: 14, vertical: 4),
-                                      content: entryContent,
-                                      emoji: entryEmoji,
-                                      date: DateFormat('dd-MM-yyy')
-                                          .format(widget.dateTime),
-                                      id: entryId,
-                                      mainId: widget.bookId,
-                                      type: 'book',
-                                      isTemplate: widget.isTemplate,
-                                      templateType: widget.title!.toLowerCase(),
-                                      backgroundImageUrl: '',
-                                      attachments: const [],
-                                      hasChildren: false,
-                                      children: const [],
-                                      isFavorite: false,
-                                      addedOn: widget.dateTime,
-                                      dateTime: widget.dateTime,
-                                      title: entryTitle,
-                                      isEntryLocked: false),
-                                  // BookTile(
-                                  //   innerPadding: const EdgeInsets.symmetric(
-                                  //       horizontal: 14, vertical: 4),
-                                  //   onTap: () {
-                                  //     bookLayoutMethod == BookLayoutMethod.display
-                                  //         ? null
-                                  //         : Navigator.of(context).push(
-                                  //             MaterialPageRoute(
-                                  //               builder: (context) => BookEntry(
-                                  //                 dateTime: widget.dateTime,
-                                  //                 mode: BookMode.create,
-                                  //                 mainBookTitle: entryTitle,
-                                  //                 mainBookHasChildren: true,
-                                  //                 mainBookEmoji: '📓',
-                                  //                 entryId: entryId,
-                                  //                 mainType: 'book',
-                                  //                 entryTitle: 'My Journal',
-                                  //                 entryContent: entryContent,
-                                  //               ),
-                                  //             ),
-                                  //           );
-                                  //   },
-                                  //   emoji: entryEmoji,
-                                  //   title: entryTitle,
-                                  //   content:
-                                  //       'This is the first page of the Book. This is the area for writing anything and everything you want.',
-                                  //   dateTime: widget.dateTime,
-                                  //   tags: const ['Personal', 'Daily'],
-                                  // ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 14.0),
-                                    child: const Divider().animate().fade(
-                                        delay:
-                                            const Duration(milliseconds: 250)),
-                                  )
-                                ],
-                              );
+                              return EntriesTile(
+                                  innerPadding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 4),
+                                  content: entryContent,
+                                  emoji: entryEmoji,
+                                  date: DateFormat('dd-MM-yyy')
+                                      .format(widget.dateTime),
+                                  id: entryId,
+                                  mainId: widget.bookId,
+                                  type: 'book',
+                                  isTemplate: widget.isTemplate,
+                                  templateType: widget.title!.toLowerCase(),
+                                  backgroundImageUrl: '',
+                                  attachments: const [],
+                                  hasChildren: false,
+                                  children: const [],
+                                  isFavorite: false,
+                                  addedOn: widget.dateTime,
+                                  dateTime: widget.dateTime,
+                                  title: entryTitle,
+                                  isEntryLocked: false);
                             },
                           ),
                         );
@@ -816,36 +765,24 @@ class _BookLayoutState extends State<BookLayout> {
                               final isFavorite = entryData['isFavorite'];
                               final children = entryData['children'];
                               final isEntryLocked = entryData['isEntryLocked'];
-                              return Column(
-                                children: [
-                                  EntriesTile(
-                                      innerPadding: const EdgeInsets.symmetric(
-                                          horizontal: 14, vertical: 4),
-                                      content: entryContent,
-                                      emoji: entryEmoji,
-                                      date: DateFormat('dd-MM-yyy')
-                                          .format(addedOn),
-                                      id: entryId,
-                                      mainId: widget.bookId,
-                                      type: entryType,
-                                      backgroundImageUrl: backgroundImageUrl,
-                                      attachments: attachments,
-                                      hasChildren: hasChildren,
-                                      children: children,
-                                      isFavorite: isFavorite,
-                                      addedOn: addedOn,
-                                      dateTime: dateTime,
-                                      title: entryTitle,
-                                      isEntryLocked: isEntryLocked ?? false),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 14.0),
-                                    child: const Divider().animate().fade(
-                                        delay:
-                                            const Duration(milliseconds: 250)),
-                                  )
-                                ],
-                              );
+                              return EntriesTile(
+                                  innerPadding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 4),
+                                  content: entryContent,
+                                  emoji: entryEmoji,
+                                  date: DateFormat('dd-MM-yyy').format(addedOn),
+                                  id: entryId,
+                                  mainId: widget.bookId,
+                                  type: entryType,
+                                  backgroundImageUrl: backgroundImageUrl,
+                                  attachments: attachments,
+                                  hasChildren: hasChildren,
+                                  children: children,
+                                  isFavorite: isFavorite,
+                                  addedOn: addedOn,
+                                  dateTime: dateTime,
+                                  title: entryTitle,
+                                  isEntryLocked: isEntryLocked ?? false);
                             },
                           ),
                         );
@@ -857,32 +794,36 @@ class _BookLayoutState extends State<BookLayout> {
         ),
       ),
       floatingActionButton: bookLayoutMethod == BookLayoutMethod.display
-          ? InkWell(
-              borderRadius: BorderRadius.circular(100),
-              onTap: () async {
-                setState(() {
-                  if (bookLayoutMethod == BookLayoutMethod.display) {
-                    // User wants to use this template save it to their database and continue to edit mode.
-                    bookLayoutMethod = BookLayoutMethod.edit;
-                    saveBookLayout();
-                  } else {
-                    bookLayoutMethod = BookLayoutMethod.display;
-                  }
-                });
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(100),
-                    color: Theme.of(context).primaryColor),
-                padding: const EdgeInsets.all(12),
-                child: Text(
-                  'Use template',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).textTheme.bodyMedium?.color),
+          ? FloatingActionButton.extended(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  onPressed: () async {
+                    setState(() {
+                      if (bookLayoutMethod == BookLayoutMethod.display) {
+                        // User wants to use this template save it to their database and continue to edit mode.
+                        bookLayoutMethod = BookLayoutMethod.edit;
+                        saveBookLayout();
+                      } else {
+                        bookLayoutMethod = BookLayoutMethod.display;
+                      }
+                    });
+                  },
+                  icon: Icon(
+                    Icons.edit_outlined,
+                    size: 24,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                  label: Text(
+                    'Use template',
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Theme.of(context).textTheme.bodyMedium?.color),
+                  )).animate().scaleXY(
+                curve: Curves.easeInOutBack,
+                delay: const Duration(
+                  milliseconds: 1000,
                 ),
-              ),
-            )
+              )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );

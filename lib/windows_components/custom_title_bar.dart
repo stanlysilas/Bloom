@@ -5,7 +5,6 @@ import 'package:bloom/screens/moreoptions_screen.dart';
 import 'package:bloom/screens/settings_screen.dart';
 import 'package:bloom/windows_components/navigationrail.dart';
 import 'package:flutter/material.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -61,11 +60,11 @@ class _CustomtitlebarState extends State<Customtitlebar> {
                 },
                 icon: showSideBar != null && showSideBar == true
                     ? const Icon(
-                        Iconsax.sidebar_left,
+                        Icons.menu_open_rounded,
                         size: 18,
                       )
                     : const Icon(
-                        Iconsax.sidebar_right,
+                        Icons.close_rounded,
                         size: 18,
                       ),
               ),

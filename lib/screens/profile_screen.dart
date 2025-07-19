@@ -1,14 +1,11 @@
 // import 'package:bloom/authentication_screens/change_email_screen.dart';
 import 'package:bloom/authentication_screens/signup_screen.dart';
-import 'package:bloom/components/mybuttons.dart';
 import 'package:bloom/components/mytextfield.dart';
 import 'package:bloom/components/overview_data.dart';
 import 'package:bloom/components/profile_pic.dart';
-import 'package:bloom/screens/detailed_analytics_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:iconsax/iconsax.dart';
 
 class ProfileScreen extends StatefulWidget {
   final bool? isImageNetwork;
@@ -37,6 +34,7 @@ enum ProfileMode { display, edit }
 class _ProfileScreenState extends State<ProfileScreen> {
   // Required variables and controllers
   late TextEditingController userNameController;
+  final userNameFocusNode = FocusNode();
   late TextEditingController emailController;
   late ProfileMode mode;
   final user = FirebaseAuth.instance.currentUser;
@@ -47,7 +45,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int? completedTasksInYear;
   int? attendedEventsInYear;
   String? subscriptionPlan;
-  late Map<DateTime, int> completedTasksByDate = {};
 
   // Method to initialize the required variables and methods
   @override
@@ -58,41 +55,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     mode = widget.mode;
     dataOverviewCheck();
     checkSubscription();
-    getCompletedTaskCountsByDate();
-  }
-
-  // check the completed task dates and add it to the variable
-  Future<Map<DateTime, int>> getCompletedTaskCountsByDate() async {
-    if (user == null) {
-      return {};
-    }
-
-    final QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
-        .instance
-        .collection('users')
-        .doc(user?.uid)
-        .collection('tasks')
-        .where('isCompleted', isEqualTo: true)
-        .get();
-
-    for (final QueryDocumentSnapshot<Map<String, dynamic>> doc
-        in snapshot.docs) {
-      final Timestamp? completionTimestamp =
-          doc.data()['taskDateTime'] as Timestamp?;
-
-      if (completionTimestamp != null) {
-        // Convert Timestamp to DateTime and remove the time component
-        final DateTime completionDate = completionTimestamp.toDate();
-        final DateTime dateOnly = DateTime(
-            completionDate.year, completionDate.month, completionDate.day);
-
-        // Update the count for this date
-        completedTasksByDate[dateOnly] =
-            (completedTasksByDate[dateOnly] ?? 0) + 1;
-      }
-    }
-
-    return completedTasksByDate;
   }
 
   // Check the subscription plan of the user
@@ -228,26 +190,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: mode == ProfileMode.display
-            ? const Text(
-                'Profile',
-                style: TextStyle(fontWeight: FontWeight.w500),
-              )
-            : const Text(
-                'Edit profile',
-                style: TextStyle(fontWeight: FontWeight.w500),
-              ),
+            ? const Text('Profile')
+            : const Text('Edit profile'),
         actions: [
           mode == ProfileMode.display
               ? IconButton(
                   onPressed: () async {
                     //Logout process
                     try {
-                      await FirebaseAuth.instance.signOut();
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => const SignupScreen(),
-                        ),
-                      );
+                      showAdaptiveDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog.adaptive(
+                              backgroundColor:
+                                  Theme.of(context).scaffoldBackgroundColor,
+                              icon: const Icon(Icons.logout),
+                              iconColor:
+                                  Theme.of(context).textTheme.bodyMedium?.color,
+                              title: Text('Logout?'),
+                              titleTextStyle: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              content: const Text(
+                                  "Are you sure that you want to logout of your account?"),
+                              contentTextStyle: TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.w400),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    // Cancel and close the dialog
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text('Cancel'),
+                                ),
+                                TextButton(
+                                  style: ButtonStyle(
+                                      foregroundColor:
+                                          WidgetStatePropertyAll(Colors.red)),
+                                  onPressed: () async {
+                                    // Logout of the app account
+                                    await FirebaseAuth.instance.signOut();
+                                    Navigator.of(context).pushReplacement(
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const SignupScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: Text('Logout'),
+                                ),
+                              ],
+                              actionsPadding: const EdgeInsets.all(10),
+                              actionsAlignment: MainAxisAlignment.end,
+                            );
+                          });
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
@@ -269,10 +266,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       );
                     }
                   },
-                  icon: const Text(
-                    'Logout',
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
+                  icon: const Icon(Icons.logout),
                 )
               : IconButton(
                   onPressed: () async {
@@ -293,6 +287,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const SizedBox(
+                      height: 8,
+                    ),
                     SizedBox(
                       width: double.maxFinite,
                       child: Column(
@@ -301,22 +298,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           widget.isImageNetwork == true &&
                                   widget.isImageNetwork != null
                               ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(1000),
+                                  borderRadius: BorderRadius.circular(15),
                                   child: Hero(
                                     tag: 'network_image_hero',
                                     child: Image.network(
                                       widget.profilePicture ??
-                                          'assets/profile_pictures/Profile_Picture_Male.png',
+                                          'assets/profile_pictures/Profile_Picture_Male_1.png',
                                       scale: 7,
                                     ),
                                   ),
                                 )
-                              : Hero(
-                                  tag: 'asset_image_hero',
-                                  child: Image.asset(
-                                    widget.profilePicture ??
-                                        'assets/profile_pictures/Profile_Picture_Male.png',
-                                    scale: 12,
+                              : ClipRRect(
+                                  borderRadius: BorderRadius.circular(15),
+                                  child: Hero(
+                                    tag: 'asset_image_hero',
+                                    child: Image.asset(
+                                      widget.profilePicture ??
+                                          'assets/profile_pictures/Profile_Picture_Male_1.png',
+                                      scale: 12,
+                                    ),
                                   ),
                                 ),
                           const SizedBox(
@@ -326,56 +326,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           if (widget.userName != null || widget.userName != '')
                             Hero(
                               tag: 'userName_hero',
+                              transitionOnUserGestures: true,
+                              placeholderBuilder: (context, heroSize, child) {
+                                return Text(
+                                  user!.email!.substring(0, 8),
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                );
+                              },
                               child: Text(
-                                widget.userName ?? user!.email!.substring(0, 8),
-                                style: const TextStyle(fontSize: 18),
-                              ),
+                                  widget.userName ??
+                                      user!.email!.substring(0, 8),
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w500,
+                                  )),
                             ),
                           // Email of the user
                           if (widget.email != null || widget.email != '')
                             SelectableText(
                               widget.email ?? user!.email!,
                               style: TextStyle(
+                                  fontSize: 16,
                                   color: Theme.of(context).primaryColorDark),
                             ),
                           const SizedBox(
                             height: 10,
                           ),
                           // Button to edit the account/profile
-                          InkWell(
-                            borderRadius: BorderRadius.circular(100),
-                            onTap: () {
-                              setState(() {
-                                mode = ProfileMode.edit;
-                              });
-                            },
-                            child: Container(
-                              width: MediaQuery.of(context).size.width * 0.3,
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).primaryColor,
-                                borderRadius: BorderRadius.circular(100),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'Edit profile',
-                                    style: TextStyle(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.color),
-                                  ),
-                                  Icon(
-                                    Icons.arrow_forward_ios_rounded,
-                                    size: 14,
+                          SizedBox(
+                            width: 80,
+                            child: FilledButton(
+                              onPressed: () {
+                                setState(() {
+                                  mode = ProfileMode.edit;
+                                });
+                              },
+                              style: ButtonStyle(
+                                  backgroundColor: WidgetStatePropertyAll(
+                                      Theme.of(context).primaryColor)),
+                              child: Text(
+                                'Edit',
+                                style: TextStyle(
                                     color: Theme.of(context)
                                         .textTheme
                                         .bodyMedium
-                                        ?.color,
-                                  )
-                                ],
+                                        ?.color),
                               ),
                             ),
                           ),
@@ -411,19 +409,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                                 const VerticalDivider(),
                                 Expanded(
-                                  child: InkWell(
-                                    onTap: () {
-                                      Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  DetailedAnalyticsScreen(
-                                                      completedTasksPerDay:
-                                                          completedTasksByDate)));
-                                    },
-                                    child: NumberOfTasksInYear(
-                                      completedTasksInYear:
-                                          completedTasksInYear ?? 0,
-                                    ),
+                                  child: NumberOfTasksInYear(
+                                    completedTasksInYear:
+                                        completedTasksInYear ?? 0,
                                   ),
                                 ),
                                 const VerticalDivider(),
@@ -442,10 +430,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(
                       height: 10,
                     ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 14.0),
-                      child: Divider(),
-                    ),
+                    // Divider(),
                     const SizedBox(
                       height: 10,
                     ),
@@ -461,47 +446,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     // const SizedBox(
                     //   height: 5,
                     // ),
-                    // Analytics button
-                    ExtraOptionsButton(
-                      showTag: subscriptionPlan == 'free' ? true : false,
-                      icon: const Icon(Iconsax.graph),
-                      iconLabelSpace: 8,
-                      label: 'Analytics',
-                      labelStyle: const TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 16),
-                      innerPadding: const EdgeInsets.all(12),
-                      onTap: () {
-                        if (subscriptionPlan == 'pro' ||
-                            subscriptionPlan == 'ultra') {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => DetailedAnalyticsScreen(
-                                completedTasksPerDay: completedTasksByDate,
-                              ),
-                            ),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              margin: const EdgeInsets.all(6),
-                              behavior: SnackBarBehavior.floating,
-                              showCloseIcon: true,
-                              backgroundColor: Theme.of(context).primaryColor,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
-                              content: Text(
-                                'Analytics are only available with Pro and Ultra subscriptions',
-                                style: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.color),
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                    ),
                   ],
                 ),
               ),
@@ -513,6 +457,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   // Profile Picture
                   InkWell(
+                    borderRadius: BorderRadius.circular(100),
                     onTap: () async {
                       final selectedPicture = await showDialog<String>(
                         context: context,
@@ -528,14 +473,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ? Stack(
                             alignment: Alignment.bottomCenter,
                             children: [
-                              Image.asset(
-                                selectedProfilePicture!,
-                                scale: 14,
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(100),
+                                child: Image.asset(
+                                  selectedProfilePicture!,
+                                  scale: 14,
+                                ),
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(4.0),
                                 child: Icon(Icons.edit,
-                                    size: 16,
                                     color: Theme.of(context).primaryColorLight),
                               ),
                             ],
@@ -546,22 +493,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               widget.isImageNetwork == true &&
                                       widget.isImageNetwork != null
                                   ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(1000),
+                                      borderRadius: BorderRadius.circular(100),
                                       child: Image.network(
                                         widget.profilePicture ??
-                                            'assets/profile_pictures/Profile_Picture_Male.png',
-                                        scale: 8,
+                                            'assets/profile_pictures/Profile_Picture_Male_1.png',
+                                        scale: 5,
                                       ),
                                     )
-                                  : Image.asset(
-                                      widget.profilePicture ??
-                                          'assets/profile_pictures/Profile_Picture_Male.png',
-                                      scale: 14,
+                                  : ClipRRect(
+                                      borderRadius: BorderRadius.circular(100),
+                                      child: Image.asset(
+                                        widget.profilePicture ??
+                                            'assets/profile_pictures/Profile_Picture_Male_1.png',
+                                        scale: 10,
+                                      ),
                                     ),
                               Padding(
                                 padding: const EdgeInsets.all(4.0),
                                 child: Icon(Icons.edit,
-                                    size: 16,
                                     color: Theme.of(context).primaryColorLight),
                               ),
                             ],
@@ -583,6 +532,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       MyTextfield(
                         controller: userNameController,
+                        focusNode: userNameFocusNode,
                         hintText: 'New Username',
                         obscureText: false,
                         textInputType: TextInputType.name,
@@ -691,13 +641,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: Theme.of(context).primaryColor,
-                        borderRadius: BorderRadius.circular(15),
+                        borderRadius: BorderRadius.circular(100),
                       ),
                       child: Text(
                         'Save Changes',
                         style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).scaffoldBackgroundColor),
+                            fontSize: 16,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color),
                       ),
                     ),
                   )

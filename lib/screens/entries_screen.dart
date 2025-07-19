@@ -5,15 +5,14 @@ import 'dart:io';
 import 'package:bloom/components/book_card.dart';
 import 'package:bloom/components/entries_tile.dart';
 import 'package:bloom/components/mybuttons.dart';
-import 'package:bloom/components/mytextfield.dart';
 import 'package:bloom/screens/custom_templates_screen.dart';
+import 'package:bloom/screens/upgrade_subscription_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -29,13 +28,14 @@ class _EntriesScreenState extends State<EntriesScreen> {
   // Required variables
   final user = FirebaseAuth.instance.currentUser;
   final searchController = TextEditingController();
+  final searchFocusNode = FocusNode();
   CalendarFormat _calendarFormat = CalendarFormat.week;
   var _focusedDay = DateTime.now();
   var _selectedDay = DateTime.now();
   bool toggleDayView = false;
   bool toggleSearch = false;
-  int? numberOfBooks;
-  int? numberOfEntries;
+  int? numberOfBooks = 0;
+  int? numberOfEntries = 0;
   List<DocumentSnapshot> searchResults = [];
   String sortValue = 'Recents';
   final now = DateTime.now();
@@ -156,12 +156,28 @@ class _EntriesScreenState extends State<EntriesScreen> {
   // Method to retrieve the books
   Stream<List<Map<String, dynamic>>> fetchBooks() {
     Stream<QuerySnapshot<Map<String, dynamic>>> query;
-    query = FirebaseFirestore.instance
-        .collection('users')
-        .doc(user!.uid)
-        .collection('books')
-        .orderBy('addedOn', descending: true)
-        .snapshots();
+    if (sortValue == 'Recents') {
+      query = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.uid)
+          .collection('books')
+          .orderBy('addedOn', descending: true)
+          .snapshots();
+    } else if (sortValue == 'Oldest') {
+      query = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.uid)
+          .collection('books')
+          .orderBy('addedOn', descending: false)
+          .snapshots();
+    } else {
+      query = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.uid)
+          .collection('books')
+          .orderBy('addedOn', descending: true)
+          .snapshots();
+    }
 
     return query.map((querySnapshot) {
       numberOfBooks = querySnapshot.docs.length;
@@ -287,6 +303,11 @@ class _EntriesScreenState extends State<EntriesScreen> {
     return RichText(text: TextSpan(children: children));
   }
 
+  // State update method
+  void stateUpdate() {
+    setState(() {});
+  }
+
   @override
   void dispose() {
     searchController.removeListener(onSearchChanged);
@@ -298,10 +319,7 @@ class _EntriesScreenState extends State<EntriesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Entries',
-          style: TextStyle(fontWeight: FontWeight.w500),
-        ),
+        title: const Text('Entries'),
         actions: [
           IconButton(
               onPressed: () {
@@ -313,35 +331,65 @@ class _EntriesScreenState extends State<EntriesScreen> {
                     ? searchController.clear()
                     : searchController;
               },
-              icon: const Icon(Icons.search)),
-          IconButton(
-            onPressed: () {
-              setState(() {
-                toggleDayView = !toggleDayView;
-              });
-              fetchEntriesForDay(_focusedDay);
-            },
-            icon: toggleDayView
-                ? const Icon(Iconsax.book)
-                : const Icon(Iconsax.calendar_1),
-          ),
+              icon: const Icon(Icons.search_rounded)),
+          // IconButton(
+          //   onPressed: () {
+          //     setState(() {
+          //       toggleDayView = !toggleDayView;
+          //     });
+          //     fetchEntriesForDay(_focusedDay);
+          //   },
+          //   icon: toggleDayView
+          //       ? const Icon(Icons.book_rounded)
+          //       : const Icon(Icons.calendar_month_rounded),
+          // ),
         ],
+        bottom: toggleSearch
+            ? PreferredSize(
+                preferredSize: Size(MediaQuery.of(context).size.width, 70),
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    left: 8.0,
+                    right: 8.0,
+                  ),
+                  child: SearchBar(
+                    controller: searchController,
+                    focusNode: searchFocusNode,
+                    backgroundColor: WidgetStatePropertyAll(
+                        Theme.of(context).primaryColorLight),
+                    padding: const WidgetStatePropertyAll(
+                        EdgeInsets.symmetric(horizontal: 16.0)),
+                    onTapOutside: (event) {
+                      searchFocusNode.unfocus();
+                    },
+                    leading: const Icon(Icons.search_rounded),
+                    trailing: [
+                      if (searchResults.isNotEmpty)
+                        IconButton(
+                            onPressed: () {
+                              searchFocusNode.unfocus();
+                              setState(() {
+                                toggleSearch = false;
+                              });
+                            },
+                            icon: const Icon(Icons.close_rounded))
+                    ],
+                    hintText: 'Search (case sensitive)',
+                    elevation: const WidgetStatePropertyAll(0),
+                  ),
+                ))
+            : null,
       ),
       body: toggleSearch
           ? SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: searchResults.isEmpty
+                    ? MainAxisAlignment.center
+                    : MainAxisAlignment.start,
+                crossAxisAlignment: searchResults.isEmpty
+                    ? CrossAxisAlignment.center
+                    : CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                    child: MyTextfield(
-                      controller: searchController,
-                      hintText: 'Search title of Entry (Case Sensitive)',
-                      obscureText: false,
-                      textInputType: TextInputType.text,
-                      autoFocus: false,
-                    ),
-                  ),
                   searchResults.isEmpty && searchController.text.isEmpty
                       ? const Center(
                           child: Padding(
@@ -381,177 +429,164 @@ class _EntriesScreenState extends State<EntriesScreen> {
                                 style: TextStyle(fontWeight: FontWeight.w500),
                               ),
                             ),
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height,
-                    child: ListView.builder(
-                        itemCount: searchResults.length,
-                        itemBuilder: (context, index) {
-                          DocumentSnapshot doc = searchResults[index];
-                          String entryDescription = doc['mainEntryDescription'];
-                          String entryTitle = doc['mainEntryTitle'] ?? '';
-                          String entryId = doc['mainEntryId'];
-                          List entryChildren = doc['children'];
-                          String entryBackgroundImageUrl =
-                              doc['backgroundImageUrl'];
-                          String entryEmoji = doc['mainEntryEmoji'];
-                          List entryAttachments = doc['attachments'];
-                          String entryType = doc['mainEntryType'];
-                          bool entryHasChildren = doc['hasChildren'];
-                          // Timestamp onlyDate = doc['dueDate'];
-                          bool entryIsFavorite = doc['isFavorite'];
-                          final Timestamp timestamp = doc['addedOn'];
-                          final Timestamp datetime = doc['dateTime'];
-                          final DateTime entryDate = timestamp.toDate();
-                          final DateTime dateTime = datetime.toDate();
-                          final DateTime addedOn = entryDate;
-                          final isSynced = doc['synced'];
-                          String date =
-                              DateFormat('dd-MM-yyyy').format(dateTime);
-                          Timestamp onlyTime = doc['dateTime'];
-                          DateTime timeDate = onlyTime.toDate();
-                          String time = DateFormat('h:mm a').format(timeDate);
-                          final isEntryLocked = doc['isEntryLocked'] ?? false;
-                          if (searchResults.isEmpty) {
-                            return const Center(
-                              child: Text(
-                                'There is no matching data',
-                              ),
-                            );
-                          } else {
-                            return Column(
-                              children: [
-                                EntriesTile(
-                                  innerPadding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 4),
-                                  content: entryDescription,
-                                  title: entryTitle,
-                                  emoji: entryEmoji,
-                                  date: date,
-                                  time: time,
-                                  id: entryId,
-                                  type: entryType,
-                                  backgroundImageUrl: entryBackgroundImageUrl,
-                                  attachments: entryAttachments,
-                                  hasChildren: entryHasChildren,
-                                  children: entryChildren,
-                                  isFavorite: entryIsFavorite,
-                                  addedOn: addedOn,
-                                  dateTime: dateTime,
-                                  isSynced: isSynced,
-                                  isEntryLocked: isEntryLocked,
+                  if (searchResults.isNotEmpty)
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height,
+                      child: ListView.builder(
+                          itemCount: searchResults.length,
+                          itemBuilder: (context, index) {
+                            DocumentSnapshot doc = searchResults[index];
+                            String entryDescription =
+                                doc['mainEntryDescription'];
+                            String entryTitle = doc['mainEntryTitle'] ?? '';
+                            String entryId = doc['mainEntryId'];
+                            List entryChildren = doc['children'];
+                            String entryBackgroundImageUrl =
+                                doc['backgroundImageUrl'];
+                            String entryEmoji = doc['mainEntryEmoji'];
+                            List entryAttachments = doc['attachments'];
+                            String entryType = doc['mainEntryType'];
+                            bool entryHasChildren = doc['hasChildren'];
+                            // Timestamp onlyDate = doc['dueDate'];
+                            bool entryIsFavorite = doc['isFavorite'];
+                            final Timestamp timestamp = doc['addedOn'];
+                            final Timestamp datetime = doc['dateTime'];
+                            final DateTime entryDate = timestamp.toDate();
+                            final DateTime dateTime = datetime.toDate();
+                            final DateTime addedOn = entryDate;
+                            final isSynced = doc['synced'];
+                            String date =
+                                DateFormat('dd-MM-yyyy').format(dateTime);
+                            Timestamp onlyTime = doc['dateTime'];
+                            DateTime timeDate = onlyTime.toDate();
+                            String time = DateFormat('h:mm a').format(timeDate);
+                            final isEntryLocked = doc['isEntryLocked'] ?? false;
+                            if (searchResults.isEmpty) {
+                              return const Center(
+                                child: Text(
+                                  'There is no matching data',
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 14.0),
-                                  child: const Divider().animate().fade(
-                                      delay: const Duration(milliseconds: 250)),
-                                )
-                              ],
-                            );
-                          }
-                        }),
-                  ),
+                              );
+                            } else {
+                              return EntriesTile(
+                                innerPadding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 4),
+                                content: entryDescription,
+                                title: entryTitle,
+                                emoji: entryEmoji,
+                                date: date,
+                                time: time,
+                                id: entryId,
+                                type: entryType,
+                                backgroundImageUrl: entryBackgroundImageUrl,
+                                attachments: entryAttachments,
+                                hasChildren: entryHasChildren,
+                                children: entryChildren,
+                                isFavorite: entryIsFavorite,
+                                addedOn: addedOn,
+                                dateTime: dateTime,
+                                isSynced: isSynced,
+                                isEntryLocked: isEntryLocked,
+                              );
+                            }
+                          }),
+                    ),
                 ],
               ),
             )
           : toggleDayView
-              ? SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Display the calendar at top
-                      TableCalendar(
-                        pageAnimationCurve: Curves.easeInBack,
-                        pageAnimationDuration:
-                            const Duration(milliseconds: 500),
-                        formatAnimationCurve: Curves.easeInOut,
-                        formatAnimationDuration:
-                            const Duration(milliseconds: 500),
-                        focusedDay: _focusedDay,
-                        firstDay: DateTime.utc(2010, 10, 16),
-                        lastDay: DateTime.utc(2030, 3, 14),
-                        selectedDayPredicate: (day) {
-                          return isSameDay(_selectedDay, day);
-                        },
-                        headerStyle: HeaderStyle(
-                          titleTextStyle: const TextStyle(
-                              fontWeight: FontWeight.w600, fontSize: 17),
-                          formatButtonTextStyle: const TextStyle(
-                              fontWeight: FontWeight.w600, fontSize: 14),
-                          formatButtonDecoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: Theme.of(context).primaryColorDark,
-                            ),
-                          ),
-                        ),
-                        daysOfWeekStyle: const DaysOfWeekStyle(
-                            weekdayStyle:
-                                TextStyle(fontWeight: FontWeight.w500)),
-                        calendarStyle: CalendarStyle(
-                          isTodayHighlighted: false,
-                          todayDecoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor,
-                            shape: BoxShape.circle,
-                          ),
-                          todayTextStyle: TextStyle(
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.color),
-                          selectedDecoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor,
-                            shape: BoxShape.circle,
-                          ),
-                          selectedTextStyle: TextStyle(
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.color),
-                          weekendTextStyle: TextStyle(
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Display the calendar at top
+                    TableCalendar(
+                      pageAnimationCurve: Curves.easeInBack,
+                      pageAnimationDuration: const Duration(milliseconds: 500),
+                      formatAnimationCurve: Curves.easeInOut,
+                      formatAnimationDuration:
+                          const Duration(milliseconds: 500),
+                      focusedDay: _focusedDay,
+                      firstDay: DateTime.utc(2010, 10, 16),
+                      lastDay: DateTime.utc(2030, 3, 14),
+                      selectedDayPredicate: (day) {
+                        return isSameDay(_selectedDay, day);
+                      },
+                      headerStyle: HeaderStyle(
+                        titleTextStyle: const TextStyle(
+                            fontWeight: FontWeight.w600, fontSize: 17),
+                        formatButtonTextStyle: const TextStyle(
+                            fontWeight: FontWeight.w600, fontSize: 14),
+                        formatButtonDecoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
                             color: Theme.of(context).primaryColorDark,
                           ),
-                          markerDecoration: BoxDecoration(
-                            color: Theme.of(context).primaryColorDark,
-                            shape: BoxShape.circle,
-                          ),
-                          markersAlignment: Alignment.bottomCenter,
                         ),
-                        eventLoader: (day) {
-                          // Return the list of entries for the given day
-                          return _entries[normalizeDate(day)] ?? [];
-                        },
-                        availableCalendarFormats: const {
-                          CalendarFormat.month: 'Week',
-                          CalendarFormat.twoWeeks: 'Month',
-                          CalendarFormat.week: '2 Weeks',
-                        },
-                        calendarFormat: _calendarFormat,
-                        onFormatChanged: (format) {
-                          return setState(() {
-                            _calendarFormat = format;
-                          });
-                        },
-                        onDaySelected: (selectedDay, focusedDay) async {
-                          return onDaySelected(selectedDay, focusedDay);
-                        },
-                      ).animate().fadeIn(
-                            duration: const Duration(
-                              milliseconds: 500,
-                            ),
-                          ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 14.0),
-                        child: Divider(),
                       ),
-                      // Display the entries(notes) matching to the selected or focused day
-                      StreamBuilder<QuerySnapshot>(
+                      daysOfWeekStyle: const DaysOfWeekStyle(
+                          weekdayStyle: TextStyle(fontWeight: FontWeight.w500)),
+                      calendarStyle: CalendarStyle(
+                        isTodayHighlighted: false,
+                        todayDecoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor,
+                          shape: BoxShape.circle,
+                        ),
+                        todayTextStyle: TextStyle(
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color),
+                        selectedDecoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor,
+                          shape: BoxShape.circle,
+                        ),
+                        selectedTextStyle: TextStyle(
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color),
+                        weekendTextStyle: TextStyle(
+                          color: Theme.of(context).primaryColorDark,
+                        ),
+                        markerDecoration: BoxDecoration(
+                          color: Theme.of(context).primaryColorDark,
+                          shape: BoxShape.circle,
+                        ),
+                        markersAlignment: Alignment.bottomCenter,
+                      ),
+                      eventLoader: (day) {
+                        // Return the list of entries for the given day
+                        return _entries[normalizeDate(day)] ?? [];
+                      },
+                      availableCalendarFormats: const {
+                        CalendarFormat.month: 'Week',
+                        CalendarFormat.twoWeeks: 'Month',
+                        CalendarFormat.week: '2 Weeks',
+                      },
+                      calendarFormat: _calendarFormat,
+                      onFormatChanged: (format) {
+                        return setState(() {
+                          _calendarFormat = format;
+                        });
+                      },
+                      onDaySelected: (selectedDay, focusedDay) async {
+                        return onDaySelected(selectedDay, focusedDay);
+                      },
+                    ).animate().fadeIn(
+                          duration: const Duration(
+                            milliseconds: 500,
+                          ),
+                        ),
+                    const SizedBox(
+                      height: 24,
+                    ),
+                    // Display the entries(notes) matching to the selected or focused day
+                    Expanded(
+                      child: StreamBuilder<QuerySnapshot>(
                         stream: fetchEntriesForDay(_focusedDay),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return const Skeletonizer(
+                            return Skeletonizer(
                               enabled: true,
+                              containersColor:
+                                  Theme.of(context).primaryColorLight,
                               child: Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 14.0),
                                 child: ListTile(
@@ -659,206 +694,323 @@ class _EntriesScreenState extends State<EntriesScreen> {
                                   final isSynced = entry['synced'];
                                   final isEntryLocked =
                                       entry['isEntryLocked'] ?? false;
-                                  return Column(
-                                    children: [
-                                      EntriesTile(
-                                        innerPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 14, vertical: 4),
-                                        content: entryDescription,
-                                        title: entryTitle,
-                                        emoji: entryEmoji,
-                                        date: date,
-                                        time: time,
-                                        id: entryId,
-                                        type: entryType,
-                                        backgroundImageUrl:
-                                            entryBackgroundImageUrl,
-                                        attachments: entryAttachments,
-                                        hasChildren: entryHasChildren,
-                                        children: entryChildren,
-                                        isFavorite: entryIsFavorite,
-                                        addedOn: addedOn,
-                                        dateTime: dateTime,
-                                        isSynced: isSynced,
-                                        isEntryLocked: isEntryLocked,
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 14.0),
-                                        child: const Divider().animate().fade(
-                                            delay: const Duration(
-                                                milliseconds: 250)),
-                                      )
-                                    ],
+                                  return EntriesTile(
+                                    innerPadding: const EdgeInsets.symmetric(
+                                        horizontal: 14, vertical: 4),
+                                    content: entryDescription,
+                                    title: entryTitle,
+                                    emoji: entryEmoji,
+                                    date: date,
+                                    time: time,
+                                    id: entryId,
+                                    type: entryType,
+                                    backgroundImageUrl: entryBackgroundImageUrl,
+                                    attachments: entryAttachments,
+                                    hasChildren: entryHasChildren,
+                                    children: entryChildren,
+                                    isFavorite: entryIsFavorite,
+                                    addedOn: addedOn,
+                                    dateTime: dateTime,
+                                    isSynced: isSynced,
+                                    isEntryLocked: isEntryLocked,
                                   );
                                 }),
                           );
                         },
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 )
               : SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Recently added entries title
+                      // Default sorting button
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(8),
-                          onTap: () {
-                            // Show a modal bottom sheet for more filtering and other options
-                            showModalBottomSheet(
-                                showDragHandle: true,
-                                backgroundColor:
-                                    Theme.of(context).scaffoldBackgroundColor,
-                                isScrollControlled: true,
-                                isDismissible: true,
-                                useSafeArea: true,
-                                constraints: BoxConstraints(
-                                  minWidth: double.maxFinite,
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height * 0.9,
-                                ),
-                                context: context,
-                                builder: (context) {
-                                  return Column(
-                                    children: [
-                                      const SizedBox(
-                                        height: 20,
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 14),
-                                        child: ExtraOptionsButton(
-                                          icon: Container(
-                                              padding: const EdgeInsets.all(4),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                color: Theme.of(context)
-                                                    .primaryColorLight,
-                                              ),
-                                              child:
-                                                  const Icon(Iconsax.filter)),
-                                          iconLabelSpace: 8,
-                                          label: 'Filter by',
-                                          labelStyle: const TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 16),
-                                          endIcon: PopupMenuButton(
-                                            color: Theme.of(context)
-                                                .scaffoldBackgroundColor,
-                                            popUpAnimationStyle: AnimationStyle(
-                                                duration: const Duration(
-                                                    milliseconds: 500)),
-                                            itemBuilder: (context) => [
-                                              PopupMenuItem(
-                                                value: 'recent entries',
-                                                onTap: () {
-                                                  setState(() {
-                                                    sortValue = 'Recents';
-                                                  });
-                                                  Navigator.pop(context);
-                                                },
-                                                child: Text(
-                                                  'Recents',
-                                                  style: TextStyle(
-                                                      color: Theme.of(context)
-                                                          .textTheme
-                                                          .bodyMedium
-                                                          ?.color),
-                                                ),
-                                              ),
-                                              PopupMenuItem(
-                                                value: 'oldest',
-                                                child: Text(
-                                                  'Oldest',
-                                                  style: TextStyle(
-                                                      color: Theme.of(context)
-                                                          .textTheme
-                                                          .bodyMedium
-                                                          ?.color),
-                                                ),
-                                                onTap: () {
-                                                  setState(() {
-                                                    sortValue = 'Oldest';
-                                                  });
-                                                  Navigator.pop(context);
-                                                },
-                                              ),
-                                              PopupMenuItem(
-                                                value: 'favorites',
-                                                child: Text(
-                                                  'Favorites',
-                                                  style: TextStyle(
-                                                      color: Theme.of(context)
-                                                          .textTheme
-                                                          .bodyMedium
-                                                          ?.color),
-                                                ),
-                                                onTap: () {
-                                                  setState(() {
-                                                    sortValue = 'Favorites';
-                                                  });
-                                                  Navigator.pop(context);
-                                                },
-                                              ),
-                                              PopupMenuItem(
-                                                value: 'locked',
-                                                child: Text(
-                                                  'Locked',
-                                                  style: TextStyle(
-                                                      color: Theme.of(context)
-                                                          .textTheme
-                                                          .bodyMedium
-                                                          ?.color),
-                                                ),
-                                                onTap: () {
-                                                  setState(() {
-                                                    sortValue = 'Locked';
-                                                  });
-                                                  Navigator.pop(context);
-                                                },
-                                              ),
-                                            ],
-                                            child: Row(
-                                              children: [
-                                                Text(sortValue),
-                                                const Icon(Icons
-                                                    .arrow_drop_down_rounded)
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
+                        child: Row(
+                          spacing: 8,
+                          children: [
+                            RawChip(
+                              backgroundColor: sortValue != 'Recents'
+                                  ? Theme.of(context).primaryColorLight
+                                  : Theme.of(context).primaryColor,
+                              side: BorderSide.none,
+                              labelStyle: TextStyle(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.color,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500),
+                              iconTheme: IconThemeData(
+                                  color: sortValue != 'Recents'
+                                      ? Theme.of(context).primaryColor
+                                      : Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.color),
+                              onPressed: () {
+                                setState(() {
+                                  sortValue = 'Recents';
                                 });
-                          },
-                          child: Container(
-                            width: 70,
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                  color: Theme.of(context).primaryColorDark),
+                              },
+                              avatar: Icon(sortValue != 'Recents'
+                                  ? Icons.filter_alt_rounded
+                                  : Icons.check_rounded),
+                              label: Text('Default'),
                             ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Icon(
-                                  Iconsax.settings,
-                                  size: 14,
-                                ),
-                                Text('Filters'),
-                              ],
+                            // Custom filters button
+                            RawChip(
+                              backgroundColor: sortValue != 'Recents'
+                                  ? Theme.of(context).primaryColor
+                                  : Theme.of(context).primaryColorLight,
+                              side: BorderSide.none,
+                              labelStyle: TextStyle(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.color,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500),
+                              iconTheme: IconThemeData(
+                                  color: sortValue != 'Recents'
+                                      ? Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.color
+                                      : Theme.of(context).primaryColor),
+                              onPressed: () {
+                                // Functionality to show the filter and other options as a modal bottom sheet
+                                showAdaptiveDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog.adaptive(
+                                        backgroundColor: Theme.of(context)
+                                            .scaffoldBackgroundColor,
+                                        title: const Text('Filters'),
+                                        titleTextStyle: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w500),
+                                        contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 0, vertical: 8),
+                                        content: StatefulBuilder(builder:
+                                            (BuildContext context,
+                                                StateSetter setState) {
+                                          return SingleChildScrollView(
+                                            child: SizedBox(
+                                              height: 260,
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  // Recent button
+                                                  ListTile(
+                                                    dense: true,
+                                                    minVerticalPadding: 0,
+                                                    contentPadding:
+                                                        EdgeInsets.symmetric(
+                                                            horizontal: 4),
+                                                    leading: Radio.adaptive(
+                                                        value: 'Recents',
+                                                        groupValue: sortValue,
+                                                        onChanged: (String?
+                                                            sortvalue) {
+                                                          setState(() {
+                                                            sortValue =
+                                                                sortvalue!;
+                                                          });
+                                                          stateUpdate();
+                                                        }),
+                                                    horizontalTitleGap: 0,
+                                                    title: Text(
+                                                      'Recent',
+                                                      textAlign:
+                                                          TextAlign.start,
+                                                    ),
+                                                    subtitle: Text(
+                                                        'Sort the entries from recent to oldest'),
+                                                    titleTextStyle: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        color: Theme.of(context)
+                                                            .textTheme
+                                                            .bodyMedium
+                                                            ?.color),
+                                                    subtitleTextStyle:
+                                                        TextStyle(
+                                                            color: Colors.grey),
+                                                    onTap: () {
+                                                      setState(() {
+                                                        sortValue = 'Recents';
+                                                      });
+                                                      stateUpdate();
+                                                    },
+                                                  ),
+                                                  // Oldest button
+                                                  ListTile(
+                                                    dense: true,
+                                                    minVerticalPadding: 0,
+                                                    contentPadding:
+                                                        EdgeInsets.symmetric(
+                                                            horizontal: 4),
+                                                    leading: Radio.adaptive(
+                                                        value: 'Oldest',
+                                                        groupValue: sortValue,
+                                                        onChanged: (String?
+                                                            sortvalue) {
+                                                          setState(() {
+                                                            sortValue =
+                                                                sortvalue!;
+                                                          });
+                                                          stateUpdate();
+                                                        }),
+                                                    horizontalTitleGap: 0,
+                                                    title: Text(
+                                                      'Oldest',
+                                                      textAlign:
+                                                          TextAlign.start,
+                                                    ),
+                                                    subtitle: Text(
+                                                        'Sort the entries from oldest to recent'),
+                                                    titleTextStyle: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        color: Theme.of(context)
+                                                            .textTheme
+                                                            .bodyMedium
+                                                            ?.color),
+                                                    subtitleTextStyle:
+                                                        TextStyle(
+                                                            color: Colors.grey),
+                                                    onTap: () {
+                                                      setState(() {
+                                                        sortValue = 'Oldest';
+                                                      });
+                                                      stateUpdate();
+                                                    },
+                                                  ),
+                                                  // Favorites button
+                                                  ListTile(
+                                                    dense: true,
+                                                    minVerticalPadding: 0,
+                                                    contentPadding:
+                                                        EdgeInsets.symmetric(
+                                                            horizontal: 4),
+                                                    leading: Radio.adaptive(
+                                                        value: 'Favorites',
+                                                        groupValue: sortValue,
+                                                        onChanged: (String?
+                                                            sortvalue) {
+                                                          setState(() {
+                                                            sortValue =
+                                                                sortvalue!;
+                                                          });
+                                                          stateUpdate();
+                                                        }),
+                                                    horizontalTitleGap: 0,
+                                                    title: Text(
+                                                      'Favorite',
+                                                      textAlign:
+                                                          TextAlign.start,
+                                                    ),
+                                                    subtitle: Text(
+                                                        'Show only favorite entries'),
+                                                    titleTextStyle: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        color: Theme.of(context)
+                                                            .textTheme
+                                                            .bodyMedium
+                                                            ?.color),
+                                                    subtitleTextStyle:
+                                                        TextStyle(
+                                                            color: Colors.grey),
+                                                    onTap: () {
+                                                      setState(() {
+                                                        sortValue = 'Favorite';
+                                                      });
+                                                      stateUpdate();
+                                                    },
+                                                  ),
+                                                  // Locked button
+                                                  ListTile(
+                                                    dense: true,
+                                                    minVerticalPadding: 0,
+                                                    contentPadding:
+                                                        EdgeInsets.symmetric(
+                                                            horizontal: 4),
+                                                    leading: Radio.adaptive(
+                                                        value: 'Locked',
+                                                        groupValue: sortValue,
+                                                        onChanged: (String?
+                                                            sortvalue) {
+                                                          setState(() {
+                                                            sortValue =
+                                                                sortvalue!;
+                                                          });
+                                                          stateUpdate();
+                                                        }),
+                                                    horizontalTitleGap: 0,
+                                                    title: Text(
+                                                      'Locked',
+                                                      textAlign:
+                                                          TextAlign.start,
+                                                    ),
+                                                    subtitle: Text(
+                                                        'Show only locked entries'),
+                                                    titleTextStyle: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        color: Theme.of(context)
+                                                            .textTheme
+                                                            .bodyMedium
+                                                            ?.color),
+                                                    subtitleTextStyle:
+                                                        TextStyle(
+                                                            color: Colors.grey),
+                                                    onTap: () {
+                                                      setState(() {
+                                                        sortValue = 'Locked';
+                                                      });
+                                                      stateUpdate();
+                                                    },
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          );
+                                        }),
+                                        actions: [
+                                          // Cancel button
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                              return;
+                                            },
+                                            child: Text('Cancel'),
+                                          ),
+                                        ],
+                                      );
+                                    });
+                              },
+                              avatar: Icon(sortValue != 'Recents'
+                                  ? Icons.check_rounded
+                                  : Icons.filter_list_rounded),
+                              label: Text('Filter'),
                             ),
-                          ),
+                          ],
                         ),
                       ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      if (numberOfBooks != 0)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: const Text('Books'),
+                        ),
                       const SizedBox(
                         height: 10,
                       ),
@@ -867,32 +1019,36 @@ class _EntriesScreenState extends State<EntriesScreen> {
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
-                              return const Skeletonizer(
-                                enabled: true,
-                                child: SizedBox(
-                                  height: 120,
-                                  width: 120,
-                                  child: Column(
-                                    children: [
-                                      Icon(Icons.abc),
-                                      Text(
-                                        'So this is the text of the title of the object here...',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14.0),
+                                child: const Skeletonizer(
+                                  enabled: true,
+                                  child: SizedBox(
+                                    height: 120,
+                                    width: 120,
+                                    child: Column(
+                                      children: [
+                                        Icon(Icons.abc),
+                                        Text(
+                                          'So this is the text of the title of the object here...',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                          ),
+                                          maxLines: 1,
                                         ),
-                                        maxLines: 1,
-                                      ),
-                                      Text(
-                                        'So this is the text of the subtitle of the object here...',
-                                        maxLines: 1,
-                                      ),
-                                      Text('End'),
-                                    ],
+                                        Text(
+                                          'So this is the text of the subtitle of the object here...',
+                                          maxLines: 1,
+                                        ),
+                                        Text('End'),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ).animate().fade(
-                                  delay: const Duration(milliseconds: 50));
+                                ).animate().fade(
+                                    delay: const Duration(milliseconds: 50)),
+                              );
                             }
                             if (snapshot.hasData && snapshot.data!.isEmpty) {
                               return const SizedBox();
@@ -940,18 +1096,27 @@ class _EntriesScreenState extends State<EntriesScreen> {
                               );
                             }
                           }),
-                      if (numberOfBooks != 0 || numberOfEntries != 0)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 14.0),
-                          child: Divider(),
+                      if (numberOfBooks != 0)
+                        SizedBox(
+                          height: 14,
                         ),
+                      if (numberOfEntries != 0)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: const Text('Notes'),
+                        ),
+                      const SizedBox(
+                        height: 10,
+                      ),
                       StreamBuilder<List<Map<String, dynamic>>>(
                           stream: fetchEntries(),
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
-                              return const Skeletonizer(
+                              return Skeletonizer(
                                 enabled: true,
+                                containersColor:
+                                    Theme.of(context).primaryColorLight,
                                 child: ListTile(
                                   leading: Icon(Icons.abc),
                                   title: Text(
@@ -1049,38 +1214,27 @@ class _EntriesScreenState extends State<EntriesScreen> {
                                   final isSynced = entry['synced'];
                                   final isEntryLocked =
                                       entry['isEntryLocked'] ?? false;
-                                  return Column(
-                                    children: [
-                                      EntriesTile(
-                                        innerPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 14, vertical: 4),
-                                        content: entryDescription,
-                                        title: entryTitle,
-                                        emoji: entryEmoji,
-                                        date: date,
-                                        time: time,
-                                        id: entryId,
-                                        type: entryType,
-                                        backgroundImageUrl:
-                                            entryBackgroundImageUrl ?? '',
-                                        attachments: entryAttachments ?? [],
-                                        hasChildren: entryHasChildren ?? false,
-                                        children: entryChildren ?? [],
-                                        isFavorite: entryIsFavorite ?? false,
-                                        addedOn: addedOn,
-                                        dateTime: dateTime,
-                                        isSynced: isSynced,
-                                        isEntryLocked: isEntryLocked,
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 14.0),
-                                        child: const Divider().animate().fade(
-                                            delay: const Duration(
-                                                milliseconds: 250)),
-                                      )
-                                    ],
+                                  return EntriesTile(
+                                    innerPadding: const EdgeInsets.symmetric(
+                                        horizontal: 14),
+                                    content: entryDescription,
+                                    title: entryTitle,
+                                    emoji: entryEmoji,
+                                    date: date,
+                                    time: time,
+                                    id: entryId,
+                                    type: entryType,
+                                    backgroundImageUrl:
+                                        entryBackgroundImageUrl ?? '',
+                                    attachments: entryAttachments ?? [],
+                                    hasChildren: entryHasChildren ?? false,
+                                    children: entryChildren ?? [],
+                                    isFavorite: entryIsFavorite ?? false,
+                                    addedOn: addedOn,
+                                    dateTime: dateTime,
+                                    isSynced: isSynced,
+                                    isEntryLocked: isEntryLocked,
+                                    isTemplate: false,
                                   );
                                 },
                               );
@@ -1098,14 +1252,8 @@ class _EntriesScreenState extends State<EntriesScreen> {
                   child: Center(child: AdWidget(ad: bannerAd)),
                 )
               : const SizedBox(),
-      floatingActionButton: InkWell(
-        borderRadius: BorderRadius.circular(100),
-        // onLongPress function to quickly go to the appropriate entry type
-        // onLongPress: () {
-        //   print('Long Pressed the add entry button');
-        // },
-        // onTap function to display the bottomSheet for types of entries
-        onTap: () {
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
           showModalBottomSheet(
             context: context,
             showDragHandle: true,
@@ -1135,35 +1283,29 @@ class _EntriesScreenState extends State<EntriesScreen> {
                                     return AlertDialog(
                                       backgroundColor: Theme.of(context)
                                           .scaffoldBackgroundColor,
-                                      icon: Container(
-                                          padding: const EdgeInsets.all(20),
-                                          decoration: BoxDecoration(
-                                            color:
-                                                Theme.of(context).primaryColor,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: Icon(
-                                            Icons.payment_rounded,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.color,
-                                          )),
+                                      icon: Icon(
+                                        Icons.payment_rounded,
+                                      ),
+                                      iconColor: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.color,
                                       title: const Text(
                                           'Upgrade to use templates'),
                                       titleTextStyle: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w600,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.w400,
                                         color: Theme.of(context)
                                             .textTheme
                                             .bodyMedium
                                             ?.color,
                                       ),
-                                      titlePadding: const EdgeInsets.all(12),
                                       content: const Text(
-                                        'To use custom templates, pomodoro and other such productivity features, you need to be on either the Pro or the Ultra subscription plans.',
-                                        textAlign: TextAlign.center,
+                                        'To use custom templates, you need to be on either the Pro or the Lifetime subscription plans',
                                       ),
+                                      contentTextStyle: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w400),
                                       actions: [
                                         // Button to cancel and close the dialog box
                                         TextButton(
@@ -1178,15 +1320,17 @@ class _EntriesScreenState extends State<EntriesScreen> {
                                         ),
                                         // Button to redirect to the subscriptions page
                                         TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context),
+                                          onPressed: () {
+                                            Navigator.of(context).push(
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        UpgradeSubscriptionScreen()));
+                                          },
                                           style: ButtonStyle(
                                             foregroundColor:
                                                 WidgetStatePropertyAll(
                                                     Theme.of(context)
-                                                        .textTheme
-                                                        .bodyMedium
-                                                        ?.color),
+                                                        .primaryColor),
                                           ),
                                           child: const Text('Upgrade'),
                                         ),
@@ -1223,27 +1367,19 @@ class _EntriesScreenState extends State<EntriesScreen> {
             },
           );
         },
-        child: Container(
-          height: 52,
-          width: 52,
-          decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
-              borderRadius: BorderRadius.circular(100)),
-          child: Icon(
-            Icons.add,
-            size: 25,
-            color: Theme.of(context).textTheme.bodyMedium?.color,
-          ),
-        ).animate().scaleXY(
-              curve: Curves.easeInOutBack,
-              duration: const Duration(
-                milliseconds: 800,
-              ),
+        backgroundColor: Theme.of(context).primaryColor,
+        child: Icon(
+          Icons.add,
+          size: 24,
+          color: Theme.of(context).textTheme.bodyMedium?.color,
+        ),
+      ).animate().scaleXY(
+            curve: Curves.easeInOutBack,
+            delay: const Duration(
+              milliseconds: 1000,
             ),
-      ),
-    ).animate().fadeIn(
-          duration: const Duration(milliseconds: 500),
-        );
+          ),
+    );
   }
 }
 

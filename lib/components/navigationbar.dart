@@ -3,11 +3,9 @@ import 'dart:io';
 import 'package:bloom/screens/dashboard_screen.dart';
 import 'package:bloom/screens/entries_screen.dart';
 // import 'package:bloom/screens/pomodoro_timer.dart';
-import 'package:bloom/screens/eventsandschedules_screen.dart';
 import 'package:bloom/screens/moreoptions_screen.dart';
-import 'package:bloom/screens/tasksandhabits_screen.dart';
+import 'package:bloom/screens/goals_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:iconsax/iconsax.dart';
 
 class Navigationbar extends StatefulWidget {
   const Navigationbar({
@@ -22,8 +20,7 @@ class _NavigationbarState extends State<Navigationbar> {
   int currentPageIndex = 0;
   final screens = [
     DashboardScreen(isAndroid: Platform.isAndroid),
-    const TaskScreen(),
-    const SchedulesScreen(),
+    const GoalsScreen(),
     const EntriesScreen(),
     const MoreOptionsScreen(),
     // const PomodoroTimer(),
@@ -34,40 +31,40 @@ class _NavigationbarState extends State<Navigationbar> {
     return Scaffold(
       body: screens[currentPageIndex],
       bottomNavigationBar: NavigationBar(
-        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         indicatorColor: Theme.of(context).primaryColor,
         destinations: const [
           NavigationDestination(
             icon: Icon(
-              Iconsax.home,
+              Icons.home_rounded,
             ),
             label: 'Home',
             tooltip: 'Home',
           ),
           NavigationDestination(
             icon: Icon(
-              Iconsax.task_square4,
+              Icons.task_rounded,
             ),
             label: 'Goals',
             tooltip: 'Goals',
           ),
+          // NavigationDestination(
+          //   icon: Icon(
+          //     Icons.calendar_month_rounded,
+          //   ),
+          //   label: 'Schedules',
+          //   tooltip: 'Schedules',
+          // ),
           NavigationDestination(
             icon: Icon(
-              Iconsax.calendar_1,
-            ),
-            label: 'Schedules',
-            tooltip: 'Schedules',
-          ),
-          NavigationDestination(
-            icon: Icon(
-              Iconsax.book,
+              Icons.book_rounded,
             ),
             label: 'Entries',
             tooltip: 'Entries',
           ),
           NavigationDestination(
             icon: Icon(
-              Iconsax.more,
+              Icons.more_horiz_rounded,
             ),
             label: 'More',
             tooltip: 'More',

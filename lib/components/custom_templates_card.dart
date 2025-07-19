@@ -34,36 +34,37 @@ class _CustomTemplatesCardState extends State<CustomTemplatesCard> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          color: Theme.of(context).primaryColorLight.withAlpha(100),
-        ),
-        child: InkWell(
-          onTap: () {
-            if (widget.templateType == 'book') {
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => BookLayout(
-                      isTemplate: true,
-                      type: widget.templateType,
-                      dateTime: widget.dateOfCreation,
-                      emoji: widget.templateIcon,
-                      title: widget.templateTitle,
-                      description: widget.templateDescription,
-                      bookLayoutMethod: BookLayoutMethod.display,
-                      children: widget.templateChildren,
-                      bookId: widget.templateId,
-                      // Below settings are true for debugging purposes only
-                      hasChildren: true,
-                      isFavorite: true)));
-            }
-          },
+      child: InkWell(
+        borderRadius: BorderRadius.circular(15),
+        onTap: () {
+          if (widget.templateType == 'book') {
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => BookLayout(
+                    isTemplate: true,
+                    type: widget.templateType,
+                    dateTime: widget.dateOfCreation,
+                    emoji: widget.templateIcon,
+                    title: widget.templateTitle,
+                    description: widget.templateDescription,
+                    bookLayoutMethod: BookLayoutMethod.display,
+                    children: widget.templateChildren,
+                    bookId: widget.templateId,
+                    // Below settings are true for debugging purposes only
+                    hasChildren: true,
+                    isFavorite: true)));
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            color: Theme.of(context).primaryColorLight,
+          ),
           child: Column(
             children: [
               // Image of the template
               ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
+                  borderRadius: BorderRadius.circular(10),
                   child: Image.network(
                     widget.templateThumbnail,
                     fit: BoxFit.fitWidth,
@@ -78,8 +79,7 @@ class _CustomTemplatesCardState extends State<CustomTemplatesCard> {
                   Text(
                     widget.templateTitle,
                     style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold),
+                        fontSize: 18, fontWeight: FontWeight.w500),
                   ),
                   // Description of the template
                   Text(widget.templateDescription),

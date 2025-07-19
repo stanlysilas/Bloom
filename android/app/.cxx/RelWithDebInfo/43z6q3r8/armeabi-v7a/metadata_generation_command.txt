@@ -1,0 +1,20 @@
+                        -H/home/stanlysilas/Development/flutter/packages/flutter_tools/gradle/src/main/groovy
+-DCMAKE_SYSTEM_NAME=Android
+-DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+-DCMAKE_SYSTEM_VERSION=23
+-DANDROID_PLATFORM=android-23
+-DANDROID_ABI=armeabi-v7a
+-DCMAKE_ANDROID_ARCH_ABI=armeabi-v7a
+-DANDROID_NDK=/home/stanlysilas/Android/Sdk/ndk/27.2.12479018
+-DCMAKE_ANDROID_NDK=/home/stanlysilas/Android/Sdk/ndk/27.2.12479018
+-DCMAKE_TOOLCHAIN_FILE=/home/stanlysilas/Android/Sdk/ndk/27.2.12479018/build/cmake/android.toolchain.cmake
+-DCMAKE_MAKE_PROGRAM=/home/stanlysilas/Android/Sdk/cmake/3.22.1/bin/ninja
+-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/home/stanlysilas/Development/flutter_projects/bloom/Bloom/build/app/intermediates/cxx/RelWithDebInfo/43z6q3r8/obj/armeabi-v7a
+-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/home/stanlysilas/Development/flutter_projects/bloom/Bloom/build/app/intermediates/cxx/RelWithDebInfo/43z6q3r8/obj/armeabi-v7a
+-DCMAKE_BUILD_TYPE=RelWithDebInfo
+-B/home/stanlysilas/Development/flutter_projects/bloom/Bloom/android/app/.cxx/RelWithDebInfo/43z6q3r8/armeabi-v7a
+-GNinja
+-Wno-dev
+--no-warn-unused-cli
+                        Build command args: []
+                        Version: 2

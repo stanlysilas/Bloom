@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 
 class EntriesTile extends StatelessWidget {
@@ -66,7 +65,7 @@ class EntriesTile extends StatelessWidget {
     if (delta.length == 1 && delta.first.value == '\n') {
       return RichText(
         text: TextSpan(
-          text: 'Untitled',
+          text: '...',
           style: textstyle,
         ),
         maxLines: 1,
@@ -95,159 +94,153 @@ class EntriesTile extends StatelessWidget {
   Widget build(BuildContext context) {
     bool favorited = isFavorite;
     return Slidable(
-      endActionPane: ActionPane(
-        motion: const ScrollMotion(),
-        children: [
-          const SizedBox(
-            width: 8,
-          ),
-          Expanded(
-            child: InkWell(
-              onTap: () async {
-                final user = FirebaseAuth.instance.currentUser;
-                favorited = !favorited;
-                if (type == 'note') {
-                  FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(user?.uid)
-                      .collection('entries')
-                      .doc(id)
-                      .update({'isFavorite': favorited});
-                } else if (type == 'book') {
-                  FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(user?.uid)
-                      .collection('books')
-                      .doc(mainId)
-                      .collection('pages')
-                      .doc(id)
-                      .update({'isFavorite': favorited});
-                }
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    margin: const EdgeInsets.all(6),
-                    behavior: SnackBarBehavior.floating,
-                    showCloseIcon: true,
-                    closeIconColor:
-                        Theme.of(context).textTheme.bodyMedium?.color,
-                    backgroundColor: Theme.of(context).primaryColor,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    content: favorited
-                        ? Text(
-                            'Added to favorites',
-                            style: TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.color),
-                          )
-                        : Text(
-                            'Removed from favorites',
-                            style: TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.color),
-                          ),
-                  ),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: Colors.redAccent[400],
+      endActionPane: isTemplate == false
+          ? ActionPane(
+              motion: const ScrollMotion(),
+              children: [
+                const SizedBox(
+                  width: 8,
                 ),
-                child: isFavorite
-                    ? Icon(
-                        Icons.favorite,
-                        color: Theme.of(context).scaffoldBackgroundColor,
-                      )
-                    : Icon(
-                        Icons.favorite_border_rounded,
-                        color: Theme.of(context).scaffoldBackgroundColor,
-                      ),
-              ),
-            ),
-          ),
-          const SizedBox(
-            width: 8,
-          ),
-          Expanded(
-            child: InkWell(
-              onTap: () async {
-                final user = FirebaseAuth.instance.currentUser;
-                if (type == 'note') {
-                  FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(user?.uid)
-                      .collection('entries')
-                      .doc(id)
-                      .delete();
-                } else if (type == 'book') {
-                  FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(user?.uid)
-                      .collection('books')
-                      .doc(mainId)
-                      .collection('pages')
-                      .doc(id)
-                      .delete();
-                }
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    margin: const EdgeInsets.all(6),
-                    behavior: SnackBarBehavior.floating,
-                    showCloseIcon: true,
-                    closeIconColor:
-                        Theme.of(context).textTheme.bodyMedium?.color,
-                    backgroundColor: Theme.of(context).primaryColor,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    content: Wrap(
-                      children: [
-                        Text(
-                          'Deleted: ',
-                          style: TextStyle(
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.color),
+                Expanded(
+                  child: InkWell(
+                    onTap: () async {
+                      final user = FirebaseAuth.instance.currentUser;
+                      favorited = !favorited;
+                      if (type == 'note') {
+                        FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(user?.uid)
+                            .collection('entries')
+                            .doc(id)
+                            .update({'isFavorite': favorited});
+                      } else if (type == 'book') {
+                        FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(user?.uid)
+                            .collection('books')
+                            .doc(mainId)
+                            .collection('pages')
+                            .doc(id)
+                            .update({'isFavorite': favorited});
+                      }
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          margin: const EdgeInsets.all(6),
+                          behavior: SnackBarBehavior.floating,
+                          showCloseIcon: true,
+                          closeIconColor:
+                              Theme.of(context).textTheme.bodyMedium?.color,
+                          backgroundColor: Theme.of(context).primaryColor,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          content: favorited
+                              ? Text(
+                                  'Added to favorites',
+                                  style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.color),
+                                )
+                              : Text(
+                                  'Removed from favorites',
+                                  style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.color),
+                                ),
                         ),
-                        quillDeltaToRichText(
-                            context,
-                            TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.color,
-                                overflow: TextOverflow.ellipsis,
-                                fontFamily: 'Nunito'))
-                      ],
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.redAccent[400],
+                      ),
+                      child: isFavorite
+                          ? Icon(Icons.favorite)
+                          : Icon(Icons.favorite_border_rounded),
                     ),
                   ),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: Colors.red,
                 ),
-                child: Icon(
-                  Iconsax.trash,
-                  color: Theme.of(context).scaffoldBackgroundColor,
+                const SizedBox(
+                  width: 8,
                 ),
-              ),
-            ),
-          ),
-          const SizedBox(
-            width: 8,
-          ),
-        ],
-      ),
-      child: InkWell(
+                Expanded(
+                  child: InkWell(
+                    onTap: () async {
+                      final user = FirebaseAuth.instance.currentUser;
+                      if (type == 'note') {
+                        FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(user?.uid)
+                            .collection('entries')
+                            .doc(id)
+                            .delete();
+                      } else if (type == 'book') {
+                        FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(user?.uid)
+                            .collection('books')
+                            .doc(mainId)
+                            .collection('pages')
+                            .doc(id)
+                            .delete();
+                      }
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          margin: const EdgeInsets.all(6),
+                          behavior: SnackBarBehavior.floating,
+                          showCloseIcon: true,
+                          closeIconColor:
+                              Theme.of(context).textTheme.bodyMedium?.color,
+                          backgroundColor: Theme.of(context).primaryColor,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          content: Wrap(
+                            children: [
+                              Text(
+                                'Deleted: ',
+                                style: TextStyle(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.color),
+                              ),
+                              quillDeltaToRichText(
+                                  context,
+                                  TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.color,
+                                      overflow: TextOverflow.ellipsis,
+                                      fontFamily: 'Nunito'))
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.red,
+                      ),
+                      child: Icon(Icons.delete_rounded),
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  width: 8,
+                ),
+              ],
+            )
+          : null,
+      child: ListTile(
+        dense: true,
         onTap: () async {
           try {
             // If the entry is a template then do not proceed to display it
@@ -312,47 +305,70 @@ class EntriesTile extends StatelessWidget {
             //
           }
         },
-        child: Padding(
-          padding: innerPadding ?? const EdgeInsets.all(0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(right: 6.0),
-                child: isEntryLocked
-                    ? const Icon(
-                        Iconsax.lock,
-                        size: 18,
-                      )
-                    : Text(
-                        emoji,
-                      ),
-              ),
-              Expanded(
-                child: Text(
-                  title.isEmpty ? 'Untitled' : title,
-                  maxLines: 1,
-                  style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      overflow: TextOverflow.ellipsis),
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  // Date and time of the entry
-                  Text(
-                    DateFormat.MEd().format(addedOn),
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(DateFormat('h:mm a').format(addedOn)),
-                ],
+        contentPadding: innerPadding ?? const EdgeInsets.all(0),
+        leading: emoji.isNotEmpty
+            ? Padding(
+                padding: const EdgeInsets.all(0),
+                child: Container(
+                    padding: const EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: Theme.of(context).primaryColorLight),
+                    child: isEntryLocked
+                        ? Icon(
+                            Icons.lock_rounded,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
+                          )
+                        : Text(
+                            emoji,
+                            style: TextStyle(fontSize: 19),
+                          )),
               )
-            ],
-          ),
+            : Padding(
+                padding: const EdgeInsets.all(0),
+                child: Container(
+                    padding: const EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: Theme.of(context).primaryColorLight),
+                    child: Icon(
+                      Icons.note_add_rounded,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                    )),
+              ),
+        title: Text(
+          title.isEmpty ? 'Untitled' : title,
+          maxLines: 1,
+          style: TextStyle(
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+              fontSize: 16,
+              overflow: TextOverflow.ellipsis,
+              fontWeight: FontWeight.w500),
         ),
+        subtitle: quillDeltaToRichText(
+            context,
+            TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+                overflow: TextOverflow.ellipsis,
+                fontFamily: 'Nunito')),
+        trailing: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            // Date and time of the entry
+            Text(
+              DateFormat.MEd().format(addedOn),
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              DateFormat('h:mm a').format(addedOn),
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+        leadingAndTrailingTextStyle:
+            TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
       ),
     ).animate().fade(delay: const Duration(milliseconds: 50));
   }

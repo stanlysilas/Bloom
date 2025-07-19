@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 
 class PomodoroTile extends StatefulWidget {
@@ -80,7 +79,7 @@ class _PomodoroTileState extends State<PomodoroTile> {
                 decoration: BoxDecoration(
                     color: Colors.red, borderRadius: BorderRadius.circular(8)),
                 child: Icon(
-                  Iconsax.trash,
+                  Icons.delete_rounded,
                   color: Theme.of(context).scaffoldBackgroundColor,
                 ),
               ),
@@ -109,7 +108,7 @@ class _PomodoroTileState extends State<PomodoroTile> {
               const Padding(
                 padding: EdgeInsets.only(right: 6.0),
                 child: Icon(
-                  Iconsax.timer,
+                  Icons.timer,
                 ),
               ),
               const SizedBox(

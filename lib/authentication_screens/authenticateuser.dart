@@ -9,6 +9,7 @@ import "package:bloom/windows_components/navigationrail.dart";
 import "package:cloud_firestore/cloud_firestore.dart";
 import "package:firebase_auth/firebase_auth.dart";
 import "package:flutter/material.dart";
+import "package:flutter_colorpicker/flutter_colorpicker.dart";
 import "package:google_sign_in/google_sign_in.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
@@ -31,12 +32,16 @@ class _AuthenticateUserState extends State<AuthenticateUser> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        if (Platform.isWindows) const Customtitlebar(),
-        Expanded(
-          child: Scaffold(
-            body: StreamBuilder<User?>(
+    return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: 0,
+      ),
+      resizeToAvoidBottomInset: false,
+      body: Column(
+        children: [
+          if (Platform.isWindows) const Customtitlebar(),
+          Expanded(
+            child: StreamBuilder<User?>(
               stream: FirebaseAuth.instance.authStateChanges(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
@@ -80,8 +85,8 @@ class _AuthenticateUserState extends State<AuthenticateUser> {
               },
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -124,7 +129,7 @@ class AuthService {
             googleUserName ??
                 userCredential.user!.email.toString().substring(0, 8),
             googleProfilePicture ??
-                'assets/profile_pictures/Profile_Picture_Male.png',
+                'assets/profile_pictures/Profile_Picture_Male_1.png',
             false,
             googleProfilePicture!.isEmpty ? false : true);
 
@@ -173,6 +178,10 @@ class AuthService {
       'isEmailAndPassword': isEmailAndPassword,
       'isImageNetwork': isImageNetwork,
       'fcmToken': '',
+      'eventsColorCode': Colors.amber.toHexString(),
+      'tasksColorCode': Colors.blue.toHexString(),
+      'entriesColorCode': Colors.green.toHexString(),
+      'habitsColorCode': Colors.purple.toHexString(),
     });
   }
 }

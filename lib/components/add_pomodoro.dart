@@ -20,6 +20,7 @@ class AddPomodoro extends StatefulWidget {
 class _AddPomodoroState extends State<AddPomodoro> {
   //
   final pomodoroController = TextEditingController();
+  final pomodoroFocusNode = FocusNode();
   late DateTime? date;
   late TimeOfDay? time;
   int pomodoroDuration = 25;
@@ -119,6 +120,7 @@ class _AddPomodoroState extends State<AddPomodoro> {
             padding: const EdgeInsets.symmetric(horizontal: 14.0),
             child: MyTextfield(
               controller: pomodoroController,
+              focusNode: pomodoroFocusNode,
               hintText: 'Study Computer Science',
               obscureText: false,
               textInputType: TextInputType.text,
@@ -294,7 +296,8 @@ class _AddPomodoroState extends State<AddPomodoro> {
                       content: Text(
                         'Give a name to start!',
                         style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyMedium?.color),
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color),
                       ),
                     ),
                   );
@@ -312,7 +315,8 @@ class _AddPomodoroState extends State<AddPomodoro> {
                       content: Text(
                         'You can only add one Pomodoro on free plan!',
                         style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyMedium?.color),
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color),
                       ),
                     ),
                   );
@@ -429,7 +433,7 @@ class _AddPomodoroState extends State<AddPomodoro> {
                 uniqueId =
                     DateTime.now().millisecondsSinceEpoch.remainder(100000);
                 // Check and add to firebase
-      
+
                 if (pomodoroController.text.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -442,7 +446,8 @@ class _AddPomodoroState extends State<AddPomodoro> {
                       content: Text(
                         'Give a name to start!',
                         style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyMedium?.color),
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color),
                       ),
                     ),
                   );
@@ -460,7 +465,8 @@ class _AddPomodoroState extends State<AddPomodoro> {
                       content: Text(
                         'You can only add one Pomodoro on free plan!',
                         style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyMedium?.color),
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color),
                       ),
                     ),
                   );

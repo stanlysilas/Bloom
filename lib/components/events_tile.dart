@@ -6,7 +6,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 
 class EventsTile extends StatefulWidget {
@@ -19,6 +18,7 @@ class EventsTile extends StatefulWidget {
   final int eventUniqueId;
   final EdgeInsetsGeometry? innerPadding;
   final bool isAttended;
+  final BoxDecoration? decoration;
   const EventsTile(
       {super.key,
       required this.eventName,
@@ -29,7 +29,8 @@ class EventsTile extends StatefulWidget {
       this.eventEndDateTime,
       required this.eventUniqueId,
       this.innerPadding,
-      required this.isAttended});
+      required this.isAttended,
+      this.decoration});
 
   @override
   State<EventsTile> createState() => _EventsTileState();
@@ -63,21 +64,6 @@ class _EventsTileState extends State<EventsTile> {
                   // Cancel the scheduled notification
                   await NotificationService.cancelNotification(
                       widget.eventUniqueId);
-                  // Show deleted confirmation
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Wrap(
-                        children: [
-                          const Text('Marked as attended: '),
-                          Text(
-                            widget.eventName,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                            overflow: TextOverflow.ellipsis,
-                          )
-                        ],
-                      ),
-                    ),
-                  );
                   player.setVolume(1);
                   player.play(AssetSource('audio/task_completed.mp3'));
                 },
@@ -86,10 +72,7 @@ class _EventsTileState extends State<EventsTile> {
                   decoration: BoxDecoration(
                       color: widget.eventColorCode,
                       borderRadius: BorderRadius.circular(8)),
-                  child: Icon(
-                    Icons.task_alt_rounded,
-                    color: Theme.of(context).scaffoldBackgroundColor,
-                  ),
+                  child: Icon(Icons.event_available_rounded),
                 ),
               ),
             ),
@@ -121,12 +104,18 @@ class _EventsTileState extends State<EventsTile> {
                 // Show deleted confirmation
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
+                    margin: const EdgeInsets.all(6),
+                    behavior: SnackBarBehavior.floating,
+                    showCloseIcon: true,
+                    backgroundColor: Theme.of(context).primaryColor,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     content: Wrap(
                       children: [
                         const Text('Deleted: '),
                         Text(
                           widget.eventName,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          style: const TextStyle(fontWeight: FontWeight.w500),
                           overflow: TextOverflow.ellipsis,
                         )
                       ],
@@ -138,10 +127,7 @@ class _EventsTileState extends State<EventsTile> {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                     color: Colors.red, borderRadius: BorderRadius.circular(8)),
-                child: Icon(
-                  Iconsax.trash,
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                ),
+                child: Icon(Icons.delete_rounded),
               ),
             ),
           ),
@@ -164,23 +150,20 @@ class _EventsTileState extends State<EventsTile> {
             ),
           ),
         ),
-        child: Padding(
+        child: Container(
           padding: widget.innerPadding ?? const EdgeInsets.all(8.0),
+          decoration: widget.decoration ?? BoxDecoration(),
           child: Row(
             children: [
               Padding(
                 padding: const EdgeInsets.only(right: 6.0),
                 child: Container(
-                  height: 30,
-                  width: 30,
+                  padding: const EdgeInsets.all(8),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                       color: widget.eventColorCode,
-                      borderRadius: BorderRadius.circular(8)),
-                  child: const Icon(
-                    Icons.calendar_month_rounded,
-                    size: 18,
-                  ),
+                      borderRadius: BorderRadius.circular(10)),
+                  child: const Icon(Icons.calendar_month_rounded),
                 ),
               ),
               const SizedBox(
@@ -195,17 +178,16 @@ class _EventsTileState extends State<EventsTile> {
                       maxLines: 1,
                       style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                           overflow: TextOverflow.ellipsis),
                     ),
-                    widget.eventEndDateTime!.isBefore(DateTime.now()) &&
-                            widget.isAttended == false
-                        ? const Text(
-                            'Overdue',
-                            style: TextStyle(
-                                color: Colors.red, fontWeight: FontWeight.w500),
-                          )
-                        : const SizedBox()
+                    if (widget.eventEndDateTime!.isBefore(DateTime.now()) &&
+                        widget.isAttended == false)
+                      const Text(
+                        'Overdue',
+                        style: TextStyle(
+                            color: Colors.red, fontWeight: FontWeight.w500),
+                      ),
                   ],
                 ),
               ),
@@ -236,6 +218,7 @@ class _EventsTileState extends State<EventsTile> {
                           DateFormat('h:mm a')
                               .format(widget.eventStartDateTime),
                           overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: Colors.grey),
                         ),
                 ],
               )

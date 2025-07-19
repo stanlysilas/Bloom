@@ -1,6 +1,5 @@
 // More types of objects from database
 import 'package:bloom/components/custom_templates_card.dart';
-import 'package:bloom/components/mytextfield.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -15,6 +14,7 @@ class CustomTemplatesScreen extends StatefulWidget {
 
 class _CustomTemplatesScreenState extends State<CustomTemplatesScreen> {
   final searchController = TextEditingController();
+  final searchFocusNode = FocusNode();
   bool isSearchEnabled = false;
 
   // InitState method
@@ -54,10 +54,7 @@ class _CustomTemplatesScreenState extends State<CustomTemplatesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Templates',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
+        title: const Text('Templates'),
         actions: [
           IconButton(
             onPressed: () {
@@ -68,25 +65,49 @@ class _CustomTemplatesScreenState extends State<CustomTemplatesScreen> {
             icon: const Icon(Icons.search_rounded),
           ),
         ],
+        bottom: isSearchEnabled
+            ? PreferredSize(
+                preferredSize: Size(MediaQuery.of(context).size.width, 70),
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    left: 8.0,
+                    right: 8.0,
+                  ),
+                  child: SearchBar(
+                    controller: searchController,
+                    focusNode: searchFocusNode,
+                    backgroundColor: WidgetStatePropertyAll(
+                        Theme.of(context).primaryColorLight),
+                    padding: const WidgetStatePropertyAll(
+                        EdgeInsets.symmetric(horizontal: 16.0)),
+                    onTapOutside: (event) {
+                      searchFocusNode.unfocus();
+                    },
+                    leading: const Icon(Icons.search_rounded),
+                    trailing: [
+                      if (searchController.text.isNotEmpty)
+                        IconButton(
+                            onPressed: () {
+                              searchFocusNode.unfocus();
+                              setState(() {
+                                isSearchEnabled = false;
+                              });
+                            },
+                            icon: const Icon(Icons.close_rounded))
+                    ],
+                    hintText: 'Search for templates',
+                    elevation: const WidgetStatePropertyAll(0),
+                  ),
+                ))
+            : null,
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            isSearchEnabled
-                ? Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14.0, vertical: 8),
-                    child: MyTextfield(
-                        controller: searchController,
-                        hintText: 'Search a template',
-                        obscureText: false,
-                        textInputType: TextInputType.text,
-                        autoFocus: false),
-                  )
-                : const SizedBox(),
-            const SizedBox(
-              height: 14,
-            ),
+            if (isSearchEnabled)
+              SizedBox(
+                height: 24,
+              ),
             SizedBox(
               height: MediaQuery.of(context).size.height,
               child: StreamBuilder(
@@ -95,6 +116,7 @@ class _CustomTemplatesScreenState extends State<CustomTemplatesScreen> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Skeletonizer(
                       enabled: true,
+                      containersColor: Theme.of(context).primaryColorLight,
                       child: Container(
                         height: 150,
                         width: MediaQuery.of(context).size.width,
@@ -105,7 +127,7 @@ class _CustomTemplatesScreenState extends State<CustomTemplatesScreen> {
                               .withAlpha(100),
                         ),
                         padding: const EdgeInsets.all(8),
-                        child: const Column(
+                        child: Column(
                           children: [
                             SizedBox(
                               height: 130,
@@ -122,7 +144,7 @@ class _CustomTemplatesScreenState extends State<CustomTemplatesScreen> {
                   }
                   if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
                     return const Center(
-                      child: Text('There are no such templates'),
+                      child: Text('No matching templates were found'),
                     );
                   }
                   final templateList = snapshot.data!.docs;

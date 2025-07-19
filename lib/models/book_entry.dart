@@ -8,7 +8,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
-import 'package:iconsax/iconsax.dart';
 
 class BookEntry extends StatefulWidget {
   final String? mainBookId;
@@ -218,13 +217,13 @@ class _BookEntryState extends State<BookEntry> {
                 child: QuillEditor(
                   focusNode: contentFocusNode,
                   scrollController: ScrollController(),
-                  configurations: QuillEditorConfigurations(
                   controller: contentController,
+                  config: QuillEditorConfig(
                       expands: true,
                       maxHeight: null,
                       minHeight: null,
                       checkBoxReadOnly: false,
-                      isOnTapOutsideEnabled: true,
+                      onTapOutsideEnabled: true,
                       onTapOutside: (event, focusNode) {
                         focusNode.unfocus();
                         isEditing = false;
@@ -286,7 +285,7 @@ class _BookEntryState extends State<BookEntry> {
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(1000),
                               color: Theme.of(context).primaryColorLight),
-                          child: const Icon(Iconsax.text_block),
+                          child: const Icon(Icons.text_fields_rounded),
                         ),
                       ),
                     ),
@@ -335,7 +334,7 @@ class _BookEntryState extends State<BookEntry> {
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(1000),
                               color: Theme.of(context).primaryColorLight),
-                          child: const Icon(Iconsax.add),
+                          child: const Icon(Icons.add_rounded),
                         ),
                       ),
                     ),
@@ -354,7 +353,7 @@ class _BookEntryState extends State<BookEntry> {
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(1000),
                               color: Theme.of(context).primaryColorLight),
-                          child: const Icon(Iconsax.close_square),
+                          child: const Icon(Icons.keyboard_arrow_down_rounded),
                         ),
                       ),
                     ),

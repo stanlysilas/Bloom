@@ -57,23 +57,19 @@ class _RatingDialogState extends State<RatingDialog> {
   Widget build(BuildContext context) {
     return AlertDialog.adaptive(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      icon: Text(
+        userRatingIcons[userRating - 1],
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 24),
+      ),
       // Heading for rating
-      title:
-          // User rating icons
-          Container(
-        padding: const EdgeInsets.all(20),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Theme.of(context).primaryColor,
-        ),
-        child: Text(
-          userRatingIcons[userRating - 1],
-          style: const TextStyle(fontSize: 20),
-        ),
+      title: Text('Rate Bloom'),
+      titleTextStyle: TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.w400,
       ),
       content: SizedBox(
-        height: 150,
+        height: 120,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -107,11 +103,11 @@ class _RatingDialogState extends State<RatingDialog> {
             // User rating strings
             Text(
               userRatingStrings[userRating - 1],
-              style: const TextStyle(fontSize: 16),
             ),
           ],
         ),
       ),
+      contentTextStyle: TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
       actions: [
         // A submit button for submitting the feedback and rating
         TextButton(
@@ -134,14 +130,11 @@ class _RatingDialogState extends State<RatingDialog> {
           },
           child: isSubmitting
               ? CircularProgressIndicator(
+                  year2023: false,
                   color: Theme.of(context).primaryColor,
-                  strokeWidth: 2,
+                  backgroundColor: Theme.of(context).primaryColorLight,
                 )
-              : Text(
-                  'Submit',
-                  style: TextStyle(
-                      color: Theme.of(context).textTheme.bodyMedium?.color),
-                ),
+              : Text('Submit'),
         )
       ],
     );

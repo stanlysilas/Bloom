@@ -8,7 +8,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 
 class TaskTile extends StatefulWidget {
@@ -24,8 +23,8 @@ class TaskTile extends StatefulWidget {
   final int priorityLevel;
   final String priorityLevelString;
   final String taskMode;
-  final bool isHabit;
   final EdgeInsetsGeometry? innerPadding;
+  final BoxDecoration? decoration;
   TaskTile({
     super.key,
     required this.taskTitle,
@@ -41,7 +40,7 @@ class TaskTile extends StatefulWidget {
     required this.addedOn,
     required this.taskMode,
     this.innerPadding,
-    required this.isHabit,
+    this.decoration,
   });
 
   @override
@@ -135,8 +134,8 @@ class _TaskTileState extends State<TaskTile> {
                 decoration: BoxDecoration(
                     color: Colors.red, borderRadius: BorderRadius.circular(8)),
                 child: Icon(
-                  Iconsax.trash,
-                  color: Theme.of(context).scaffoldBackgroundColor,
+                  Icons.delete_rounded,
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
               ),
             ),
@@ -162,12 +161,12 @@ class _TaskTileState extends State<TaskTile> {
               addedOn: widget.addedOn,
               priorityLevelString: widget.priorityLevelString,
               taskMode: widget.taskMode,
-              isHabit: widget.isHabit,
             ),
           ),
         ),
-        child: Padding(
+        child: Container(
           padding: widget.innerPadding ?? const EdgeInsets.all(0),
+          decoration: widget.decoration ?? BoxDecoration(),
           child: Row(
             children: [
               // Checkbox for the task
@@ -244,8 +243,8 @@ class _TaskTileState extends State<TaskTile> {
                       widget.taskTitle,
                       maxLines: 1,
                       style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
                         overflow: TextOverflow.ellipsis,
                         decoration: widget.isCompleted
                             ? TextDecoration.lineThrough
@@ -254,13 +253,13 @@ class _TaskTileState extends State<TaskTile> {
                         decorationThickness: 3,
                       ),
                     ),
-                    widget.taskGroup == ''
-                        ? const SizedBox()
-                        : Text(
-                            widget.taskGroup,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                    if (widget.taskGroup != '')
+                      Text(
+                        widget.taskGroup,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                      ),
                     widget.taskDateTime.isBefore(
                               DateTime(
                                 now.year,
@@ -275,7 +274,9 @@ class _TaskTileState extends State<TaskTile> {
                         ? const Text(
                             'Overdue',
                             style: TextStyle(
-                                color: Colors.red, fontWeight: FontWeight.w500),
+                                color: Colors.red,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 12),
                           )
                         : const SizedBox()
                   ],
@@ -326,6 +327,7 @@ class _TaskTileState extends State<TaskTile> {
                           DateFormat('h:mm a').format(widget.taskDateTime),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: Colors.grey),
                         ),
                 ],
               )

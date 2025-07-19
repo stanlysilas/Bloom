@@ -14,99 +14,87 @@ class _ProfilePictureDialogState extends State<ProfilePictureDialog> {
   int? selectedIndex;
   // Profile Pictures
   List<String> profilePictures = [
-    'assets/profile_pictures/Profile_Picture_Male.png',
-    'assets/profile_pictures/Profile_Picture_Female.png'
+    'assets/profile_pictures/Profile_Picture_Male_1.png',
+    'assets/profile_pictures/Profile_Picture_Female_1.png',
+    'assets/profile_pictures/Profile_Picture_Male_2.png',
+    'assets/profile_pictures/Profile_Picture_Female_2.png',
+    'assets/profile_pictures/Profile_Picture_Male_3.png',
+    'assets/profile_pictures/Profile_Picture_Female_3.png',
+    'assets/profile_pictures/Profile_Picture_Male_4.png',
+    'assets/profile_pictures/Profile_Picture_Female_4.png',
+    'assets/profile_pictures/Profile_Picture_Male_5.png',
+    'assets/profile_pictures/Profile_Picture_Female_5.png',
   ];
   // Names of Profile Pictures
-  List<String> labels = ['Default Male', 'Default Female'];
+  // List<String> labels = ['Default Male', 'Default Female'];
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+    return AlertDialog.adaptive(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      child: Container(
-        height: 400,
+      title: const Text('Choose a profile picture'),
+      titleTextStyle: TextStyle(
+          color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 24),
+      content: Container(
+        height: 250,
         width: MediaQuery.of(context).size.width / 2,
         padding: const EdgeInsets.all(12),
-        child: Column(
-          children: [
-            const Text(
-              'Choose a profile picture',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            GridView.builder(
-              itemCount: profilePictures.length,
-              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 200,
-                mainAxisExtent: 200,
-              ),
-              shrinkWrap: true,
-              itemBuilder: (context, index) => Column(
-                children: [
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        selectedIndex = index;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(8.0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(15),
-                        color: selectedIndex == index
-                            ? Theme.of(context).primaryColorDark
-                            : Colors.transparent,
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(1000),
-                        child: Image.asset(
-                          profilePictures[index].toString(),
-                          scale: 14,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Text(
-                    labels[index],
-                    style: const TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  Text(
-                    selectedIndex == index ? 'Selected' : '',
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
-            const Spacer(),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: InkWell(
+        child: GridView.builder(
+          itemCount: profilePictures.length,
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 200,
+            mainAxisExtent: 130,
+          ),
+          shrinkWrap: true,
+          itemBuilder: (context, index) => Column(
+            children: [
+              InkWell(
+                borderRadius: BorderRadius.circular(24),
                 onTap: () {
-                  Navigator.of(context).pop(profilePictures[selectedIndex!]);
+                  setState(() {
+                    selectedIndex = index;
+                  });
                 },
                 child: Container(
-                  width: double.maxFinite,
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(8.0),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(1000),
-                    color: Theme.of(context).primaryColor,
+                    borderRadius: BorderRadius.circular(24),
+                    color: selectedIndex == index
+                        ? Theme.of(context).primaryColor.withAlpha(80)
+                        : Colors.transparent,
                   ),
-                  child: Text(
-                    'Select',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).scaffoldBackgroundColor),
-                    textAlign: TextAlign.center,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(100),
+                    child: Image.asset(
+                      profilePictures[index].toString(),
+                      scale: 14,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+              // Text(
+              //   labels[index],
+              //   style: const TextStyle(fontWeight: FontWeight.w500),
+              // ),
+              if (selectedIndex == index)
+                Text(
+                  'Selected',
+                  style: const TextStyle(color: Colors.grey),
+                ),
+            ],
+          ),
         ),
       ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            if (mounted) {
+              Navigator.of(context).pop(profilePictures[selectedIndex!]);
+            }
+          },
+          child: Text('Select'),
+        )
+      ],
     );
   }
 }

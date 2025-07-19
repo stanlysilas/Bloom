@@ -9,6 +9,8 @@ class MyTextfield extends StatelessWidget {
   final int? minLines;
   final int? maxLines;
   final TextInputType textInputType;
+  final Icon? prefixIcon;
+  final FocusNode focusNode;
   const MyTextfield({
     super.key,
     required this.controller,
@@ -19,18 +21,19 @@ class MyTextfield extends StatelessWidget {
     required this.autoFocus,
     this.minLines,
     this.maxLines,
+    this.prefixIcon,
+    required this.focusNode,
   });
 
   @override
   Widget build(BuildContext context) {
-    final textFieldFocusNode = FocusNode();
     return TextField(
       cursorColor: Theme.of(context).primaryColor,
-      focusNode: textFieldFocusNode,
+      focusNode: focusNode,
       minLines: minLines,
       maxLines: maxLines,
       onTapOutside: (event) {
-        textFieldFocusNode.unfocus();
+        focusNode.unfocus();
       },
       style: TextStyle(
         color: Theme.of(context).textTheme.bodyMedium?.color,
@@ -40,22 +43,20 @@ class MyTextfield extends StatelessWidget {
       obscureText: obscureText,
       autofocus: autoFocus,
       decoration: InputDecoration(
+        prefixIcon: prefixIcon,
         fillColor: Theme.of(context).primaryColorLight,
         filled: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-        border: const OutlineInputBorder(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(
           borderSide: BorderSide.none,
-          borderRadius: BorderRadius.all(
-            Radius.circular(10),
-          ),
+          borderRadius: BorderRadius.circular(100),
         ),
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(
             color: Theme.of(context).primaryColor,
           ),
-          borderRadius: const BorderRadius.all(
-            Radius.circular(10),
-          ),
+          borderRadius: BorderRadius.circular(100),
         ),
         suffixIcon: suffixIcon,
         hintText: hintText,
@@ -64,6 +65,7 @@ class MyTextfield extends StatelessWidget {
           color: Colors.grey,
         ),
         hintFadeDuration: const Duration(milliseconds: 400),
+        // labelText: "hintText",
       ),
     );
   }

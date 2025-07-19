@@ -17,6 +17,7 @@ final ThemeData lightTheme =
   primaryColor: primaryColorLightMode,
   primaryColorLight: boxBackgroundColorLightMode,
   primaryColorDark: Colors.grey.shade400,
+  dividerColor: Colors.grey,
   iconTheme: const IconThemeData(color: Colors.black),
   textTheme: const TextTheme(
     bodyMedium: TextStyle(color: Colors.black),
@@ -27,6 +28,25 @@ final ThemeData lightTheme =
       borderRadius: BorderRadius.circular(5),
     ),
   ),
+  radioTheme:
+      RadioThemeData(fillColor: WidgetStatePropertyAll(primaryColorLightMode)),
+  textButtonTheme: TextButtonThemeData(
+      style: ButtonStyle(
+          foregroundColor: WidgetStatePropertyAll(primaryColorLightMode),
+          textStyle: WidgetStatePropertyAll(TextStyle(
+            fontWeight: FontWeight.w500,
+          )))),
+  searchBarTheme: SearchBarThemeData(
+      textStyle: WidgetStatePropertyAll(TextStyle(color: Colors.black)),
+      hintStyle: WidgetStatePropertyAll(TextStyle(color: Colors.grey))),
+  textSelectionTheme: TextSelectionThemeData(
+    cursorColor: primaryColorLightMode,
+    selectionColor: primaryColorLightMode.withAlpha(80),
+    selectionHandleColor: primaryColorDarkMode,
+  ),
+  elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ButtonStyle(
+          backgroundColor: WidgetStatePropertyAll(primaryColorLightMode))),
   datePickerTheme: DatePickerThemeData(
     backgroundColor: Colors.white,
     todayForegroundColor: const WidgetStatePropertyAll(Colors.black),
@@ -43,9 +63,8 @@ final ThemeData lightTheme =
         ),
       ),
     ),
-    cancelButtonStyle: ButtonStyle(
-        foregroundColor:
-            WidgetStateProperty.all(primaryColorLightMode)),
+    cancelButtonStyle:
+        ButtonStyle(foregroundColor: WidgetStateProperty.all(Colors.red)),
     confirmButtonStyle:
         ButtonStyle(foregroundColor: WidgetStateProperty.all(Colors.black)),
   ),
@@ -53,26 +72,21 @@ final ThemeData lightTheme =
     backgroundColor: Colors.white,
     dayPeriodColor: primaryColorLightMode,
     dayPeriodTextColor: Colors.black,
-    dialBackgroundColor: Colors.grey[50],
+    dialBackgroundColor: Colors.grey[100],
     dialHandColor: primaryColorLightMode,
-    // dialTextColor: Colors.white,
     entryModeIconColor: Colors.black,
     hourMinuteColor: primaryColorLightMode,
-    hourMinuteShape: RoundedRectangleBorder(
-        side: const BorderSide(color: Colors.black),
-        borderRadius: BorderRadius.circular(15)),
+    hourMinuteShape:
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
     hourMinuteTextColor: Colors.black,
     inputDecorationTheme: InputDecorationTheme(
       focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide(color: primaryColorLightMode)),
-      enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(color: primaryColorLightMode)),
+      enabledBorder: const OutlineInputBorder(borderSide: BorderSide.none),
     ),
     cancelButtonStyle: ButtonStyle(
-      foregroundColor:
-          WidgetStateProperty.all(primaryColorLightMode),
+      foregroundColor: WidgetStateProperty.all(Colors.red),
     ),
     confirmButtonStyle: ButtonStyle(
       foregroundColor: WidgetStateProperty.all(Colors.black),
@@ -87,14 +101,14 @@ final ThemeData lightTheme =
   navigationRailTheme: NavigationRailThemeData(
     backgroundColor: Colors.grey.shade300,
     selectedLabelTextStyle: const TextStyle(
-        color: Colors.black, fontSize: 16, fontWeight: FontWeight.w500),
+        color: Colors.black, fontSize: 12, fontWeight: FontWeight.w500),
     unselectedLabelTextStyle: const TextStyle(color: Colors.grey, fontSize: 12),
     selectedIconTheme: const IconThemeData(color: Colors.white),
     unselectedIconTheme: const IconThemeData(color: Colors.grey),
   ),
   bottomSheetTheme:
       const BottomSheetThemeData(backgroundColor: Colors.transparent),
-  fontFamily: 'Nunito',
+  // fontFamily: 'Nunito',
   // pageTransitionsTheme: PageTransitionsTheme(
   //   builders: {
   //     TargetPlatform.android: CustomPageTransitionsBuilder(),
@@ -110,9 +124,9 @@ final ThemeData darkTheme =
 // Dark theme customization
     ThemeData(
   useMaterial3: true,
-  scaffoldBackgroundColor: Colors.grey.shade900,
+  scaffoldBackgroundColor: const Color(0xFF181818),
   appBarTheme: const AppBarTheme(
-    backgroundColor: Colors.transparent,
+    backgroundColor: Color(0xFF181818),
     iconTheme: IconThemeData(color: Colors.white),
     titleTextStyle:
         TextStyle(color: Colors.white, fontSize: 20, fontFamily: 'Nunito'),
@@ -121,7 +135,8 @@ final ThemeData darkTheme =
   ),
   primaryColor: primaryColorDarkMode,
   primaryColorLight: boxBackgroundColorDarkMode,
-  primaryColorDark: Colors.grey[600],
+  primaryColorDark: Colors.grey[800],
+  dividerColor: Colors.grey,
   iconTheme: const IconThemeData(color: Colors.white),
   textTheme: const TextTheme(
       bodyMedium: TextStyle(color: Colors.white),
@@ -131,9 +146,29 @@ final ThemeData darkTheme =
         borderRadius: BorderRadius.circular(5),
       ),
       side: const BorderSide(color: Colors.white)),
+  radioTheme:
+      RadioThemeData(fillColor: WidgetStatePropertyAll(primaryColorDarkMode)),
+  textButtonTheme: TextButtonThemeData(
+      style: ButtonStyle(
+          foregroundColor: WidgetStatePropertyAll(primaryColorDarkMode),
+          textStyle: WidgetStatePropertyAll(TextStyle(
+            fontWeight: FontWeight.w500,
+          )))),
+  elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ButtonStyle(
+          backgroundColor: WidgetStatePropertyAll(primaryColorDarkMode))),
+  searchBarTheme: SearchBarThemeData(
+      textStyle: WidgetStatePropertyAll(TextStyle(color: Colors.white)),
+      hintStyle: WidgetStatePropertyAll(TextStyle(color: Colors.grey))),
+  textSelectionTheme: TextSelectionThemeData(
+    cursorColor: primaryColorDarkMode,
+    selectionColor: primaryColorDarkMode.withAlpha(80),
+    selectionHandleColor: primaryColorLightMode,
+  ),
   datePickerTheme: DatePickerThemeData(
       backgroundColor: Colors.grey.shade900,
       headerForegroundColor: Colors.white,
+      todayBorder: BorderSide.none,
       weekdayStyle: const TextStyle(color: Colors.grey),
       yearForegroundColor: WidgetStateProperty.all(Colors.white),
       todayBackgroundColor: WidgetStateProperty.all(primaryColorDarkMode),
@@ -143,6 +178,7 @@ final ThemeData darkTheme =
       rangePickerHeaderForegroundColor: Colors.white,
       inputDecorationTheme: InputDecorationTheme(
         floatingLabelStyle: const TextStyle(color: Colors.white),
+        prefixStyle: const TextStyle(color: Colors.white),
         hintStyle: const TextStyle(color: Colors.white),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
@@ -151,8 +187,8 @@ final ThemeData darkTheme =
           ),
         ),
       ),
-      cancelButtonStyle: ButtonStyle(
-          foregroundColor: WidgetStateProperty.all(primaryColorDarkMode)),
+      cancelButtonStyle:
+          ButtonStyle(foregroundColor: WidgetStateProperty.all(Colors.red)),
       confirmButtonStyle:
           ButtonStyle(foregroundColor: WidgetStateProperty.all(Colors.white))),
   timePickerTheme: TimePickerThemeData(
@@ -165,28 +201,23 @@ final ThemeData darkTheme =
     entryModeIconColor: Colors.white,
     hourMinuteColor: primaryColorDarkMode,
     hourMinuteTextColor: Colors.white,
-    hourMinuteShape: RoundedRectangleBorder(
-        side: const BorderSide(color: Colors.white),
-        borderRadius: BorderRadius.circular(15)),
+    hourMinuteShape:
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
     inputDecorationTheme: InputDecorationTheme(
         counterStyle: const TextStyle(color: Colors.white),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15),
             borderSide: const BorderSide(color: primaryColorDarkMode)),
-        enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide:
-                const BorderSide(color: primaryColorDarkMode))),
+        enabledBorder: const OutlineInputBorder(borderSide: BorderSide.none)),
     cancelButtonStyle: ButtonStyle(
-      foregroundColor:
-          WidgetStateProperty.all(primaryColorDarkMode),
+      foregroundColor: WidgetStateProperty.all(Colors.red),
     ),
     confirmButtonStyle: ButtonStyle(
       foregroundColor: WidgetStateProperty.all(Colors.white),
     ),
   ),
   navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: Colors.grey[850],
+      backgroundColor: Colors.grey[900],
       labelTextStyle: const WidgetStatePropertyAll(
           TextStyle(color: Colors.white, fontSize: 12)),
       iconTheme:
@@ -194,14 +225,14 @@ final ThemeData darkTheme =
   navigationRailTheme: NavigationRailThemeData(
     backgroundColor: Colors.grey.shade800.withAlpha(80),
     selectedLabelTextStyle: const TextStyle(
-        color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+        color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
     unselectedLabelTextStyle: const TextStyle(color: Colors.grey, fontSize: 12),
-    selectedIconTheme: const IconThemeData(color: Colors.black),
+    selectedIconTheme: const IconThemeData(color: Colors.white),
     unselectedIconTheme: const IconThemeData(color: Colors.grey),
   ),
   bottomSheetTheme:
       const BottomSheetThemeData(backgroundColor: Colors.transparent),
-  fontFamily: 'Nunito',
+  // fontFamily: 'Nunito',
   // pageTransitionsTheme: PageTransitionsTheme(
   //   builders: {
   //     TargetPlatform.android: CustomPageTransitionsBuilder(),

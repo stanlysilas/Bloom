@@ -21,7 +21,7 @@ class _EntriesBackgroundImagesState extends State<EntriesBackgroundImages> {
     'assets/background_images/sand_dunes.jpg',
     'assets/background_images/sunset_in_the_mountains.jpg',
     'assets/background_images/white_globe.jpg',
-    'assets/background_images/cozy_autumn_rain.gif',
+    // 'assets/background_images/cozy_autumn_rain.gif',
   ];
   List<String> backgroundImageUrlsNamesList = [
     'Obsidian Essence',
@@ -32,7 +32,7 @@ class _EntriesBackgroundImagesState extends State<EntriesBackgroundImages> {
     'Sand Dunes',
     'Sunset in the Mountains',
     'White Globe',
-    'Cozy Autumn Rain',
+    // 'Cozy Autumn Rain',
   ];
   @override
   Widget build(BuildContext context) {
@@ -62,7 +62,7 @@ class _EntriesBackgroundImagesState extends State<EntriesBackgroundImages> {
               padding: EdgeInsets.symmetric(horizontal: 14.0),
               child: Text(
                 'Pre-installed',
-                style: TextStyle(fontWeight: FontWeight.w600),
+                style: TextStyle(fontWeight: FontWeight.w500),
               ),
             ),
             // Basic pre-installed backgrounds gridview
@@ -73,21 +73,21 @@ class _EntriesBackgroundImagesState extends State<EntriesBackgroundImages> {
                   physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4,
-                      crossAxisSpacing: 4,
-                      mainAxisSpacing: 4,
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
                       childAspectRatio: 1.5),
                   itemCount: backgroundImageUrlsList.length,
                   itemBuilder: (context, index) {
                     return InkWell(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(10),
                       onTap: () {
                         widget.backgroundImageNotifier.backgroundImageUrl =
                             backgroundImageUrlsList[index];
                         Navigator.pop(context);
                       },
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(10),
                         child: Image.asset(
                           backgroundImageUrlsList[index],
                           filterQuality: FilterQuality.low,
@@ -97,11 +97,8 @@ class _EntriesBackgroundImagesState extends State<EntriesBackgroundImages> {
                     );
                   }),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 14.0),
-              child: Divider(
-                color: Colors.grey,
-              ),
+            Divider(
+              color: Colors.grey,
             ),
             // Advanced specific topic backgrounds title
           ],

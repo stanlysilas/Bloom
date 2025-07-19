@@ -1,7 +1,6 @@
 import 'package:bloom/models/note_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 
 class CustomTexteditingToolbar extends StatefulWidget {
@@ -50,8 +49,8 @@ class _CustomTexteditingToolbarState extends State<CustomTexteditingToolbar> {
             ),
             Center(
               child: QuillSimpleToolbar(
-                configurations: QuillSimpleToolbarConfigurations(
-                  controller: widget.controller,
+                controller: widget.controller,
+                config: QuillSimpleToolbarConfig(
                   decoration: BoxDecoration(
                       color: Colors.transparent,
                       borderRadius: BorderRadius.circular(10)),
@@ -89,13 +88,13 @@ class _CustomTexteditingToolbarState extends State<CustomTexteditingToolbar> {
                   showLineHeightButton: false,
                   buttonOptions: QuillSimpleToolbarButtonOptions(
                     undoHistory: QuillToolbarHistoryButtonOptions(
-                      iconData: Iconsax.undo,
+                      iconData: Icons.undo,
                       afterButtonPressed: () {
                         focusProvider.unfocusEditor();
                       },
                     ),
                     redoHistory: QuillToolbarHistoryButtonOptions(
-                      iconData: Iconsax.redo,
+                      iconData: Icons.redo,
                       afterButtonPressed: () {
                         focusProvider.unfocusEditor();
                       },
@@ -114,8 +113,8 @@ class _CustomTexteditingToolbarState extends State<CustomTexteditingToolbar> {
             ),
             Center(
               child: QuillSimpleToolbar(
-                configurations: QuillSimpleToolbarConfigurations(
-                  controller: widget.controller,
+                controller: widget.controller,
+                config: QuillSimpleToolbarConfig(
                   decoration: BoxDecoration(
                       color: Colors.transparent,
                       borderRadius: BorderRadius.circular(10)),
@@ -155,7 +154,7 @@ class _CustomTexteditingToolbarState extends State<CustomTexteditingToolbar> {
                       afterButtonPressed: () {
                         setState(() {
                           widget.focusNode.unfocus();
-                          widget.controller.editorFocusNode!.unfocus();
+                          // widget.controller.editorFocusNode!.unfocus();
                           widget.onSelected();
                         });
                       },
@@ -209,7 +208,7 @@ class _CustomTexteditingToolbarState extends State<CustomTexteditingToolbar> {
                     italic: QuillToolbarToggleStyleButtonOptions(
                       afterButtonPressed: () {
                         widget.focusNode.unfocus();
-                        widget.controller.editorFocusNode!.unfocus();
+                        // widget.controller.editorFocusNode!.unfocus();
                       },
                       childBuilder: (options, extraOptions) {
                         var isItalic = widget.controller
@@ -259,7 +258,7 @@ class _CustomTexteditingToolbarState extends State<CustomTexteditingToolbar> {
                     underLine: QuillToolbarToggleStyleButtonOptions(
                       afterButtonPressed: () {
                         widget.focusNode.unfocus();
-                        widget.controller.editorFocusNode!.unfocus();
+                        // widget.controller.editorFocusNode!.unfocus();
                       },
                       childBuilder: (options, extraOptions) {
                         var isUnderline = widget.controller
@@ -308,7 +307,7 @@ class _CustomTexteditingToolbarState extends State<CustomTexteditingToolbar> {
                     strikeThrough: QuillToolbarToggleStyleButtonOptions(
                       afterButtonPressed: () {
                         widget.focusNode.unfocus();
-                        widget.controller.editorFocusNode!.unfocus();
+                        // widget.controller.editorFocusNode!.unfocus();
                       },
                       childBuilder: (options, extraOptions) {
                         var isStrikethrough = widget.controller
@@ -357,7 +356,7 @@ class _CustomTexteditingToolbarState extends State<CustomTexteditingToolbar> {
                     subscript: QuillToolbarToggleStyleButtonOptions(
                       afterButtonPressed: () {
                         widget.focusNode.unfocus();
-                        widget.controller.editorFocusNode!.unfocus();
+                        // widget.controller.editorFocusNode!.unfocus();
                       },
                       childBuilder: (options, extraOptions) {
                         var isSubscript = widget.controller
@@ -409,7 +408,7 @@ class _CustomTexteditingToolbarState extends State<CustomTexteditingToolbar> {
                     superscript: QuillToolbarToggleStyleButtonOptions(
                       afterButtonPressed: () {
                         widget.focusNode.unfocus();
-                        widget.controller.editorFocusNode!.unfocus();
+                        // widget.controller.editorFocusNode!.unfocus();
                       },
                       childBuilder: (options, extraOptions) {
                         var isSuperscript = widget.controller
@@ -471,8 +470,8 @@ class _CustomTexteditingToolbarState extends State<CustomTexteditingToolbar> {
             ),
             Center(
               child: QuillSimpleToolbar(
-                configurations: QuillSimpleToolbarConfigurations(
-                  controller: widget.controller,
+                controller: widget.controller,
+                config: QuillSimpleToolbarConfig(
                   decoration: BoxDecoration(
                       color: Colors.transparent,
                       borderRadius: BorderRadius.circular(10)),
@@ -508,7 +507,7 @@ class _CustomTexteditingToolbarState extends State<CustomTexteditingToolbar> {
                     listNumbers: QuillToolbarToggleStyleButtonOptions(
                       afterButtonPressed: () {
                         widget.focusNode.unfocus();
-                        widget.controller.editorFocusNode!.unfocus();
+                        // widget.controller.editorFocusNode!.unfocus();
                       },
                       childBuilder: (options, extraOptions) {
                         var isListNumbers = widget.controller
@@ -564,7 +563,7 @@ class _CustomTexteditingToolbarState extends State<CustomTexteditingToolbar> {
                     listBullets: QuillToolbarToggleStyleButtonOptions(
                       afterButtonPressed: () {
                         widget.focusNode.unfocus();
-                        widget.controller.editorFocusNode!.unfocus();
+                        // widget.controller.editorFocusNode!.unfocus();
                       },
                       childBuilder: (options, extraOptions) {
                         var isListBullets = widget.controller
@@ -674,8 +673,8 @@ class _CustomTexteditingToolbarState extends State<CustomTexteditingToolbar> {
             ),
             Center(
               child: QuillSimpleToolbar(
-                configurations: QuillSimpleToolbarConfigurations(
-                  controller: widget.controller,
+                controller: widget.controller,
+                config: QuillSimpleToolbarConfig(
                   decoration: BoxDecoration(
                       color: Colors.transparent,
                       borderRadius: BorderRadius.circular(10)),
@@ -716,7 +715,7 @@ class _CustomTexteditingToolbarState extends State<CustomTexteditingToolbar> {
                     quote: QuillToolbarToggleStyleButtonOptions(
                       afterButtonPressed: () {
                         widget.focusNode.unfocus();
-                        widget.controller.editorFocusNode!.unfocus();
+                        // widget.controller.editorFocusNode!.unfocus();
                       },
                       childBuilder: (options, extraOptions) {
                         var isQuote = widget.controller
@@ -775,8 +774,8 @@ class _CustomTexteditingToolbarState extends State<CustomTexteditingToolbar> {
             ),
             Center(
               child: QuillSimpleToolbar(
-                configurations: QuillSimpleToolbarConfigurations(
-                  controller: widget.controller,
+                controller: widget.controller,
+                config: QuillSimpleToolbarConfig(
                   decoration: BoxDecoration(
                       color: Colors.transparent,
                       borderRadius: BorderRadius.circular(10)),
@@ -820,7 +819,7 @@ class _CustomTexteditingToolbarState extends State<CustomTexteditingToolbar> {
                     inlineCode: QuillToolbarToggleStyleButtonOptions(
                       afterButtonPressed: () {
                         widget.focusNode.unfocus();
-                        widget.controller.editorFocusNode!.unfocus();
+                        // widget.controller.editorFocusNode!.unfocus();
                       },
                       childBuilder: (options, extraOptions) {
                         var isInlineCode = widget.controller
@@ -840,7 +839,7 @@ class _CustomTexteditingToolbarState extends State<CustomTexteditingToolbar> {
                                           borderRadius:
                                               BorderRadius.circular(15)))),
                               icon: Icon(
-                                Iconsax.code,
+                                Icons.code,
                                 color: isInlineCode
                                     ? Theme.of(context).scaffoldBackgroundColor
                                     : Colors.black,
@@ -869,7 +868,7 @@ class _CustomTexteditingToolbarState extends State<CustomTexteditingToolbar> {
                     codeBlock: QuillToolbarToggleStyleButtonOptions(
                       afterButtonPressed: () {
                         widget.focusNode.unfocus();
-                        widget.controller.editorFocusNode!.unfocus();
+                        // widget.controller.editorFocusNode!.unfocus();
                       },
                       childBuilder: (options, extraOptions) {
                         var isCodeBlock = widget.controller
@@ -934,7 +933,7 @@ class _CustomTexteditingToolbarState extends State<CustomTexteditingToolbar> {
                                           borderRadius:
                                               BorderRadius.circular(15)))),
                               icon: Icon(
-                                Iconsax.link,
+                                Icons.link,
                                 color: isLinkStyle
                                     ? Theme.of(context).scaffoldBackgroundColor
                                     : Colors.black,
@@ -988,48 +987,48 @@ class _CustomHorizontalTextEditingToolbarState
   @override
   Widget build(BuildContext context) {
     return QuillSimpleToolbar(
-        configurations: QuillSimpleToolbarConfigurations(
-      controller: widget.controller,
-      showLink: false,
-      showSmallButton: true,
-      showAlignmentButtons: true,
-      showDirection: true,
-      sharedConfigurations: QuillSharedConfigurations(
+        controller: widget.controller,
+        config: QuillSimpleToolbarConfig(
+          axis: Axis.horizontal,
+          showLink: false,
+          showSmallButton: true,
+          showAlignmentButtons: true,
+          showDirection: true,
           dialogTheme: QuillDialogTheme(
-              dialogBackgroundColor:
-                  Theme.of(context).scaffoldBackgroundColor)),
-      toolbarSize: 50,
-      multiRowsDisplay: false,
-      color: Theme.of(context).primaryColorLight,
-      buttonOptions: QuillSimpleToolbarButtonOptions(
-        base: QuillToolbarBaseButtonOptions(
-            afterButtonPressed: () {
-              setState(() {
-                widget.controller.editorFocusNode!.unfocus();
-                widget.focusNode.unfocus();
-              });
-            },
-            iconTheme: QuillIconTheme(
-                iconButtonUnselectedData: IconButtonData(
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
-                ),
-                iconButtonSelectedData: IconButtonData(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                ))),
-        color: QuillToolbarColorButtonOptions(
-            iconData: Icons.color_lens,
-            iconTheme: QuillIconTheme(
-                iconButtonUnselectedData: IconButtonData(
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
-                ),
-                iconButtonSelectedData: IconButtonData(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                ))),
-        search: QuillToolbarSearchButtonOptions(
-          dialogTheme: QuillDialogTheme(
-              dialogBackgroundColor: Theme.of(context).primaryColorLight),
-        ),
-      ),
-    ));
+              dialogBackgroundColor: Theme.of(context).scaffoldBackgroundColor),
+          // sharedConfigurations: QuillSharedConfigurations(),
+          // toolbarSize: 20,
+          multiRowsDisplay: false,
+          color: Colors.transparent,
+          buttonOptions: QuillSimpleToolbarButtonOptions(
+            base: QuillToolbarBaseButtonOptions(
+                // afterButtonPressed: () {
+                //   setState(() {
+                //     // widget.controller.editorFocusNode!.unfocus();
+                //     // widget.focusNode.unfocus();
+                //   });
+                // },
+                iconTheme: QuillIconTheme(
+                    iconButtonUnselectedData: IconButtonData(
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                    ),
+                    iconButtonSelectedData: IconButtonData(
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                    ))),
+            color: QuillToolbarColorButtonOptions(
+                iconData: Icons.color_lens,
+                iconTheme: QuillIconTheme(
+                    iconButtonUnselectedData: IconButtonData(
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                    ),
+                    iconButtonSelectedData: IconButtonData(
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                    ))),
+            search: QuillToolbarSearchButtonOptions(
+              dialogTheme: QuillDialogTheme(
+                  dialogBackgroundColor: Theme.of(context).primaryColorLight),
+            ),
+          ),
+        ));
   }
 }

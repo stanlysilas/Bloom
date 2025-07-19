@@ -8,7 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:iconsax/iconsax.dart';
+// import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -140,8 +140,8 @@ class _DisplayPomodoroScreenState extends State<DisplayPomodoroScreen> {
                 });
               },
               icon: toggleDayView
-                  ? const Icon(Iconsax.timer)
-                  : const Icon(Iconsax.calendar_1))
+                  ? const Icon(Icons.timer_rounded)
+                  : const Icon(Icons.calendar_month_rounded))
         ],
       ),
       body: SingleChildScrollView(

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:bloom/components/mybuttons.dart';
+import 'package:bloom/responsive/dimensions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -17,7 +18,8 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
   final Uri downloadLatestVersionUri = Uri.parse(
       'https://drive.google.com/drive/folders/1-1yrxBKQtcWMIEDnDUZDLJVOPFsAtx6n?usp=drive_link');
 
-  final String currentVersion = "2.2.1";
+  String currentVersion = 'default';
+  final int buildNumberAndroid = 16;
   late BannerAd bannerAd;
   bool isAdLoaded = false;
   bool? isUpdateAvailable;
@@ -25,26 +27,25 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
   @override
   void initState() {
     super.initState();
-    updateTagCheck();
+    updateCheck();
     // initBannerAd();
   }
 
 // Method to check and display a update available tag
-  void updateTagCheck() {
-    FirebaseFirestore.instance
+  void updateCheck() async {
+    await FirebaseFirestore.instance
         .collection('appData')
         .doc('appData')
         .get()
         .then((value) {
-      if (value.exists && value['latestAndroidVersion'] != currentVersion) {
-        setState(() {
+      setState(() {
+        currentVersion = value['latestAndroidVersion'];
+        if (value.exists && value['buildNumberAndroid'] > buildNumberAndroid) {
           isUpdateAvailable = true;
-        });
-      } else {
-        setState(() {
+        } else {
           isUpdateAvailable = false;
-        });
-      }
+        }
+      });
     });
   }
 
@@ -93,11 +94,12 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
       );
 
       if (snapshot.exists) {
-        final latestVersion = snapshot.data()?['latestAndroidVersion'] ?? '';
+        final int latestBuildNumberAndroid =
+            snapshot.data()?['buildNumberAndroid'];
 
-        if (latestVersion.isNotEmpty) {
+        if (latestBuildNumberAndroid != 0) {
           // Compare the versions
-          if (latestVersion != currentVersion) {
+          if (latestBuildNumberAndroid > buildNumberAndroid) {
             // Redirect to your website
             if (await canLaunchUrl(downloadLatestVersionUri)) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -113,7 +115,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                 ),
               );
               await launchUrl(downloadLatestVersionUri,
-                  mode: LaunchMode.inAppWebView);
+                  mode: LaunchMode.externalNonBrowserApplication);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -192,166 +194,178 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'About app',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('About app'),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 14.0),
-                child: Text(
-                  'App name',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        child: Padding(
+          padding: MediaQuery.of(context).size.width < mobileWidth
+              ? const EdgeInsets.all(0)
+              : const EdgeInsets.symmetric(horizontal: 120),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 14.0),
+                  child: Text(
+                    'App name',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
                 ),
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 14.0),
-                child: Text(
-                  '• Bloom - Productive',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 14.0),
+                  child: Text(
+                    '• Bloom - Productive',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16),
+                  ),
                 ),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 14.0),
-                child: Text(
-                  'App version',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                const SizedBox(
+                  height: 12,
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                child: Text(
-                  '• Version: $currentVersion',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 14.0),
+                  child: Text(
+                    'Version & Build number',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
                 ),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 14.0),
-                child: Text(
-                  'Update channel',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                  child: Text(
+                    '• $currentVersion+$buildNumberAndroid',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 16),
+                  ),
                 ),
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 14.0),
-                child: Text(
-                  '• Stable',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16),
+                const SizedBox(
+                  height: 12,
                 ),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-              FutureBuilder<Map<String, dynamic>>(
-                future: loadChangelog(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return const Center(
-                        child: Text("Error loading changelog."));
-                  }
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 14.0),
+                  child: Text(
+                    'Update channel',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 14.0),
+                  child: Text(
+                    '• Beta',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                FutureBuilder<Map<String, dynamic>>(
+                  future: loadChangelog(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(
+                          child: CircularProgressIndicator(
+                        year2023: false,
+                        color: Theme.of(context).primaryColor,
+                        backgroundColor: Theme.of(context).primaryColorLight,
+                      ));
+                    } else if (snapshot.hasError) {
+                      return const Center(
+                          child: Text("Error loading changelog."));
+                    }
 
-                  final changelog = snapshot.data!;
-                  final versionData = changelog[currentVersion];
+                    final changelog = snapshot.data!;
+                    final versionData = changelog[currentVersion];
 
-                  if (versionData == null) {
-                    return const Center(child: Text("No changelog available."));
-                  }
+                    if (versionData == null) {
+                      return const Center(
+                          child: Text("No changelog available."));
+                    }
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          versionData["title"],
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        ...List.generate(
-                          versionData["features"].length,
-                          (index) => Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  "• ",
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    versionData["features"][index],
-                                    style: const TextStyle(fontSize: 16),
-                                  ),
-                                ),
-                              ],
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            versionData["title"],
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 14.0),
-                child: Text(
-                  'Check for updates',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                          ...List.generate(
+                            versionData["features"].length,
+                            (index) => Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 4.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (versionData['features'] != null)
+                                    const Text(
+                                      "• ",
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  if (versionData['features'] != null)
+                                    Expanded(
+                                      child: Text(
+                                        versionData["features"][index],
+                                        style: const TextStyle(fontSize: 16),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-              // Check for updates button
-              ExtraOptionsButton(
-                icon: const Icon(Icons.system_update_alt_rounded),
-                iconLabelSpace: 8,
-                label: isUpdateAvailable == true
-                    ? 'Download update'
-                    : 'Check for updates',
-                labelStyle:
-                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-                showTag: isUpdateAvailable,
-                tagIcon: const Icon(
-                  Icons.emergency_outlined,
-                  size: 14,
+                const SizedBox(
+                  height: 12,
                 ),
-                tagLabel: 'Update available',
-                innerPadding: const EdgeInsets.all(12),
-                endIcon: const Icon(Icons.open_in_new_rounded),
-                onTap: checkForUpdates,
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-            ],
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 14.0),
+                  child: Text(
+                    'Check for updates',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                ),
+                const SizedBox(
+                  height: 8,
+                ),
+                // Check for updates button
+                ExtraOptionsButton(
+                  icon: const Icon(Icons.system_update_alt_rounded),
+                  iconLabelSpace: 8,
+                  useSpacer: true,
+                  label: isUpdateAvailable == true
+                      ? 'Download update'
+                      : 'Check for updates',
+                  labelStyle: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 16),
+                  showTag: isUpdateAvailable,
+                  tagIcon: const Icon(
+                    Icons.emergency_outlined,
+                    size: 14,
+                  ),
+                  tagLabel: 'Update available',
+                  innerPadding: const EdgeInsets.all(12),
+                  endIcon: const Icon(Icons.open_in_new_rounded),
+                  onTap: checkForUpdates,
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+              ],
+            ),
           ),
         ),
       ),

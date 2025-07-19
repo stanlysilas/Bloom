@@ -1,7 +1,6 @@
 import 'package:bloom/authentication_screens/signup_screen.dart';
 import 'package:bloom/notifications/notification.dart';
 import 'package:flutter/material.dart';
-import 'package:iconsax/iconsax.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback onComplete;
@@ -34,23 +33,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          InkWell(
-            onTap: () {
-              pageController.animateToPage(4,
-                  duration: const Duration(milliseconds: 1000),
-                  curve: Curves.easeIn);
-              setState(() {
-                page = 1.0;
-              });
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                currentPage == 4 ? '' : 'Skip',
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ),
+          if (page != 1.0)
+            TextButton(
+                onPressed: () {
+                  pageController.animateToPage(4,
+                      duration: const Duration(milliseconds: 1000),
+                      curve: Curves.easeIn);
+                  setState(() {
+                    page = 1.0;
+                  });
+                },
+                child: Text('Skip'))
         ],
       ),
       body: PageView(
@@ -58,7 +51,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         onPageChanged: (value) {
           setState(() {
             currentPage = value;
-            page = value / 5;
+            page = value / 4;
           });
         },
         children: [
@@ -72,16 +65,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   Text('Welcome to',
                       style: TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.w300,
                           color: Theme.of(context).primaryColorDark)),
                   const Text(
                     'Bloom - Productive',
                     style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 20),
                   // Picture/Video of the relevant screen/s
                   Expanded(
                     child: Padding(
@@ -95,16 +86,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    height: 20,
-                  ),
                   const Padding(
                     padding: EdgeInsets.all(8.0),
                     child: Text(
-                      "Ever wanted a dedicated Task manager, Event scheduler and a Notebook at one place? Don't worry, Bloom has got you covered!",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontWeight: FontWeight.w300),
-                    ),
+                        "Ever wanted a dedicated Task manager, Event scheduler, Notebook  and much more in one app? Don't worry, Bloom has got you covered!",
+                        textAlign: TextAlign.center),
                   ),
                 ],
               ),
@@ -124,11 +110,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   const Text(
                     'Tasks & Events',
                     style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 20),
                   // Picture/Video of the relevant screen/s
                   Expanded(
                     child: Padding(
@@ -142,15 +127,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    height: 20,
-                  ),
                   const Padding(
                     padding: EdgeInsets.all(8.0),
                     child: Text(
                       "Stay on top of your schedule with Bloom! Manage your tasks and plan events effortlessly—all in one place to keep your productivity blooming.",
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontWeight: FontWeight.w300),
                     ),
                   ),
                 ],
@@ -181,8 +162,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         const Text(
                           'Notes',
                           style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                         Text(' and',
@@ -200,14 +181,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         const Text(
                           'Rich Text Editing',
                           style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
                   // Picture/Video of the relevant screen/s
                   Expanded(
                     child: Padding(
@@ -221,16 +201,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    height: 20,
-                  ),
                   const Padding(
                     padding: EdgeInsets.all(8.0),
                     child: Text(
-                      "Capture your thoughts effortlessly with Bloom's Notes & Entries feature. From quick memos to detailed journals, enjoy rich text editing options to format your notes just the way you like!",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontWeight: FontWeight.w300),
-                    ),
+                        "Capture your thoughts effortlessly with Bloom's Notes & Entries feature. From quick memos to detailed journals, enjoy rich text editing options to format your notes just the way you like!",
+                        textAlign: TextAlign.center),
                   ),
                 ],
               ),
@@ -256,8 +231,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         const Text(
                           'Connected',
                           style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                         Text(' on all your ',
@@ -267,14 +242,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         const Text(
                           'Devices',
                           style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
                   // Picture/Video of the relevant screen/s
                   Expanded(
                     child: Padding(
@@ -288,21 +262,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    height: 10,
+                  const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Text(
+                        "With cross-device sync everything is updated across Android and Windows—just log in and pick up where you left off!",
+                        textAlign: TextAlign.center),
                   ),
                   const Padding(
                     padding: EdgeInsets.all(8.0),
                     child: Text(
-                      "With cross-device sync everything is updated across Android and Windows—just log in and pick up where you left off!",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontWeight: FontWeight.w300),
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      "*Cross-device sync will be available in a future update.",
+                      "*Windows client will be available in a future update.",
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
@@ -335,15 +304,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         const Text(
                           'Task',
                           style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                         const Text(
                           ', Event',
                           style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                         Text(' or a ',
@@ -353,14 +322,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         const Text(
                           'Deadline',
                           style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
                   // Picture/Video of the relevant screen/s
                   Expanded(
                     child: Padding(
@@ -373,9 +341,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 'assets/welcome_screen_assets/os_5.png')),
                       ),
                     ),
-                  ),
-                  const SizedBox(
-                    height: 10,
                   ),
                   const Padding(
                     padding: EdgeInsets.all(6.0),
@@ -412,7 +377,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        Iconsax.calendar5,
+                        Icons.calendar_month_rounded,
                         color: Colors.red,
                       ),
                       SizedBox(
@@ -428,10 +393,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     padding: EdgeInsets.symmetric(horizontal: 68.0),
                     child: Divider(),
                   ),
-                  const Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.more_horiz_rounded),
+                      Icon(
+                        Icons.more_horiz_rounded,
+                        color: Theme.of(context).primaryColor,
+                      ),
                       SizedBox(
                         width: 8,
                       ),
@@ -448,7 +416,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ],
       ),
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 26.0),
+        padding: const EdgeInsets.symmetric(vertical: 30.0, horizontal: 24.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -462,7 +430,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   end: page,
                 ),
                 builder: (context, value, _) => LinearProgressIndicator(
-                  minHeight: 6,
+                  year2023: false,
+                  stopIndicatorColor: Colors.transparent,
                   value: value,
                   borderRadius: BorderRadius.circular(15),
                   color: Theme.of(context).primaryColor,
@@ -470,66 +439,51 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(1000),
-                onTap: () async {
-                  if (currentPage == 4) {
-                    try {
-                      // Request for notification permission
-                      final bool granted = await NotificationService.init();
-                      if (granted) {
-                        setState(() {
-                          page = 2.0;
-                        });
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            margin: const EdgeInsets.all(6),
-                            behavior: SnackBarBehavior.floating,
-                            showCloseIcon: true,
-                            backgroundColor: Theme.of(context).primaryColor,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
-                            content: Text(
-                              'Notification access denied. You will not receive any reminders.',
-                              style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.color),
-                            )));
-                      }
-                      // Navigate to Login screen after requesting
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                          builder: (context) => const SignupScreen()));
-                      // Call the onComplete for proper state management
-                      widget.onComplete();
-                    } catch (e) {
-                      //
+            ElevatedButton(
+              onPressed: () async {
+                if (currentPage == 4) {
+                  try {
+                    // Request for notification permission
+                    final bool granted = await NotificationService.init();
+                    if (granted) {
+                      setState(() {
+                        page = 2.0;
+                      });
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          margin: const EdgeInsets.all(6),
+                          behavior: SnackBarBehavior.floating,
+                          showCloseIcon: true,
+                          backgroundColor: Theme.of(context).primaryColor,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          content: Text(
+                            'Notification access denied. You will not receive any reminders.',
+                            style: TextStyle(
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.color),
+                          )));
                     }
-                  } else {
-                    pageController.nextPage(
-                        duration: const Duration(milliseconds: 500),
-                        curve: Curves.easeIn);
+                    // Navigate to Login screen after requesting
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(
+                        builder: (context) => const SignupScreen()));
+                    // Call the onComplete for proper state management
+                    widget.onComplete();
+                  } catch (e) {
+                    //
                   }
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                      borderRadius: BorderRadius.circular(1000)),
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 16,
-                  ),
-                  child: Text(
-                    currentPage == 4 ? 'Grant permission' : 'Next',
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.labelMedium?.color,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
+                } else {
+                  pageController.nextPage(
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeIn);
+                }
+              },
+              child: Text(
+                currentPage == 4 ? 'Grant permission' : 'Next',
+                style: TextStyle(
+                    color: Theme.of(context).textTheme.bodyMedium?.color),
               ),
             )
           ],
