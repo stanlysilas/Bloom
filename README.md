@@ -13,7 +13,8 @@ Currently Bloom is under development for Android. There may be issues, if you fa
 You can download the .apk file from our website or from the releases tab of this GitHub repository.
 
 ### For Web
-Bloom has a web version for you to stay productive directly from your browser. ['Visit']('https://bloom-da824.web.app/')
+Bloom has a web version for you to stay productive directly from your browser.
+['Visit']('https://bloom-da824.web.app/')
 
 ### For Windows
 After the Android version is released, the Windows version will be available on the official Bloom website to download.
