@@ -9,6 +9,7 @@ class MyTextfieldNobackground extends StatelessWidget {
   final String hintText;
   final FocusNode focusNode;
   final bool readOnly;
+  final bool autoFocus;
   final Widget? suffixIcon;
   final Color? suffixIconColor;
   const MyTextfieldNobackground({
@@ -23,6 +24,7 @@ class MyTextfieldNobackground extends StatelessWidget {
     required this.readOnly,
     this.suffixIcon,
     this.suffixIconColor,
+    required this.autoFocus,
   });
 
   @override
@@ -34,7 +36,7 @@ class MyTextfieldNobackground extends StatelessWidget {
       readOnly: readOnly,
       maxLines: maxLines,
       minLines: minLines,
-      cursorColor: Theme.of(context).primaryColor,
+      autofocus: autoFocus,
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.all(0),
         border: const OutlineInputBorder(borderSide: BorderSide.none),

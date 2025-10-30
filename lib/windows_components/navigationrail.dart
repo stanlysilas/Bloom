@@ -1,12 +1,14 @@
-import 'dart:io';
-
+import 'package:bloom/components/bloom_buttons.dart';
+import 'package:bloom/screens/custom_templates_screen.dart';
 import 'package:bloom/screens/dashboard_screen.dart';
 import 'package:bloom/screens/entries_screen.dart';
 import 'package:bloom/screens/moreoptions_screen.dart';
 import 'package:bloom/screens/profile_screen.dart';
 import 'package:bloom/screens/goals_screen.dart';
+import 'package:bloom/screens/upgrade_subscription_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -22,7 +24,9 @@ class _NavigationrailState extends State<Navigationrail> {
   int currentPageIndex = 0;
   bool _extended = false;
   final screens = [
-    DashboardScreen(isAndroid: Platform.isAndroid),
+    DashboardScreen(
+        isAndroid:
+            defaultTargetPlatform == TargetPlatform.android ? true : false),
     const GoalsScreen(),
     const EntriesScreen(),
     // const DisplayPomodoroScreen(),
@@ -31,6 +35,7 @@ class _NavigationrailState extends State<Navigationrail> {
   String? profilePicture;
   String? email;
   String? userName = '..';
+  String? subscriptionPlan;
   String? font;
   bool? isImageNetwork;
 
@@ -53,6 +58,7 @@ class _NavigationrailState extends State<Navigationrail> {
       email = data?['email'];
       userName = data?['userName'];
       isImageNetwork = data?['isImageNetwork'];
+      subscriptionPlan = data?['subscriptionPlan'] ?? 'free';
     } else {}
   }
 
@@ -81,19 +87,18 @@ class _NavigationrailState extends State<Navigationrail> {
         // mainAxisAlignment: MainAxisAlignment.center,
         children: [
           NavigationRail(
-            indicatorColor: Theme.of(context).primaryColor,
+            scrollable: true,
             labelType: _extended
                 ? NavigationRailLabelType.none
                 : NavigationRailLabelType.selected,
             extended: _extended,
             minWidth: 72,
             minExtendedWidth: 255,
-            backgroundColor: Theme.of(context).primaryColorLight,
             leading: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                if (_extended && Platform.isWindows)
+                if (_extended)
                   // Display the logo/icon of the app here
                   Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -107,8 +112,8 @@ class _NavigationrailState extends State<Navigationrail> {
                         ),
                         Text(
                           'Bloom',
-                          style:
-                              TextStyle(fontFamily: 'ClashGrotesk', fontSize: 16),
+                          style: TextStyle(
+                              fontFamily: 'ClashGrotesk', fontSize: 16),
                         )
                       ],
                     ),
@@ -164,8 +169,10 @@ class _NavigationrailState extends State<Navigationrail> {
                             padding: EdgeInsets.all(8),
                             width: _extended ? 255 : 72,
                             decoration: BoxDecoration(
-                              color: Theme.of(context).primaryColorDark,
-                              borderRadius: BorderRadius.circular(100),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainer,
+                              borderRadius: BorderRadius.circular(16),
                             ),
                             child: Row(
                               children: [
@@ -174,16 +181,26 @@ class _NavigationrailState extends State<Navigationrail> {
                                         ? ClipRRect(
                                             borderRadius:
                                                 BorderRadiusGeometry.circular(
-                                                    100),
+                                                    10),
                                             child: Image.network(
                                               profilePicture!,
-                                              scale: 22,
+                                              scale: 3,
+                                              errorBuilder:
+                                                  (context, error, stackTrace) {
+                                                return Center(
+                                                  child: Text(
+                                                    '😿',
+                                                    style:
+                                                        TextStyle(fontSize: 22),
+                                                  ),
+                                                );
+                                              },
                                             ),
                                           )
                                         : ClipRRect(
                                             borderRadius:
                                                 BorderRadiusGeometry.circular(
-                                                    100),
+                                                    16),
                                             child: Image.asset(
                                               profilePicture!,
                                               scale: 32,
@@ -244,6 +261,157 @@ class _NavigationrailState extends State<Navigationrail> {
                 label: const Text('More'),
               ),
             ],
+            trailingAtBottom: true,
+            trailing: Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: FloatingActionButton.extended(
+                  elevation: 0,
+                  isExtended: _extended,
+                  tooltip: 'Create new object',
+                  onPressed: () {
+                    if (currentPageIndex == 0) {
+                      // All objects adding sheet
+                      showObjectsModalBottomSheet(context);
+                    } else if (currentPageIndex == 1) {
+                      // Add new goal process
+                      showModalBottomSheet(
+                          context: context,
+                          showDragHandle: true,
+                          useSafeArea: true,
+                          backgroundColor:
+                              Theme.of(context).scaffoldBackgroundColor,
+                          builder: (context) => GoalObjectsModalSheet());
+                    } else if (currentPageIndex == 2) {
+                      showModalBottomSheet(
+                        context: context,
+                        showDragHandle: true,
+                        enableDrag: true,
+                        backgroundColor:
+                            Theme.of(context).scaffoldBackgroundColor,
+                        builder: (context) {
+                          return SafeArea(
+                            child: Column(
+                              children: [
+                                // Display all the basic objects
+                                const Expanded(
+                                  child: TypesOfEntries(),
+                                ),
+                                // Display a button to more templates
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Text(
+                                      'More entry ',
+                                    ),
+                                    InkWell(
+                                      onTap: () {
+                                        if (subscriptionPlan == 'free') {
+                                          showDialog(
+                                              context: context,
+                                              builder: (context) {
+                                                return AlertDialog(
+                                                  backgroundColor: Theme.of(
+                                                          context)
+                                                      .scaffoldBackgroundColor,
+                                                  icon: Icon(
+                                                    Icons.payment_rounded,
+                                                  ),
+                                                  iconColor: Theme.of(context)
+                                                      .textTheme
+                                                      .bodyMedium
+                                                      ?.color,
+                                                  title: const Text(
+                                                      'Upgrade to use templates'),
+                                                  titleTextStyle: TextStyle(
+                                                    fontSize: 24,
+                                                    fontWeight: FontWeight.w400,
+                                                    color: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyMedium
+                                                        ?.color,
+                                                  ),
+                                                  content: const Text(
+                                                    'To use custom templates, you need to be on either the Pro or the Lifetime subscription plans',
+                                                  ),
+                                                  contentTextStyle: TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w400),
+                                                  actions: [
+                                                    // Button to cancel and close the dialog box
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                              context),
+                                                      style: const ButtonStyle(
+                                                        foregroundColor:
+                                                            WidgetStatePropertyAll(
+                                                                Colors.red),
+                                                      ),
+                                                      child:
+                                                          const Text('Cancel'),
+                                                    ),
+                                                    // Button to redirect to the subscriptions page
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.of(context).push(
+                                                            MaterialPageRoute(
+                                                                builder:
+                                                                    (context) =>
+                                                                        UpgradeSubscriptionScreen()));
+                                                      },
+                                                      style: ButtonStyle(
+                                                        foregroundColor:
+                                                            WidgetStatePropertyAll(
+                                                                Theme.of(
+                                                                        context)
+                                                                    .primaryColor),
+                                                      ),
+                                                      child:
+                                                          const Text('Upgrade'),
+                                                    ),
+                                                  ],
+                                                );
+                                              });
+                                        } else {
+                                          Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      const CustomTemplatesScreen()));
+                                        }
+                                      },
+                                      child: const Row(
+                                        children: [
+                                          Text(
+                                            'templates',
+                                            style: TextStyle(
+                                                decoration:
+                                                    TextDecoration.underline,
+                                                fontWeight: FontWeight.w700),
+                                          ),
+                                          Icon(
+                                            Icons.open_in_new_rounded,
+                                            size: 14,
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8)
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    } else if (currentPageIndex == 3) {
+                      // All objects adding sheet
+                      showObjectsModalBottomSheet(context);
+                    }
+                  },
+                  icon: Icon(Icons.add),
+                  label: Text('Create')),
+            ),
             // trailing: currentPageIndex == 3
             //     ? const SizedBox()
             //     : SizedBox(

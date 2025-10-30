@@ -1,4 +1,4 @@
-import 'package:bloom/components/mybuttons.dart';
+import 'package:bloom/components/bloom_buttons.dart';
 import 'package:bloom/components/mytextfield.dart';
 import 'package:bloom/notifications/notification.dart';
 import 'package:bloom/screens/pomodoro_timer.dart';
@@ -28,6 +28,7 @@ class _AddPomodoroState extends State<AddPomodoro> {
   int longBreakDuration = 15;
   int? uniqueId;
   late int numberOfPomodorosAdded;
+  late String subscriptionPlan;
 
   // Init state
   @override
@@ -38,6 +39,7 @@ class _AddPomodoroState extends State<AddPomodoro> {
     super.initState();
   }
 
+  // Check the NumberOfPomodoros added by the user
   void numberOfPomodorosAddedCheck() async {
     final user = FirebaseAuth.instance.currentUser;
     FirebaseFirestore.instance
@@ -45,9 +47,18 @@ class _AddPomodoroState extends State<AddPomodoro> {
         .doc(user!.uid)
         .get()
         .then((value) {
-      if (value.exists && value.data()!.containsKey('numberOfPomodorosAdded')) {
-        numberOfPomodorosAdded = value['numberOfPomodorosAdded'] ?? 0;
+      if (value.exists && value.data()!.containsKey('subscriptionPlan')) {
+        if (value['subscriptionPlan'] == 'ultra' ||
+            value['subscriptionPlan'] == 'pro') {
+          subscriptionPlan = value['subscriptionPlan'];
+          numberOfPomodorosAdded = value['numberOfPomodorosAdded'] ?? 0;
+          return;
+        } else {
+          subscriptionPlan = value['subscriptionPlan'];
+          numberOfPomodorosAdded = value['numberOfPomodorosAdded'] ?? 0;
+        }
       } else {
+        subscriptionPlan = 'free';
         numberOfPomodorosAdded = 0;
       }
     });
@@ -149,8 +160,8 @@ class _AddPomodoroState extends State<AddPomodoro> {
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColorLight,
-                borderRadius: BorderRadius.circular(10),
+                color: Theme.of(context).colorScheme.surfaceContainer,
+                borderRadius: BorderRadius.circular(24),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -166,23 +177,34 @@ class _AddPomodoroState extends State<AddPomodoro> {
                       const Spacer(),
                       // Pomodoro date selection field
                       Flexible(
-                        child: ExtraOptionsButton(
-                          outerPadding: const EdgeInsets.only(left: 14),
-                          decoration: BoxDecoration(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              borderRadius: BorderRadius.circular(8)),
+                        child: BloomMaterialListTile(
+                          icon: SizedBox(),
+                          iconLabelSpace: 0,
+                          outerPadding: const EdgeInsets.all(0),
+                          innerPadding:
+                              EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                          labelStyle: TextStyle(),
+                          color:
+                              Theme.of(context).colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(14),
                           label: DateFormat('dd-MM-yy').format(date!),
                           textAlign: TextAlign.center,
                           onTap: selectDate,
                         ),
                       ),
+                      const SizedBox(width: 4),
                       // Pomodoro time selection field
                       Flexible(
-                        child: ExtraOptionsButton(
-                          outerPadding: const EdgeInsets.only(left: 14),
-                          decoration: BoxDecoration(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              borderRadius: BorderRadius.circular(8)),
+                        child: BloomMaterialListTile(
+                          icon: SizedBox(),
+                          iconLabelSpace: 0,
+                          outerPadding: const EdgeInsets.all(0),
+                          innerPadding:
+                              EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                          labelStyle: TextStyle(),
+                          color:
+                              Theme.of(context).colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(14),
                           label: time!.format(context),
                           textAlign: TextAlign.center,
                           onTap: selectTime,
@@ -200,11 +222,16 @@ class _AddPomodoroState extends State<AddPomodoro> {
                       ),
                       const Spacer(),
                       Flexible(
-                        child: ExtraOptionsButton(
-                          outerPadding: const EdgeInsets.only(left: 14),
-                          decoration: BoxDecoration(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              borderRadius: BorderRadius.circular(8)),
+                        child: BloomMaterialListTile(
+                          icon: SizedBox(),
+                          iconLabelSpace: 0,
+                          outerPadding: const EdgeInsets.all(0),
+                          innerPadding:
+                              EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                          labelStyle: TextStyle(),
+                          color:
+                              Theme.of(context).colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(14),
                           label: "${pomodoroDuration.toString()} minutes",
                           onTap: () {
                             _showDurationPicker(context, "Work");
@@ -227,11 +254,16 @@ class _AddPomodoroState extends State<AddPomodoro> {
                       ),
                       const Spacer(),
                       Flexible(
-                        child: ExtraOptionsButton(
-                          outerPadding: const EdgeInsets.only(left: 14),
-                          decoration: BoxDecoration(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              borderRadius: BorderRadius.circular(8)),
+                        child: BloomMaterialListTile(
+                          icon: SizedBox(),
+                          iconLabelSpace: 0,
+                          outerPadding: const EdgeInsets.all(0),
+                          innerPadding:
+                              EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                          labelStyle: TextStyle(),
+                          color:
+                              Theme.of(context).colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(14),
                           label: "${shortBreakDuration.toString()} minutes",
                           onTap: () {
                             _showDurationPicker(context, "Short Break");
@@ -254,11 +286,16 @@ class _AddPomodoroState extends State<AddPomodoro> {
                       ),
                       const Spacer(),
                       Flexible(
-                        child: ExtraOptionsButton(
-                          outerPadding: const EdgeInsets.only(left: 14),
-                          decoration: BoxDecoration(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              borderRadius: BorderRadius.circular(8)),
+                        child: BloomMaterialListTile(
+                          icon: SizedBox(),
+                          iconLabelSpace: 0,
+                          outerPadding: const EdgeInsets.all(0),
+                          innerPadding:
+                              EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                          labelStyle: TextStyle(),
+                          color:
+                              Theme.of(context).colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(14),
                           label: "${longBreakDuration.toString()} minutes",
                           onTap: () {
                             _showDurationPicker(context, "Long Break");
@@ -283,6 +320,7 @@ class _AddPomodoroState extends State<AddPomodoro> {
               horizontal: 14.0,
             ),
             child: InkWell(
+              borderRadius: BorderRadius.circular(16),
               onTap: () async {
                 if (pomodoroController.text.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -290,18 +328,13 @@ class _AddPomodoroState extends State<AddPomodoro> {
                       margin: const EdgeInsets.all(6),
                       behavior: SnackBarBehavior.floating,
                       showCloseIcon: true,
-                      backgroundColor: Theme.of(context).primaryColor,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
-                      content: Text(
-                        'Give a name to start!',
-                        style: TextStyle(
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color),
-                      ),
+                      content: Text('Give a name to start!'),
                     ),
                   );
-                } else if (pomodoroController.text.isNotEmpty &&
+                } else if ((pomodoroController.text.isNotEmpty &&
+                        subscriptionPlan == 'free') &&
                     numberOfPomodorosAdded == 1) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -309,15 +342,10 @@ class _AddPomodoroState extends State<AddPomodoro> {
                       margin: const EdgeInsets.all(6),
                       behavior: SnackBarBehavior.floating,
                       showCloseIcon: true,
-                      backgroundColor: Theme.of(context).primaryColor,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
-                      content: Text(
-                        'You can only add one Pomodoro on free plan!',
-                        style: TextStyle(
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color),
-                      ),
+                      content:
+                          Text('You can only add one Pomodoro on free plan!'),
                     ),
                   );
                 } else {
@@ -347,6 +375,7 @@ class _AddPomodoroState extends State<AddPomodoro> {
                           timerProvider.longBreakDuration.inMinutes,
                       'pomodoroDateTime': dateTime,
                       'pomodoroUniqueId': uniqueId,
+                      'isRunning': false
                     });
                     // Increment the numberOfPomodorosAdded and save
                     numberOfPomodorosAdded++;
@@ -372,14 +401,13 @@ class _AddPomodoroState extends State<AddPomodoro> {
                 width: double.maxFinite,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(1000),
-                  color: Theme.of(context).primaryColor,
+                  borderRadius: BorderRadius.circular(16),
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 child: Text('Create and start timer',
                     style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: Theme.of(context).textTheme.bodyMedium?.color)),
+                        fontSize: 18,
+                        color: Theme.of(context).colorScheme.onPrimary)),
               ),
             ),
           ),
@@ -397,7 +425,7 @@ class _AddPomodoroState extends State<AddPomodoro> {
                 ),
               ),
               Text(
-                'OR',
+                'Or',
                 style: TextStyle(
                     fontWeight: FontWeight.w600, color: Colors.grey[700]),
               ),
@@ -417,6 +445,7 @@ class _AddPomodoroState extends State<AddPomodoro> {
               horizontal: 14.0,
             ),
             child: InkWell(
+              borderRadius: BorderRadius.circular(16),
               onTap: () async {
                 // Save to firebase
                 final user = FirebaseAuth.instance.currentUser;
@@ -440,15 +469,9 @@ class _AddPomodoroState extends State<AddPomodoro> {
                       margin: const EdgeInsets.all(6),
                       behavior: SnackBarBehavior.floating,
                       showCloseIcon: true,
-                      backgroundColor: Theme.of(context).primaryColor,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
-                      content: Text(
-                        'Give a name to start!',
-                        style: TextStyle(
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color),
-                      ),
+                      content: Text('Give a name to start!'),
                     ),
                   );
                 } else if (pomodoroController.text.isNotEmpty &&
@@ -459,15 +482,10 @@ class _AddPomodoroState extends State<AddPomodoro> {
                       margin: const EdgeInsets.all(6),
                       behavior: SnackBarBehavior.floating,
                       showCloseIcon: true,
-                      backgroundColor: Theme.of(context).primaryColor,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
-                      content: Text(
-                        'You can only add one Pomodoro on free plan!',
-                        style: TextStyle(
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color),
-                      ),
+                      content:
+                          Text('You can only add one Pomodoro on free plan!'),
                     ),
                   );
                 } else {
@@ -481,6 +499,7 @@ class _AddPomodoroState extends State<AddPomodoro> {
                         timerProvider.longBreakDuration.inMinutes,
                     'pomodoroDateTime': dateTime,
                     'pomodoroUniqueId': uniqueId,
+                    'isRunning': false
                   });
                   // Increment the numberOfPomodorosAdded and save
                   numberOfPomodorosAdded++;
@@ -507,14 +526,9 @@ class _AddPomodoroState extends State<AddPomodoro> {
                     margin: const EdgeInsets.all(6),
                     behavior: SnackBarBehavior.floating,
                     showCloseIcon: true,
-                    backgroundColor: Theme.of(context).primaryColor,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
-                    content: Text(
-                      'Pomodoro succesfully scheduled!',
-                      style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyMedium?.color),
-                    ),
+                    content: Text('Pomodoro succesfully scheduled!'),
                   ),
                 );
               },
@@ -523,14 +537,13 @@ class _AddPomodoroState extends State<AddPomodoro> {
                 width: double.maxFinite,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(1000),
-                  color: Theme.of(context).primaryColor,
-                ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                        color: Theme.of(context).colorScheme.primary)),
                 child: Text('Schedule for later',
                     style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: Theme.of(context).textTheme.bodyMedium?.color)),
+                        fontSize: 18,
+                        color: Theme.of(context).colorScheme.onSurface)),
               ),
             ),
           ),

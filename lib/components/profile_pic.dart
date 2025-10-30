@@ -25,16 +25,11 @@ class _ProfilePictureDialogState extends State<ProfilePictureDialog> {
     'assets/profile_pictures/Profile_Picture_Male_5.png',
     'assets/profile_pictures/Profile_Picture_Female_5.png',
   ];
-  // Names of Profile Pictures
-  // List<String> labels = ['Default Male', 'Default Female'];
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog.adaptive(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       title: const Text('Choose a profile picture'),
-      titleTextStyle: TextStyle(
-          color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 24),
       content: Container(
         height: 250,
         width: MediaQuery.of(context).size.width / 2,
@@ -60,7 +55,7 @@ class _ProfilePictureDialogState extends State<ProfilePictureDialog> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(24),
                     color: selectedIndex == index
-                        ? Theme.of(context).primaryColor.withAlpha(80)
+                        ? Theme.of(context).colorScheme.primary.withAlpha(80)
                         : Colors.transparent,
                   ),
                   child: ClipRRect(

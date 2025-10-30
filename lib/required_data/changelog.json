@@ -1,4 +1,10 @@
 {
+    "2.2.3": {
+        "title": "Quality-of-Life Update - 2.2.3",
+        "features": [
+            "Fixed a scrolling issue where Entries were out of view if added more than the size of screen."
+        ]
+    },
     "2.2.1": {
         "title":"Quality-of-Life Update - 2.2.1",
         "features": [
@@ -52,12 +58,6 @@
         "title": "What's new in version 2.0.0?",
         "features": [
             "Squashed few bugs that interrupted your productivity!"
-        ]
-    },
-    "default": {
-        "title": "Encountered an error while checking for changelog",
-        "features": [
-            "..."
         ]
     }
 }

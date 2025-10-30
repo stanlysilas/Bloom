@@ -118,7 +118,7 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
   }
 
   // Banner ADs initialization method
-  initBannerAd() {
+  void initBannerAd() {
     bannerAd = BannerAd(
       size: AdSize.banner,
       adUnitId: "ca-app-pub-5607290715305671/6637822895",
@@ -160,6 +160,7 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
+        physics: NeverScrollableScrollPhysics(),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,17 +174,17 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                   // Default button
                   RawChip(
                     backgroundColor: sortValue != 'Recent'
-                        ? Theme.of(context).primaryColorLight
-                        : Theme.of(context).primaryColor,
+                        ? Theme.of(context).colorScheme.surfaceVariant
+                        : Theme.of(context).colorScheme.secondaryContainer,
                     side: BorderSide.none,
                     labelStyle: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                        color:
+                            Theme.of(context).colorScheme.onSecondaryContainer,
                         fontSize: 14,
                         fontWeight: FontWeight.w500),
                     iconTheme: IconThemeData(
-                        color: sortValue != 'Recent'
-                            ? Theme.of(context).primaryColor
-                            : Theme.of(context).textTheme.bodyMedium?.color),
+                        color:
+                            Theme.of(context).colorScheme.onSecondaryContainer),
                     onPressed: () {
                       setState(() {
                         sortValue = 'Recent';
@@ -197,17 +198,17 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                   // Custom filters button
                   RawChip(
                     backgroundColor: sortValue != 'Recent'
-                        ? Theme.of(context).primaryColor
-                        : Theme.of(context).primaryColorLight,
+                        ? Theme.of(context).colorScheme.secondaryContainer
+                        : Theme.of(context).colorScheme.surfaceVariant,
                     side: BorderSide.none,
                     labelStyle: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                        color:
+                            Theme.of(context).colorScheme.onSecondaryContainer,
                         fontSize: 14,
                         fontWeight: FontWeight.w500),
                     iconTheme: IconThemeData(
-                        color: sortValue != 'Recent'
-                            ? Theme.of(context).textTheme.bodyMedium?.color
-                            : Theme.of(context).primaryColor),
+                        color:
+                            Theme.of(context).colorScheme.onSecondaryContainer),
                     onPressed: () {
                       // Functionality to show the filter and other options as a modal bottom sheet
                       showAdaptiveDialog(
@@ -217,8 +218,6 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                               backgroundColor:
                                   Theme.of(context).scaffoldBackgroundColor,
                               title: const Text('Filters'),
-                              titleTextStyle: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.w500),
                               contentPadding: EdgeInsets.symmetric(
                                   horizontal: 0, vertical: 8),
                               content: StatefulBuilder(builder:
@@ -391,7 +390,7 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                                     Navigator.of(context).pop();
                                     return;
                                   },
-                                  child: Text('Cancel'),
+                                  child: Text('Close'),
                                 ),
                               ],
                             );
@@ -443,15 +442,15 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Image(
-                            height: 200,
-                            width: 200,
+                            height: 250,
+                            width: 250,
                             image: AssetImage(
                                 'assets/images/allCompletedBackground.png'),
                           ),
                           Text(
                             'Finally! Attended your events',
                             style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.w500),
+                                fontSize: 24, fontWeight: FontWeight.w500),
                             textAlign: TextAlign.center,
                           ),
                           SizedBox(
@@ -482,6 +481,7 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                 return ListView.builder(
                     itemCount: tasksList.length,
                     shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
                     itemBuilder: (context, index) {
                       final doc = tasksList[index];
                       final eventId = doc['eventId'];

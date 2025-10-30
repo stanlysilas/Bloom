@@ -1,4 +1,4 @@
-import 'package:bloom/components/mybuttons.dart';
+import 'package:bloom/components/bloom_buttons.dart';
 import 'package:bloom/components/rating_dialog.dart';
 import 'package:bloom/screens/calendar_screen.dart';
 import 'package:bloom/screens/custom_templates_screen.dart';
@@ -6,7 +6,6 @@ import 'package:bloom/screens/detailed_analytics_screen.dart';
 // import 'package:bloom/screens/display_pomodoro_screen.dart';
 import 'package:bloom/screens/profile_screen.dart';
 import 'package:bloom/screens/settings_screen.dart';
-import 'package:bloom/screens/upgrade_subscription_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +30,7 @@ class _MoreOptionsScreenState extends State<MoreOptionsScreen> {
   bool? isImageNetwork;
   late BannerAd bannerAd;
   bool isAdLoaded = false;
-  bool? didRateApp;
+  bool? didRateApp = true;
   String? subscriptionPlan;
   Map<DateTime, int> completedTasksByDate = {};
   Map<DateTime, int> completedEventsByDate = {};
@@ -45,14 +44,14 @@ class _MoreOptionsScreenState extends State<MoreOptionsScreen> {
     // Fetch profile picture URL from Firestore
     fetchUserData();
     // Check for the font applied now
-    fontCheck();
+    // fontCheck();
     // initBannerAd();
     checkUserRating();
     getCompletedDataCountsByDate();
   }
 
 // Banner ADs initialization method
-  initBannerAd() {
+  void initBannerAd() {
     bannerAd = BannerAd(
       size: AdSize.banner,
       adUnitId: "ca-app-pub-5607290715305671/2817997384",
@@ -83,7 +82,7 @@ class _MoreOptionsScreenState extends State<MoreOptionsScreen> {
     bannerAd.load();
   }
 
-  // Check if the user has rated the app or not
+  /// Check if the user has rated the app or not
   void checkUserRating() async {
     await FirebaseFirestore.instance
         .collection('ratings')
@@ -107,7 +106,7 @@ class _MoreOptionsScreenState extends State<MoreOptionsScreen> {
     });
   }
 
-  // Check font method
+  /// Check font method
   void fontCheck() async {
     final prefs = await SharedPreferences.getInstance();
     final fontCheck = prefs.getString('font') ?? 'ClashGrotesk';
@@ -116,6 +115,7 @@ class _MoreOptionsScreenState extends State<MoreOptionsScreen> {
     });
   }
 
+  /// Fetch the UserData
   void fetchUserData() async {
     try {
       final docRef =
@@ -147,7 +147,7 @@ class _MoreOptionsScreenState extends State<MoreOptionsScreen> {
     }
   }
 
-  // check the completed task dates and add it to the variable
+  /// check the completed task dates and add it to the variable
   Future<void> getCompletedDataCountsByDate() async {
     // Initialize all maps
     completedTasksByDate = {};
@@ -192,15 +192,15 @@ class _MoreOptionsScreenState extends State<MoreOptionsScreen> {
         .collection('events')
         .where('isAttended', isEqualTo: true)
         .get();
-    addDateToMaps(eventSnapshot, 'eventDateTime', completedEventsByDate);
+    addDateToMaps(eventSnapshot, 'eventStartDateTime', completedEventsByDate);
 
     // Habits
     final habitSnapshot = await userDoc.collection('habits').get();
-    addDateToMaps(habitSnapshot, 'lastCompleted', completedHabitsByDate);
+    addDateToMaps(habitSnapshot, 'habitDateTime', completedHabitsByDate);
 
     // Entries
     final entrySnapshot = await userDoc.collection('entries').get();
-    addDateToMaps(entrySnapshot, 'createdAt', completedEntriesByDate);
+    addDateToMaps(entrySnapshot, 'dateTime', completedEntriesByDate);
   }
 
   // Method to dispose
@@ -211,13 +211,9 @@ class _MoreOptionsScreenState extends State<MoreOptionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // final themeProvider = Provider.of<ThemeProvider>(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'More',
-          style: TextStyle(fontWeight: FontWeight.w500),
-        ),
+        title: const Text('More'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -225,296 +221,261 @@ class _MoreOptionsScreenState extends State<MoreOptionsScreen> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(
-                height: 10,
-              ),
-              // More Features Category Heading
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0),
+              // Features Section
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 6),
                 child: Text(
                   'Features',
-                  // style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+                  style:
+                      TextStyle(color: Theme.of(context).colorScheme.primary),
+                ),
+              ),
+              // Features Card Block
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  children: [
+                    // Templates button
+                    BloomMaterialListTile(
+                      borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(24),
+                          topRight: Radius.circular(24),
+                          bottomLeft: Radius.circular(4),
+                          bottomRight: Radius.circular(4)),
+                      icon: Icon(Icons.grid_view_rounded,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSecondaryContainer),
+                      label: 'Templates',
+                      subLabel: 'Custom entry layouts',
+                      iconLabelSpace: 8,
+                      labelStyle: const TextStyle(
+                          fontWeight: FontWeight.w500, fontSize: 18),
+                      innerPadding: const EdgeInsets.all(16),
+                      outerPadding: EdgeInsets.symmetric(vertical: 1),
+                      onTap: () {
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) =>
+                                const CustomTemplatesScreen()));
+                      },
+                      endIcon: const Icon(Icons.keyboard_arrow_right_rounded),
+                    ),
+                    // Calendar button
+                    BloomMaterialListTile(
+                      icon: Icon(Icons.calendar_month_rounded),
+                      label: 'Calendar',
+                      subLabel: 'All your objects in a calendar view',
+                      iconLabelSpace: 8,
+                      labelStyle: const TextStyle(
+                          fontWeight: FontWeight.w500, fontSize: 18),
+                      innerPadding: const EdgeInsets.all(16),
+                      outerPadding: EdgeInsets.symmetric(vertical: 1),
+                      onTap: () {
+                        // Navigate to the CalendarViewScreen
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => CalendarViewScreen(
+                                  initialDay: DateTime.now(),
+                                )));
+                      },
+                      endIcon: const Icon(Icons.keyboard_arrow_right_rounded),
+                    ),
+                    // Pomodoro screen
+                    // BloomMaterialListTile(
+                    //   icon: const Icon(Icons.timer),
+                    //   label: 'Pomodoro',
+                    //   subLabel: 'Grow focus, one session at a time',
+                    //   iconLabelSpace: 8,
+                    //   labelStyle: const TextStyle(
+                    //       fontWeight: FontWeight.w500, fontSize: 18),
+                    //   innerPadding: const EdgeInsets.all(16),
+                    //   outerPadding: EdgeInsets.symmetric(vertical: 1),
+                    //   onTap: () {
+                    //     Navigator.of(context).push(MaterialPageRoute(
+                    //         builder: (context) =>
+                    //             const DisplayPomodoroScreen()));
+                    //   },
+                    //   endIcon: const Icon(Icons.keyboard_arrow_right_rounded),
+                    // ),
+                    // Analytics button
+                    BloomMaterialListTile(
+                      borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(4),
+                          topRight: Radius.circular(4),
+                          bottomLeft: Radius.circular(24),
+                          bottomRight: Radius.circular(24)),
+                      icon: Icon(Icons.assessment_rounded,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSecondaryContainer),
+                      iconLabelSpace: 8,
+                      label: 'Analytics',
+                      subLabel: 'Track your progress insights',
+                      labelStyle: const TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 18),
+                      innerPadding: const EdgeInsets.all(16),
+                      outerPadding: EdgeInsets.symmetric(vertical: 1),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => DetailedAnalyticsScreen(
+                              completedTasksPerDay: completedTasksByDate,
+                              completedEventsByDate: completedEventsByDate,
+                              completedHabitsByDate: completedHabitsByDate,
+                              completedEntriesByDate: completedEntriesByDate,
+                              allCompletedByDate: allCompletedByDate,
+                            ),
+                          ),
+                        );
+                      },
+                      endIcon: Icon(Icons.keyboard_arrow_right_rounded),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(
-                height: 10,
+                height: 16,
               ),
-              // Templates button
-              ExtraOptionsButton(
-                showTag: subscriptionPlan == 'free' ? true : false,
-                icon: Icon(Icons.grid_view_rounded),
-                label: 'Templates',
-                iconLabelSpace: 8,
-                useSpacer: true,
-                labelStyle:
-                    const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
-                innerPadding: const EdgeInsets.all(12),
-                onTap: () {
-                  if (subscriptionPlan == 'pro' ||
-                      subscriptionPlan == 'ultra') {
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => const CustomTemplatesScreen()));
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        margin: const EdgeInsets.all(6),
-                        behavior: SnackBarBehavior.floating,
-                        backgroundColor: Theme.of(context).primaryColor,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        content: Text(
-                          'Templates are only available with Pro and Ultra subscriptions',
-                          style: TextStyle(
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.color),
-                        ),
-                        action: SnackBarAction(
-                            textColor:
-                                Theme.of(context).textTheme.bodyMedium?.color,
-                            label: 'Upgrade',
-                            onPressed: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        UpgradeSubscriptionScreen()))),
-                      ),
-                    );
-                  }
-                },
-                endIcon: const Icon(Icons.keyboard_arrow_right_rounded),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              ExtraOptionsButton(
-                icon: const Icon(Icons.calendar_month_rounded),
-                label: 'Calendar',
-                iconLabelSpace: 8,
-                useSpacer: true,
-                labelStyle:
-                    const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
-                innerPadding: const EdgeInsets.all(12),
-                onTap: () {
-                  // Navigate to the CalendarViewScreen
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => const CalendarViewScreen()));
-                },
-                endIcon: const Icon(Icons.keyboard_arrow_right_rounded),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              // Analytics button
-              ExtraOptionsButton(
-                showTag: subscriptionPlan == 'free' ? true : false,
-                icon: const Icon(Icons.assessment_rounded),
-                iconLabelSpace: 8,
-                useSpacer: true,
-                label: 'Analytics',
-                labelStyle:
-                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-                innerPadding: const EdgeInsets.all(12),
-                onTap: () {
-                  if (subscriptionPlan == 'pro' ||
-                      subscriptionPlan == 'ultra') {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => DetailedAnalyticsScreen(
-                          completedTasksPerDay: completedTasksByDate,
-                          completedEventsByDate: completedEventsByDate,
-                          completedHabitsByDate: completedHabitsByDate,
-                          completedEntriesByDate: completedEntriesByDate,
-                          allCompletedByDate: allCompletedByDate,
-                        ),
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        margin: const EdgeInsets.all(6),
-                        behavior: SnackBarBehavior.floating,
-                        backgroundColor: Theme.of(context).primaryColor,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        content: Text(
-                          'Analytics are only available with Bloom Pro and Lifetime subscriptions',
-                          style: TextStyle(
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.color),
-                        ),
-                        action: SnackBarAction(
-                            textColor:
-                                Theme.of(context).textTheme.bodyMedium?.color,
-                            label: 'Upgrade',
-                            onPressed: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        UpgradeSubscriptionScreen()))),
-                      ),
-                    );
-                  }
-                },
-                endIcon: Icon(Icons.keyboard_arrow_right_rounded),
-              ),
-              // // Pomodoro screen
-              // ExtraOptionsButton(
-              //   showTag: subscriptionPlan == 'free' ? true : false,
-              //   icon: const Icon(Icons.timer_outlined),
-              //   label: 'Pomodoro',
-              //   iconLabelSpace: 8,
-              //   labelStyle: const TextStyle(
-              //       fontWeight: FontWeight.w600, fontSize: 16),
-              //   innerPadding: const EdgeInsets.all(12),
-              //   onTap: () {
-              //     if (subscriptionPlan == 'pro' ||
-              //         subscriptionPlan == 'ultra') {
-              //       Navigator.of(context).push(MaterialPageRoute(
-              //           builder: (context) => const DisplayPomodoroScreen()));
-              //     } else {
-              //       ScaffoldMessenger.of(context).showSnackBar(
-              //         SnackBar(
-              //           margin: const EdgeInsets.all(6),
-              //           behavior: SnackBarBehavior.floating,
-              //           showCloseIcon: true,
-              //           backgroundColor: Theme.of(context).primaryColor,
-              //           closeIconColor:
-              //               Theme.of(context).textTheme.bodyMedium?.color,
-              //           shape: RoundedRectangleBorder(
-              //               borderRadius: BorderRadius.circular(12)),
-              //           content: Text(
-              //             'Pomodoro is only available with Pro and Ultra subscriptions',
-              //             style: TextStyle(
-              //                 color: Theme.of(context)
-              //                     .textTheme
-              //                     .bodyMedium
-              //                     ?.color),
-              //           ),
-              //         ),
-              //       );
-              //     }
-              //   },
-              //   endIcon: const Icon(Iconsax.arrow_right),
-              // ),
-              const SizedBox(
-                height: 10,
-              ),
-              // More Features Category Heading
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0),
+              // General Section
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Text(
                   'General',
-                  // style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+                  style:
+                      TextStyle(color: Theme.of(context).colorScheme.primary),
                 ),
               ),
-              const SizedBox(
-                height: 10,
+              const SizedBox(height: 6),
+              // General options block
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  children: [
+                    // Account
+                    BloomMaterialListTile(
+                      borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(24),
+                          topRight: Radius.circular(24),
+                          bottomLeft: Radius.circular(4),
+                          bottomRight: Radius.circular(4)),
+                      icon: Icon(Icons.account_box_rounded,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSecondaryContainer),
+                      label: 'Profile',
+                      subLabel: 'Profile settings and insights',
+                      iconLabelSpace: 8,
+                      labelStyle: const TextStyle(
+                          fontWeight: FontWeight.w500, fontSize: 18),
+                      innerPadding: const EdgeInsets.all(16),
+                      outerPadding: EdgeInsets.symmetric(vertical: 1),
+                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => ProfileScreen(
+                                isImageNetwork: isImageNetwork,
+                                profilePicture: profilePicUrl,
+                                userName: userName == '' || userName == null
+                                    ? user!.email!.substring(0, 8)
+                                    : userName,
+                                uid: user!.uid,
+                                email: email,
+                                mode: ProfileMode.display,
+                              ))),
+                      endIcon: const Icon(Icons.keyboard_arrow_right_rounded),
+                    ),
+                    // Settings
+                    BloomMaterialListTile(
+                      borderRadius: didRateApp == true
+                          ? BorderRadius.only(
+                              bottomLeft: Radius.circular(24),
+                              bottomRight: Radius.circular(24),
+                              topLeft: Radius.circular(4),
+                              topRight: Radius.circular(4))
+                          : null,
+                      icon: Icon(Icons.settings_rounded,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSecondaryContainer),
+                      label: 'Settings',
+                      subLabel: 'Customize your Bloom experience',
+                      iconLabelSpace: 8,
+                      labelStyle: const TextStyle(
+                          fontWeight: FontWeight.w500, fontSize: 18),
+                      innerPadding: const EdgeInsets.all(16),
+                      outerPadding: EdgeInsets.symmetric(vertical: 1),
+                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => SettingsPage(
+                                font: font ?? 'ClashGrotesk',
+                              ))),
+                      endIcon: const Icon(Icons.keyboard_arrow_right_rounded),
+                    ),
+                    // Subscription button
+                    // BloomMaterialListTile(
+                    //   icon: const Icon(Icons.back_hand_outlined),
+                    //   label: 'Get rid of ADs!',
+                    //   iconLabelSpace: 8,
+                    //   labelStyle: const TextStyle(
+                    //       fontWeight: FontWeight.w600, fontSize: 16),
+                    //   innerPadding: const EdgeInsets.all(12),
+                    //   onTap: () {
+                    //     // Display the subscription plans or redirect to the website or elsewhere for payment or plan info
+                    //     // For now display a snackbar indicating plan introductions in future
+                    //     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    //         margin: const EdgeInsets.all(6),
+                    //         behavior: SnackBarBehavior.floating,
+                    //         showCloseIcon: true,
+                    //         backgroundColor: Theme.of(context).primaryColor,
+                    //         shape: RoundedRectangleBorder(
+                    //             borderRadius: BorderRadius.circular(12)),
+                    //         content: Text(
+                    //           'Subscription plans will be available soon to eliminate ADs.',
+                    //           style: TextStyle(
+                    //               color: Theme.of(context)
+                    //                   .textTheme
+                    //                   .bodyMedium
+                    //                   ?.color),
+                    //         )));
+                    //   },
+                    //   endIcon: const Icon(Iconsax.arrow_right),
+                    // ),
+                    // const SizedBox(
+                    //   height: 10,
+                    // ),
+                    // Button to rate the app, show only if the user hasn't rated yet
+                    if (didRateApp == false)
+                      BloomMaterialListTile(
+                        borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(24),
+                            bottomRight: Radius.circular(24),
+                            topLeft: Radius.circular(4),
+                            topRight: Radius.circular(4)),
+                        icon: Icon(
+                          Icons.star_rounded,
+                          color: Colors.amber.shade700,
+                        ),
+                        iconLabelSpace: 8,
+                        label: 'Rate Bloom',
+                        labelStyle: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 18,
+                            color: Colors.amber.shade700),
+                        innerPadding: const EdgeInsets.all(16),
+                        outerPadding: EdgeInsets.symmetric(vertical: 1),
+                        onTap: () {
+                          // Show the app rating dialog box only if the user hasn't rated it yet
+                          showAdaptiveDialog(
+                              context: context,
+                              builder: (context) {
+                                return const RatingDialog();
+                              });
+                        },
+                        endIcon: Icon(
+                          Icons.keyboard_arrow_right_rounded,
+                          color: Colors.amber.shade700,
+                        ),
+                      ).animate().fade(delay: Duration(milliseconds: 500)),
+                  ],
+                ),
               ),
-              // Account
-              ExtraOptionsButton(
-                icon: const Icon(Icons.account_box_rounded),
-                label: 'Profile',
-                iconLabelSpace: 8,
-                useSpacer: true,
-                labelStyle:
-                    const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
-                innerPadding: const EdgeInsets.all(12),
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => ProfileScreen(
-                          isImageNetwork: isImageNetwork,
-                          profilePicture: profilePicUrl,
-                          userName: userName == '' || userName == null
-                              ? user!.email!.substring(0, 8)
-                              : userName,
-                          uid: user!.uid,
-                          email: email,
-                          mode: ProfileMode.display,
-                        ))),
-                endIcon: const Icon(Icons.keyboard_arrow_right_rounded),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              // Settings
-              ExtraOptionsButton(
-                icon: const Icon(Icons.settings_rounded),
-                label: 'Settings',
-                iconLabelSpace: 8,
-                useSpacer: true,
-                labelStyle:
-                    const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
-                innerPadding: const EdgeInsets.all(12),
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => SettingsPage(
-                          font: font ?? 'ClashGrotesk',
-                        ))),
-                endIcon: const Icon(Icons.keyboard_arrow_right_rounded),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              // Subscription button
-              // ExtraOptionsButton(
-              //   icon: const Icon(Icons.back_hand_outlined),
-              //   label: 'Get rid of ADs!',
-              //   iconLabelSpace: 8,
-              //   labelStyle: const TextStyle(
-              //       fontWeight: FontWeight.w600, fontSize: 16),
-              //   innerPadding: const EdgeInsets.all(12),
-              //   onTap: () {
-              //     // Display the subscription plans or redirect to the website or elsewhere for payment or plan info
-              //     // For now display a snackbar indicating plan introductions in future
-              //     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              //         margin: const EdgeInsets.all(6),
-              //         behavior: SnackBarBehavior.floating,
-              //         showCloseIcon: true,
-              //         backgroundColor: Theme.of(context).primaryColor,
-              //         shape: RoundedRectangleBorder(
-              //             borderRadius: BorderRadius.circular(12)),
-              //         content: Text(
-              //           'Subscription plans will be available soon to eliminate ADs.',
-              //           style: TextStyle(
-              //               color: Theme.of(context)
-              //                   .textTheme
-              //                   .bodyMedium
-              //                   ?.color),
-              //         )));
-              //   },
-              //   endIcon: const Icon(Iconsax.arrow_right),
-              // ),
-              // const SizedBox(
-              //   height: 10,
-              // ),
-              // Button to rate the app, show only if the user hasn't rated yet
-              if (didRateApp == false)
-                ExtraOptionsButton(
-                  icon: const Icon(
-                    Icons.star_rounded,
-                    color: Colors.amber,
-                  ),
-                  iconLabelSpace: 8,
-                  useSpacer: true,
-                  label: 'Rate Bloom',
-                  labelStyle: const TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 16,
-                      color: Colors.amber),
-                  innerPadding: const EdgeInsets.all(12),
-                  onTap: () {
-                    // Show the app rating dialog box only if the user hasn't rated it yet
-                    showAdaptiveDialog(
-                        context: context,
-                        builder: (context) {
-                          return const RatingDialog();
-                        });
-                  },
-                  endIcon: const Icon(
-                    Icons.keyboard_arrow_right_rounded,
-                    color: Colors.amber,
-                  ),
-                ).animate().fade(delay: Duration(milliseconds: 500)),
             ],
           ),
         ),

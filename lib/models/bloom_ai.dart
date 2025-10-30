@@ -43,6 +43,7 @@ class _BloomAIState extends State<BloomAI> {
                       topLeft: Radius.circular(15),
                       topRight: Radius.circular(15))),
               child: MyTextfieldNobackground(
+                autoFocus: true,
                 controller: bloomAITextController,
                 hintText: 'Ask Bloom AI...',
                 style: TextStyle(

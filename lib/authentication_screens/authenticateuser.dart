@@ -1,5 +1,3 @@
-import "dart:io";
-
 import "package:bloom/authentication_screens/signup_screen.dart";
 import "package:bloom/responsive/dimensions.dart";
 import "package:bloom/responsive/mobile_body.dart";
@@ -8,6 +6,7 @@ import "package:bloom/windows_components/custom_title_bar.dart";
 import "package:bloom/windows_components/navigationrail.dart";
 import "package:cloud_firestore/cloud_firestore.dart";
 import "package:firebase_auth/firebase_auth.dart";
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter_colorpicker/flutter_colorpicker.dart";
 import "package:google_sign_in/google_sign_in.dart";
@@ -33,13 +32,17 @@ class _AuthenticateUserState extends State<AuthenticateUser> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      extendBody: true,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         toolbarHeight: 0,
       ),
       resizeToAvoidBottomInset: false,
       body: Column(
         children: [
-          if (Platform.isWindows) const Customtitlebar(),
+          if (!kIsWeb && defaultTargetPlatform == TargetPlatform.windows)
+            const Customtitlebar(),
           Expanded(
             child: StreamBuilder<User?>(
               stream: FirebaseAuth.instance.authStateChanges(),
@@ -57,7 +60,7 @@ class _AuthenticateUserState extends State<AuthenticateUser> {
                   // Show loading indicator while waiting for auth state
                   return const Center(
                       child: CircularProgressIndicator(
-                    color: Colors.black,
+                    year2023: false,
                   ));
                 }
                 final user = snapshot.data;
@@ -78,6 +81,7 @@ class _AuthenticateUserState extends State<AuthenticateUser> {
                 } else {
                   // User is logged in
                   return SafeArea(
+                      bottom: false,
                       child: MediaQuery.of(context).size.width < mobileWidth
                           ? const MobileBody()
                           : const Navigationrail());
@@ -99,20 +103,35 @@ class AuthService {
   }
 
   // Google signup & add user to database
-  // ignore: body_might_complete_normally_nullable
   Future<UserCredential?> signUpWithGoogle() async {
-    if (Platform.isAndroid || Platform.isIOS) {
-      try {
-        final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+    try {
+      if (kIsWeb) {
+        GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        googleProvider.addScope('email');
+        googleProvider.setCustomParameters({'prompt': 'select_account'});
 
-        if (googleUser == null) {}
+        // Web login via popup
+        UserCredential userCredential =
+            await FirebaseAuth.instance.signInWithPopup(googleProvider);
+
+        final user = userCredential.user!;
+        await addUserDetails(
+          user.uid,
+          user.email!,
+          user.displayName ?? user.email!.split('@').first,
+          user.photoURL ?? 'assets/profile_pictures/Profile_Picture_Male_1.png',
+          false,
+          user.photoURL != null,
+        );
+
+        return userCredential;
+      } else {
+        // Native sign-in flow for mobile platforms
+        final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+        if (googleUser == null) return null;
 
         final GoogleSignInAuthentication googleAuth =
-            await googleUser!.authentication;
-
-        // Retrieve the user's userName and profilePicture
-        final googleUserName = googleUser.displayName;
-        final googleProfilePicture = googleUser.photoUrl;
+            await googleUser.authentication;
 
         final credential = GoogleAuthProvider.credential(
           accessToken: googleAuth.accessToken,
@@ -122,26 +141,25 @@ class AuthService {
         final UserCredential userCredential =
             await FirebaseAuth.instance.signInWithCredential(credential);
 
-        // Add user details to database only if sign-in is successful
+        final user = userCredential.user!;
         await addUserDetails(
-            userCredential.user!.uid,
-            userCredential.user!.email.toString(),
-            googleUserName ??
-                userCredential.user!.email.toString().substring(0, 8),
-            googleProfilePicture ??
-                'assets/profile_pictures/Profile_Picture_Male_1.png',
-            false,
-            googleProfilePicture!.isEmpty ? false : true);
+          user.uid,
+          user.email!,
+          user.displayName ?? user.email!.split('@').first,
+          user.photoURL ?? 'assets/profile_pictures/Profile_Picture_Male_1.png',
+          false,
+          user.photoURL != null,
+        );
 
-        return userCredential; // Return UserCredential for further processing
-      } catch (e) {
-        return null; // Return null to indicate sign-up failure
+        return userCredential;
       }
+    } catch (e) {
+      return null;
     }
   }
 
   // Store the selected profile picture
-  Future<void> createUserWithEmailAndPassword(String email, String password,
+  Future createUserWithEmailAndPassword(String email, String password,
       String userName, String profilePicture) async {
     try {
       final userCredential =
@@ -156,9 +174,9 @@ class AuthService {
         await addUserDetails(user.uid, user.email!, userName, profilePicture,
             true, false); // Pass user object
       }
-    } catch (e) {
+    } on FirebaseAuthException catch (e) {
       // Handle FirebaseAuth errors (display error message)
-      return;
+      return e.code;
     }
   }
 

@@ -17,7 +17,7 @@ class _CustomBannerAdState extends State<CustomBannerAd> {
   }
 
 // Banner ADs initialization method
-  initBannerAd() {
+  void initBannerAd() {
     bannerAd = BannerAd(
       size: AdSize.banner,
       adUnitId: "ca-app-pub-3940256099942544/9214589741",

@@ -1,55 +1,66 @@
-import 'package:bloom/required_data/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'colors.dart'; // contains all your ColorSchemes
 
 class ColorSchemeProvider with ChangeNotifier {
-  static const String _colorSchemeKey = 'selectedColorScheme';
+  static const String _schemeKey = 'selectedColorSchemeIndex';
+
+  ColorScheme _currentScheme = blueLightColorScheme;
+  int _selectedSchemeIndex = 0;
+
+  int get selectedSchemeIndex => _selectedSchemeIndex;
+  ColorScheme get currentScheme => _currentScheme;
+
+  /// List of all color families with light/dark variants
+  final List<Map<String, ColorScheme>> _colorSchemes = [
+    {
+      'light': blueLightColorScheme,
+      'dark': blueDarkColorScheme,
+    },
+    {
+      'light': greenLightColorScheme,
+      'dark': greenDarkColorScheme,
+    },
+    // Add more families here (coral, violet, etc.)
+  ];
+
+  /// Corresponding display names for the color families
+  final List<String> _schemeNames = [
+    'Default Blue',
+    'Nature Green',
+  ];
+
+  List<String> get schemeNames => _schemeNames;
 
   ColorSchemeProvider() {
-    _loadColorFromPreferences();
+    loadSchemeFromPreferences();
   }
 
-  late Color _primaryColor;
+  Future<void> loadSchemeFromPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    _selectedSchemeIndex = prefs.getInt(_schemeKey) ?? 0;
 
-  Color get primaryColor => _primaryColor;
+    final isDark =
+        WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+            Brightness.dark;
 
-  set primaryColor(Color newColor) {
-    _primaryColor = newColor;
-    _saveColorToPreferences(newColor);
+    _currentScheme = isDark
+        ? _colorSchemes[_selectedSchemeIndex]['dark']!
+        : _colorSchemes[_selectedSchemeIndex]['light']!;
     notifyListeners();
   }
 
-  Future<void> _saveColorToPreferences(Color color) async {
+  Future<void> setColorScheme(int index) async {
+    _selectedSchemeIndex = index;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_colorSchemeKey, colorToHex(color));
-  }
+    await prefs.setInt(_schemeKey, index);
 
-  Future<void> _loadColorFromPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? savedColorHex = prefs.getString(_colorSchemeKey);
+    final isDark =
+        WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+            Brightness.dark;
 
-    if (savedColorHex != null) {
-      _primaryColor = hexToColor(savedColorHex);
-    } else {
-      // Use theme-based default color
-      _primaryColor = _getDefaultColor();
-    }
-
+    _currentScheme =
+        isDark ? _colorSchemes[index]['dark']! : _colorSchemes[index]['light']!;
     notifyListeners();
   }
-
-  /// Get the default color based on the current theme
-  Color _getDefaultColor() {
-    return WidgetsBinding.instance.platformDispatcher.platformBrightness ==
-            Brightness.dark
-        ? primaryColorDarkMode
-        : primaryColorLightMode;
-  }
-
-  /// Converts a Color to a hex string (e.g., "FF2196F3" for blue)
-  String colorToHex(Color color) => color.toHexString();
-
-  /// Converts a hex string back to a Color object
-  Color hexToColor(String hex) => Color(int.parse(hex, radix: 16));
 }

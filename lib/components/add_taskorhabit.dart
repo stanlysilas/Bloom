@@ -1,4 +1,4 @@
-import 'package:bloom/components/mybuttons.dart';
+import 'package:bloom/components/bloom_buttons.dart';
 import 'package:bloom/components/mytextfield.dart';
 import 'package:bloom/notifications/notification.dart';
 import 'package:bloom/responsive/dimensions.dart';
@@ -185,14 +185,8 @@ class AddTaskOrHabitModalState extends State<AddTaskOrHabitModal> {
           context: context,
           builder: (context) {
             return AlertDialog.adaptive(
-              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               icon: Icon(Icons.terrain_rounded),
-              iconColor: Colors.greenAccent,
               title: Text('Adding a Habit'),
-              titleTextStyle: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w500,
-                  color: Theme.of(context).textTheme.bodyMedium?.color),
               content: const Text(
                   'The analytics for Habits are calculated seperately from Tasks and are also displayed separately.'),
               actions: [
@@ -296,316 +290,277 @@ class AddTaskOrHabitModalState extends State<AddTaskOrHabitModal> {
               // Task group names field
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColorLight,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    children: [
-                      RawAutocomplete<String>(
-                        displayStringForOption: (option) {
-                          return option = '';
-                        },
-                        fieldViewBuilder: (context, taskGroupsController,
-                            focusNode, onFieldSubmitted) {
-                          return TextFormField(
-                            controller: taskGroupsController,
-                            focusNode: focusNode,
-                            textCapitalization: TextCapitalization.sentences,
-                            style: TextStyle(
-                              color:
-                                  Theme.of(context).textTheme.bodyMedium?.color,
+                child: Column(
+                  children: [
+                    RawAutocomplete<String>(
+                      displayStringForOption: (option) {
+                        return option = '';
+                      },
+                      fieldViewBuilder: (context, taskGroupsController,
+                          focusNode, onFieldSubmitted) {
+                        return TextFormField(
+                          controller: taskGroupsController,
+                          focusNode: focusNode,
+                          textCapitalization: TextCapitalization.sentences,
+                          decoration: InputDecoration(
+                            hintText: 'Shopping, Groceries...',
+                            contentPadding: const EdgeInsets.symmetric(
+                                vertical: 16, horizontal: 16),
+                            hintStyle: const TextStyle(color: Colors.grey),
+                            filled: true,
+                            fillColor:
+                                Theme.of(context).colorScheme.surfaceContainer,
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                            cursorColor: Theme.of(context).primaryColor,
-                            decoration: InputDecoration(
-                              hintText: 'Shopping, Groceries...',
-                              contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 16, horizontal: 16),
-                              hintStyle: const TextStyle(color: Colors.grey),
-                              filled: true,
-                              fillColor: Theme.of(context).primaryColorLight,
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide.none,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(
-                                    color: Theme.of(context).primaryColor),
-                              ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).colorScheme.primary),
                             ),
-                            onFieldSubmitted: (String value) {
-                              onFieldSubmitted;
-                            },
-                            onTapOutside: (event) {
-                              focusNode.unfocus();
-                            },
-                          );
-                        },
-                        optionsViewBuilder: (context, onSelected, options) {
-                          return Align(
-                            alignment: Alignment.topLeft,
-                            child: Container(
-                              height: 200,
-                              width: MediaQuery.of(context).size.width / 1.078,
-                              padding: const EdgeInsets.only(right: 15),
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(15),
-                                  color:
-                                      Theme.of(context).scaffoldBackgroundColor,
-                                  boxShadow: [
-                                    BoxShadow(
-                                        color:
-                                            Theme.of(context).primaryColorLight,
-                                        offset: Offset(0, 2),
-                                        blurRadius: 10)
-                                  ]),
-                              child: ListView.builder(
-                                  itemCount: options.length,
-                                  itemBuilder: (context, index) {
-                                    final String option =
-                                        options.elementAt(index);
-                                    return InkWell(
-                                      onTap: () {
-                                        if (option == 'Custom') {
-                                          // Add functionality to create and store new task groups
-                                          showDialog(
-                                              context: context,
-                                              builder: (context) {
-                                                return Dialog(
-                                                  backgroundColor: Theme.of(
-                                                          context)
-                                                      .scaffoldBackgroundColor,
-                                                  child: SizedBox(
-                                                    height: 200,
-                                                    width: 200,
-                                                    child: Column(
-                                                      children: [
-                                                        const SizedBox(
-                                                          height: 15,
+                          ),
+                          onFieldSubmitted: (String value) {
+                            onFieldSubmitted;
+                          },
+                          onTapOutside: (event) {
+                            focusNode.unfocus();
+                          },
+                        );
+                      },
+                      optionsViewBuilder: (context, onSelected, options) {
+                        return Align(
+                          alignment: Alignment.topLeft,
+                          child: Container(
+                            height: 200,
+                            width: MediaQuery.of(context).size.width / 1.078,
+                            padding: const EdgeInsets.only(right: 15),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(15),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainer,
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withAlpha(50),
+                                      offset: Offset(0, 2),
+                                      blurRadius: 16)
+                                ]),
+                            child: ListView.builder(
+                                itemCount: options.length,
+                                itemBuilder: (context, index) {
+                                  final String option =
+                                      options.elementAt(index);
+                                  return InkWell(
+                                    onTap: () {
+                                      if (option == 'Custom') {
+                                        // Add functionality to create and store new task groups
+                                        showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return Dialog(
+                                                child: SizedBox(
+                                                  height: 200,
+                                                  width: 200,
+                                                  child: Column(
+                                                    children: [
+                                                      const SizedBox(
+                                                        height: 15,
+                                                      ),
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                horizontal:
+                                                                    12.0),
+                                                        child: MyTextfield(
+                                                          controller:
+                                                              addNewTaskGroupController,
+                                                          focusNode:
+                                                              addNewTaskGroupFocusNode,
+                                                          hintText:
+                                                              'Create a new task group',
+                                                          obscureText: false,
+                                                          textInputType:
+                                                              TextInputType
+                                                                  .text,
+                                                          autoFocus: false,
+                                                          minLines: 1,
+                                                          maxLines: 2,
                                                         ),
-                                                        Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .symmetric(
-                                                                  horizontal:
-                                                                      12.0),
-                                                          child: MyTextfield(
-                                                            controller:
-                                                                addNewTaskGroupController,
-                                                            focusNode:
-                                                                addNewTaskGroupFocusNode,
-                                                            hintText:
-                                                                'Create a new task group',
-                                                            obscureText: false,
-                                                            textInputType:
-                                                                TextInputType
-                                                                    .text,
-                                                            autoFocus: false,
-                                                            minLines: 1,
-                                                            maxLines: 2,
-                                                          ),
-                                                        ),
-                                                        const Spacer(),
-                                                        // Submit button
-                                                        Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .symmetric(
-                                                                  horizontal:
-                                                                      12,
-                                                                  vertical:
-                                                                      8.0),
-                                                          child: InkWell(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        15),
-                                                            onTap: () async {
-                                                              customTaskGroups.add(
+                                                      ),
+                                                      const Spacer(),
+                                                      // Submit button
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                horizontal: 12,
+                                                                vertical: 8.0),
+                                                        child: InkWell(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(15),
+                                                          onTap: () async {
+                                                            customTaskGroups.add(
+                                                                addNewTaskGroupController
+                                                                    .text
+                                                                    .trim());
+                                                            setState(() {
+                                                              if (taskGroups.contains(
                                                                   addNewTaskGroupController
                                                                       .text
-                                                                      .trim());
-                                                              setState(() {
-                                                                if (taskGroups.contains(
+                                                                      .trim())) {
+                                                                return;
+                                                              } else {
+                                                                taskGroups.add(
                                                                     addNewTaskGroupController
                                                                         .text
-                                                                        .trim())) {
-                                                                  return;
-                                                                } else {
-                                                                  taskGroups.add(
-                                                                      addNewTaskGroupController
-                                                                          .text
-                                                                          .trim());
-                                                                  return taskGroups
-                                                                      .sort();
-                                                                }
-                                                              });
-                                                              // Add the new task group to the user's collection separately
-                                                              await FirebaseFirestore
-                                                                  .instance
-                                                                  .collection(
-                                                                      'users')
-                                                                  .doc(userId)
-                                                                  .set(
-                                                                      {
-                                                                    'customTaskGroups':
-                                                                        customTaskGroups,
-                                                                  },
-                                                                      SetOptions(
-                                                                        merge:
-                                                                            true,
-                                                                      ));
-                                                              // Clear form field and custom task group list
-                                                              addNewTaskGroupController
-                                                                  .clear();
-                                                              customTaskGroups
-                                                                  .clear();
-                                                            },
-                                                            child: Container(
-                                                              width: double
-                                                                  .maxFinite,
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .all(
-                                                                      15.0),
-                                                              decoration:
-                                                                  BoxDecoration(
-                                                                color: Theme.of(
-                                                                        context)
-                                                                    .primaryColor,
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            1000),
-                                                              ),
-                                                              child: Center(
-                                                                child: Text(
-                                                                  'Create new group',
-                                                                  style: TextStyle(
-                                                                      color: Theme.of(
-                                                                              context)
-                                                                          .scaffoldBackgroundColor,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w600,
-                                                                      fontSize:
+                                                                        .trim());
+                                                                return taskGroups
+                                                                    .sort();
+                                                              }
+                                                            });
+                                                            // Add the new task group to the user's collection separately
+                                                            await FirebaseFirestore
+                                                                .instance
+                                                                .collection(
+                                                                    'users')
+                                                                .doc(userId)
+                                                                .set(
+                                                                    {
+                                                                  'customTaskGroups':
+                                                                      customTaskGroups,
+                                                                },
+                                                                    SetOptions(
+                                                                      merge:
+                                                                          true,
+                                                                    ));
+                                                            // Clear form field and custom task group list
+                                                            addNewTaskGroupController
+                                                                .clear();
+                                                            customTaskGroups
+                                                                .clear();
+                                                          },
+                                                          child: Container(
+                                                            width: double
+                                                                .maxFinite,
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(15.0),
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              color: Theme.of(
+                                                                      context)
+                                                                  .colorScheme
+                                                                  .primary,
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
                                                                           16),
-                                                                ),
+                                                            ),
+                                                            child: Center(
+                                                              child: Text(
+                                                                'Create new group',
+                                                                style: TextStyle(
+                                                                    color: Theme.of(
+                                                                            context)
+                                                                        .colorScheme
+                                                                        .onPrimary,
+                                                                    fontSize:
+                                                                        18),
                                                               ),
                                                             ),
                                                           ),
                                                         ),
-                                                      ],
-                                                    ),
+                                                      ),
+                                                    ],
                                                   ),
-                                                );
-                                              });
-                                        } else {
-                                          onSelected(option);
-                                        }
-                                      },
-                                      child: ListTile(
-                                        dense: true,
-                                        title: Text(
-                                          option,
-                                          style: TextStyle(
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.color),
-                                        ),
-                                      ),
-                                    );
-                                  }),
-                            ),
-                          );
-                        },
-                        optionsBuilder: (textEditingValue) {
-                          return defaultTaskGroups.where((String items) {
-                            return items.contains(textEditingValue.text);
-                          });
-                        },
-                        onSelected: (String item) {
-                          setState(() {
-                            if (taskGroups.contains(item)) {
-                              return;
-                            } else {
-                              taskGroups.add(item);
-                              return taskGroups.sort();
-                            }
-                          });
-                        },
-                      ),
-                      if (taskGroups.isNotEmpty)
-                        const SizedBox(
-                          height: 2.5,
-                        ),
-                      if (taskGroups.isNotEmpty)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Divider(),
-                        ),
-                      if (taskGroups.isNotEmpty)
-                        const SizedBox(
-                          height: 2.5,
-                        ),
-                      if (taskGroups.isNotEmpty)
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width,
-                          height: 40,
-                          child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: taskGroups.length,
-                              itemBuilder: (context, index) {
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8.0),
-                                  child: RawChip(
-                                    onPressed: () {
-                                      setState(() {
-                                        taskGroups.remove(taskGroups[index]);
-                                      });
+                                                ),
+                                              );
+                                            });
+                                      } else {
+                                        onSelected(option);
+                                      }
                                     },
-                                    backgroundColor: Theme.of(context)
-                                        .scaffoldBackgroundColor,
-                                    side: BorderSide.none,
-                                    label: Text(taskGroups[index]),
-                                    labelStyle: TextStyle(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.color),
-                                  ),
-                                  // child: InkWell(
-                                  //   onTap: () {
-                                  //     setState(() {
-                                  //       taskGroups
-                                  //           .remove(taskGroups[index]);
-                                  //     });
-                                  //   },
-                                  //   child: Container(
-                                  //       alignment: Alignment.center,
-                                  //       padding: const EdgeInsets.only(
-                                  //           left: 4, right: 4),
-                                  //       decoration: BoxDecoration(
-                                  //           color: Theme.of(context)
-                                  //               .scaffoldBackgroundColor,
-                                  //           borderRadius:
-                                  //               BorderRadius.circular(8)),
-                                  //       child: Text(taskGroups[index])),
-                                  // ),
-                                );
-                              }),
-                        ),
-                      taskGroups.isEmpty
-                          ? const SizedBox()
-                          : const SizedBox(
-                              height: 8,
-                            )
-                    ],
-                  ),
+                                    child: ListTile(
+                                      dense: true,
+                                      title: Text(
+                                        option,
+                                        style: TextStyle(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurfaceVariant),
+                                      ),
+                                    ),
+                                  );
+                                }),
+                          ),
+                        );
+                      },
+                      optionsBuilder: (textEditingValue) {
+                        return defaultTaskGroups.where((String items) {
+                          return items.contains(textEditingValue.text);
+                        });
+                      },
+                      onSelected: (String item) {
+                        setState(() {
+                          if (taskGroups.contains(item)) {
+                            return;
+                          } else {
+                            taskGroups.add(item);
+                            return taskGroups.sort();
+                          }
+                        });
+                      },
+                    ),
+                    if (taskGroups.isNotEmpty)
+                      const SizedBox(
+                        height: 2.5,
+                      ),
+                    if (taskGroups.isNotEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Divider(),
+                      ),
+                    if (taskGroups.isNotEmpty)
+                      const SizedBox(
+                        height: 2.5,
+                      ),
+                    if (taskGroups.isNotEmpty)
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        height: 40,
+                        child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: taskGroups.length,
+                            itemBuilder: (context, index) {
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: RawChip(
+                                  onPressed: () {
+                                    setState(() {
+                                      taskGroups.remove(taskGroups[index]);
+                                    });
+                                  },
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.onSecondary,
+                                  side: BorderSide.none,
+                                  label: Text(taskGroups[index]),
+                                ),
+                              );
+                            }),
+                      ),
+                    taskGroups.isEmpty
+                        ? const SizedBox()
+                        : const SizedBox(
+                            height: 8,
+                          )
+                  ],
                 ),
               ),
               const SizedBox(height: 20),
@@ -626,8 +581,8 @@ class AddTaskOrHabitModalState extends State<AddTaskOrHabitModal> {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColorLight,
-                    borderRadius: BorderRadius.circular(10),
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(24),
                   ),
                   child: Column(
                     children: [
@@ -641,14 +596,19 @@ class AddTaskOrHabitModalState extends State<AddTaskOrHabitModal> {
                             const Spacer(),
                             // Date picker
                             Flexible(
-                              child: ExtraOptionsButton(
-                                outerPadding: const EdgeInsets.only(left: 14),
-                                decoration: BoxDecoration(
-                                    color: Theme.of(context)
-                                        .scaffoldBackgroundColor,
-                                    borderRadius: BorderRadius.circular(8)),
+                              child: BloomMaterialListTile(
+                                outerPadding: const EdgeInsets.all(0),
+                                innerPadding: EdgeInsets.all(6),
+                                icon: SizedBox(),
+                                iconLabelSpace: 0,
+                                useSpacer: false,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .secondaryContainer,
+                                borderRadius: BorderRadius.circular(16),
                                 label:
                                     DateFormat('dd-MM-yyyy').format(taskDate!),
+                                labelStyle: TextStyle(fontSize: 16),
                                 textAlign: TextAlign.center,
                                 onTap: selectDate,
                               ),
@@ -665,13 +625,18 @@ class AddTaskOrHabitModalState extends State<AddTaskOrHabitModal> {
                           const Spacer(),
                           // Time picker
                           Flexible(
-                            child: ExtraOptionsButton(
-                              outerPadding: const EdgeInsets.only(left: 14),
-                              decoration: BoxDecoration(
-                                  color:
-                                      Theme.of(context).scaffoldBackgroundColor,
-                                  borderRadius: BorderRadius.circular(8)),
+                            child: BloomMaterialListTile(
+                              outerPadding: const EdgeInsets.all(0),
+                              innerPadding: EdgeInsets.all(6),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .secondaryContainer,
+                              iconLabelSpace: 0,
+                              useSpacer: false,
+                              icon: SizedBox(),
+                              borderRadius: BorderRadius.circular(16),
                               label: _taskTime!.format(context),
+                              labelStyle: TextStyle(fontSize: 16),
                               textAlign: TextAlign.center,
                               onTap: selectTime,
                             ),
@@ -689,34 +654,22 @@ class AddTaskOrHabitModalState extends State<AddTaskOrHabitModal> {
                             const Spacer(),
                             Flexible(
                               child: Container(
-                                padding: const EdgeInsets.all(4),
+                                padding: const EdgeInsets.all(8),
                                 width: double.maxFinite,
                                 decoration: BoxDecoration(
                                     color: Theme.of(context)
-                                        .scaffoldBackgroundColor,
-                                    borderRadius: BorderRadius.circular(8)),
+                                        .colorScheme
+                                        .secondaryContainer,
+                                    borderRadius: BorderRadius.circular(16)),
                                 child: PopupMenuButton(
-                                  color:
-                                      Theme.of(context).scaffoldBackgroundColor,
                                   itemBuilder: (context) => [
                                     PopupMenuItem(
                                       value: 'None',
                                       child: Row(
                                         children: [
-                                          const Icon(
-                                            Icons.flag_rounded,
-                                          ),
-                                          const SizedBox(
-                                            width: 4,
-                                          ),
-                                          Text(
-                                            'None',
-                                            style: TextStyle(
-                                                color: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyMedium
-                                                    ?.color),
-                                          ),
+                                          const Icon(Icons.flag_rounded),
+                                          const SizedBox(width: 4),
+                                          Text('None'),
                                         ],
                                       ),
                                       onTap: () => setState(() {
@@ -731,13 +684,9 @@ class AddTaskOrHabitModalState extends State<AddTaskOrHabitModal> {
                                       value: 'High',
                                       child: const Row(
                                         children: [
-                                          Icon(
-                                            Icons.flag_rounded,
-                                            color: Colors.red,
-                                          ),
-                                          SizedBox(
-                                            width: 4,
-                                          ),
+                                          Icon(Icons.flag_rounded,
+                                              color: Colors.red),
+                                          SizedBox(width: 4),
                                           Text(
                                             'High',
                                             style: TextStyle(color: Colors.red),
@@ -755,13 +704,9 @@ class AddTaskOrHabitModalState extends State<AddTaskOrHabitModal> {
                                       value: 'Min',
                                       child: const Row(
                                         children: [
-                                          Icon(
-                                            Icons.flag_rounded,
-                                            color: Colors.amber,
-                                          ),
-                                          SizedBox(
-                                            width: 4,
-                                          ),
+                                          Icon(Icons.flag_rounded,
+                                              color: Colors.amber),
+                                          SizedBox(width: 4),
                                           Text(
                                             'Min',
                                             style:
@@ -780,13 +725,9 @@ class AddTaskOrHabitModalState extends State<AddTaskOrHabitModal> {
                                       value: 'Low',
                                       child: const Row(
                                         children: [
-                                          Icon(
-                                            Icons.flag_rounded,
-                                            color: Colors.blue,
-                                          ),
-                                          SizedBox(
-                                            width: 4,
-                                          ),
+                                          Icon(Icons.flag_rounded,
+                                              color: Colors.blue),
+                                          SizedBox(width: 4),
                                           Text(
                                             'Low',
                                             style:
@@ -843,57 +784,39 @@ class AddTaskOrHabitModalState extends State<AddTaskOrHabitModal> {
                       const Divider(),
                       // Task repeating options
                       // Convert the task to a habit if the user opts for habit
-                      ExtraOptionsButton(
-                        showTag: subscriptionPlan,
+                      BloomMaterialListTile(
+                        icon: SizedBox(),
+                        outerPadding: EdgeInsets.all(0),
+                        innerPadding: EdgeInsets.all(2),
+                        iconLabelSpace: 0,
                         label: 'Habit',
                         useSpacer: true,
                         labelStyle: const TextStyle(fontSize: 16),
                         endIcon: Switch(
                             value: isHabit,
-                            inactiveThumbColor:
-                                Theme.of(context).primaryColorLight,
-                            inactiveTrackColor:
-                                Theme.of(context).primaryColorDark,
-                            activeColor: Theme.of(context).primaryColor,
                             onChanged: (value) async {
-                              if (subscriptionPlan == false) {
-                                setState(() {
-                                  isHabit = value;
-                                });
-                                if (isHabit) {
-                                  final prefs =
-                                      await SharedPreferences.getInstance();
-                                  final isHabitIntroShown =
-                                      prefs.getBool('isHabitIntroShown');
-                                  showHabitIntroDialog(
-                                      isHabitIntroShown ?? false);
-                                }
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    margin: const EdgeInsets.all(6),
-                                    behavior: SnackBarBehavior.floating,
-                                    showCloseIcon: true,
-                                    closeIconColor: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.color,
-                                    backgroundColor:
-                                        Theme.of(context).primaryColor,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(12)),
-                                    content: Text(
-                                      'Adding habits are only available with Pro subscription',
-                                      style: TextStyle(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium
-                                              ?.color),
-                                    ),
-                                  ),
-                                );
+                              setState(() {
+                                isHabit = value;
+                              });
+                              if (isHabit) {
+                                final prefs =
+                                    await SharedPreferences.getInstance();
+                                final isHabitIntroShown =
+                                    prefs.getBool('isHabitIntroShown');
+                                showHabitIntroDialog(
+                                    isHabitIntroShown ?? false);
                               }
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  margin: const EdgeInsets.all(6),
+                                  behavior: SnackBarBehavior.floating,
+                                  showCloseIcon: true,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
+                                  content: Text(
+                                      'Adding habits are only available with Pro subscription'),
+                                ),
+                              );
                             }),
                       ),
                       if (isHabit)
@@ -930,11 +853,27 @@ class AddTaskOrHabitModalState extends State<AddTaskOrHabitModal> {
                                       shape: BoxShape.circle,
                                       color: daysOfWeekInt.any(
                                               (element) => element == index)
-                                          ? Theme.of(context).primaryColor
-                                          : Theme.of(context).primaryColorDark,
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .secondaryContainer,
                                     ),
                                     alignment: Alignment.center,
-                                    child: Text(daysOfWeekString[index]),
+                                    child: Text(
+                                      daysOfWeekString[index],
+                                      style: TextStyle(
+                                        color: daysOfWeekInt.any(
+                                                (element) => element == index)
+                                            ? Theme.of(context)
+                                                .colorScheme
+                                                .onPrimary
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .onSecondaryContainer,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               );
@@ -1003,17 +942,9 @@ class AddTaskOrHabitModalState extends State<AddTaskOrHabitModal> {
                             margin: const EdgeInsets.all(6),
                             behavior: SnackBarBehavior.floating,
                             showCloseIcon: true,
-                            backgroundColor: Theme.of(context).primaryColor,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
-                            content: Text(
-                              'Habit succesfully created!',
-                              style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.color),
-                            ),
+                            content: Text('Habit succesfully created!'),
                           ),
                         );
                       } else {
@@ -1033,17 +964,9 @@ class AddTaskOrHabitModalState extends State<AddTaskOrHabitModal> {
                             margin: const EdgeInsets.all(6),
                             behavior: SnackBarBehavior.floating,
                             showCloseIcon: true,
-                            backgroundColor: Theme.of(context).primaryColor,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
-                            content: Text(
-                              'Task succesfully created!',
-                              style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.color),
-                            ),
+                            content: Text('Task succesfully created!'),
                           ),
                         );
                       }
@@ -1057,8 +980,8 @@ class AddTaskOrHabitModalState extends State<AddTaskOrHabitModal> {
                     width: double.maxFinite,
                     padding: const EdgeInsets.all(15.0),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                      borderRadius: BorderRadius.circular(100),
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Center(
                       child: Text(
@@ -1067,8 +990,7 @@ class AddTaskOrHabitModalState extends State<AddTaskOrHabitModal> {
                             : 'Create new task',
                         style: TextStyle(
                             fontSize: 18,
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color),
+                            color: Theme.of(context).colorScheme.onPrimary),
                       ),
                     ),
                   ),

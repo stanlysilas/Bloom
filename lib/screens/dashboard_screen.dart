@@ -1,16 +1,13 @@
-import 'dart:io';
-
-import 'package:bloom/components/mybuttons.dart';
 import 'package:bloom/components/overview_data.dart';
 import 'package:bloom/models/dashboard_card_layout.dart';
 import 'package:bloom/screens/calendar_screen.dart';
 import 'package:bloom/screens/profile_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -29,6 +26,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   CalendarFormat calendarFormat = CalendarFormat.week;
   int? numberOfTasks;
   int? numberOfSchedules;
+  int? numberOfEntries;
   int? numberOfEntriesInYear;
   int? completedTasksInYear;
   int? attendedEventsInYear;
@@ -37,12 +35,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String? userName = '';
   String? font;
   bool? isImageNetwork;
+  bool? isFirstTime;
   late BannerAd bannerAd;
   bool isAdLoaded = false;
   List<DateTime> dates = [];
   int numberOfHabits = 0;
   bool isTaskEmpty = false;
   bool isEventEmpty = false;
+  final ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
@@ -66,6 +66,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         email = data?['email'];
         userName = data?['userName'];
         isImageNetwork = data?['isImageNetwork'];
+        isFirstTime = data?['isFirstTime'] ?? true;
       });
     } else {}
   }
@@ -95,6 +96,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           .doc(user?.uid)
           .collection('events')
           .where('isAttended', isEqualTo: false)
+          .get();
+
+      final entryQuery = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user?.uid)
+          .collection('entries')
+          .where('dateTime', isGreaterThanOrEqualTo: dayStart)
+          .where('dateTime', isLessThanOrEqualTo: dayEnd)
           .get();
 
       final isTaskEmptyQuery = FirebaseFirestore.instance
@@ -172,6 +181,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         taskQuery,
         habitQuery,
         eventQuery,
+        entryQuery,
         isTaskEmptyQuery,
         isEventEmptyQuery,
         entriesInYearQuery,
@@ -182,8 +192,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final taskSnapshot = results[0] as QuerySnapshot;
       final habitSnapshot = results[1] as QuerySnapshot;
       final eventSnapshot = results[2] as QuerySnapshot;
-      final isTaskEmptySnapshot = results[3] as QuerySnapshot;
-      final isEventEmptySnapshot = results[4] as QuerySnapshot;
+      final entrySnapshot = results[3] as QuerySnapshot;
+      final isTaskEmptySnapshot = results[4] as QuerySnapshot;
+      final isEventEmptySnapshot = results[5] as QuerySnapshot;
 
       // Extract task and event dates
       taskDateTimes = taskSnapshot.docs
@@ -201,6 +212,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         numberOfTasks = taskSnapshot.size;
         numberOfHabits = habitLength;
         numberOfSchedules = eventSnapshot.size;
+        numberOfEntries = entrySnapshot.size;
         isTaskEmpty = isTaskEmptySnapshot.size == 0 ? true : false;
         isEventEmpty = isEventEmptySnapshot.size == 0 ? true : false;
         dates = [...taskDateTimes, ...eventDateTimes]; // Combine both lists
@@ -219,8 +231,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
 // Banner ADs initialization method
-  initBannerAd() {
-    if (Platform.isAndroid) {
+  void initBannerAd() {
+    if (defaultTargetPlatform == TargetPlatform.android) {
       bannerAd = BannerAd(
         size: AdSize.banner,
         adUnitId: "ca-app-pub-5607290715305671/4873045589",
@@ -257,305 +269,313 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.dispose();
   }
 
-  var scaffoldKey = GlobalKey<ScaffoldState>();
-
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          title:
-              // Day of the week
-              Text(DateFormat('EEEE, MMM dd').format(_focusedDay)),
-          actions: [
-            // Calendar view for all the data
-            IconButton(
-                tooltip: 'Calendar view',
-                onPressed: () {
-                  // Navigate to calendarviewscreen
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => CalendarViewScreen()));
-                },
-                icon: Icon(Icons.calendar_month_rounded)),
-          ],
-        ),
-        // List the tasks and events
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Just a quick overview paragraph for the focused day
-              Wrap(
+    return Scaffold(
+      extendBody: true,
+      // List the tasks and events
+      body: CustomScrollView(
+        controller: scrollController,
+        slivers: [
+          // SliverAppBar with all the overview content
+          SliverAppBar(
+            automaticallyImplyLeading: false,
+            pinned: false,
+            expandedHeight: 160,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                    child: Container(
-                      alignment: Alignment.centerLeft,
-                      child: Wrap(
-                        children: [
-                          Text(
-                            DateTime.now().hour < 12
-                                ? "Good morning"
-                                : DateTime.now().hour > 12 &&
-                                        DateTime.now().hour < 4
-                                    ? "Good afternoon"
-                                    : "Good evening",
-                            style: const TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.w400),
-                          ),
-                          const SizedBox(
-                            width: 5,
-                          ),
-                          InkWell(
-                            onTap: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                    builder: (context) => ProfileScreen(
-                                        isImageNetwork: isImageNetwork,
-                                        profilePicture: profilePicture,
-                                        userName:
-                                            userName == '' || userName == null
-                                                ? user!.email!.substring(0, 8)
-                                                : userName,
-                                        uid: user!.uid,
-                                        email: email,
-                                        mode: ProfileMode.display))),
-                            child: userName == null || userName == ''
-                                ? Hero(
-                                    tag: 'userName_hero',
-                                    transitionOnUserGestures: true,
-                                    placeholderBuilder:
-                                        (context, heroSize, child) {
-                                      return Text(
-                                        user!.email!.substring(0, 8),
-                                        style: const TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.w500,
+                  // Collapsing AppBar
+                  Expanded(
+                    child: Wrap(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                          child: Container(
+                            alignment: Alignment.centerLeft,
+                            child: Wrap(
+                              children: [
+                                Text(
+                                  DateTime.now().hour < 12
+                                      ? "Good morning"
+                                      : DateTime.now().hour > 12 &&
+                                              DateTime.now().hour < 4
+                                          ? "Good afternoon"
+                                          : "Good evening",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
+                                      ),
+                                ),
+                                const SizedBox(
+                                  width: 5,
+                                ),
+                                InkWell(
+                                  borderRadius: BorderRadius.circular(4),
+                                  onTap: () => Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                          builder: (context) => ProfileScreen(
+                                              isImageNetwork: isImageNetwork,
+                                              profilePicture: profilePicture,
+                                              userName: userName == '' ||
+                                                      userName == null
+                                                  ? user!.email!.substring(0, 8)
+                                                  : userName,
+                                              uid: user!.uid,
+                                              email: email,
+                                              mode: ProfileMode.display))),
+                                  child: userName == null || userName == ''
+                                      ? Hero(
+                                          tag: 'userName_hero',
+                                          transitionOnUserGestures: true,
+                                          placeholderBuilder:
+                                              (context, heroSize, child) {
+                                            return Text(
+                                              user!.email!.substring(0, 8),
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .headlineSmall
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurface,
+                                                  ),
+                                            );
+                                          },
+                                          child: Text(
+                                            user!.email!.substring(0, 8),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .headlineSmall
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurface,
+                                                ),
+                                          ),
+                                        )
+                                      : Hero(
+                                          tag: 'userName_hero',
+                                          child: Text(
+                                            '$userName',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .headlineSmall
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurface,
+                                                ),
+                                          ),
                                         ),
-                                      );
-                                    },
-                                    child: Text(
-                                      user!.email!.substring(0, 8),
-                                      style: const TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  )
-                                : Hero(
-                                    tag: 'userName_hero',
-                                    child: Text(
-                                      '$userName',
-                                      style: const TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
+                                ),
+                              ],
+                            ),
                           ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Overview data
+                  Expanded(
+                    child: Container(
+                      margin: EdgeInsets.symmetric(horizontal: 14),
+                      padding: EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color:
+                              Theme.of(context).colorScheme.surfaceContainer),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          TaskData(
+                            numberOfTasks: numberOfTasks,
+                          ),
+                          HabitData(
+                            numberOfHabits: numberOfHabits,
+                          ),
+                          SchedulesData(
+                            numberOfSchedules: numberOfSchedules,
+                          ),
+                          EntriesData(
+                            numberOfEntries: numberOfEntriesInYear ?? 0,
+                          )
                         ],
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(
-                height: 18,
-              ),
-              // Overview data
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TaskData(
-                      numberOfTasks: numberOfTasks,
+            ),
+          ),
+          // Persistent HeaderBar (AppBar)
+          // Inside SliverPersistentHeader
+          SliverPersistentHeader(
+            pinned: true,
+            floating: false,
+            delegate: _CalendarHeaderDelegate(
+              minExtent: 90,
+              maxExtent: 100,
+              childBuilder: (context, shrinkOffset) {
+                final scrollPercent =
+                    (shrinkOffset / (100 - 90)).clamp(0.0, 1.0);
+                final color = Color.lerp(
+                  Theme.of(context).colorScheme.surface,
+                  Theme.of(context).colorScheme.surfaceContainerHighest,
+                  scrollPercent,
+                )!;
+
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  color: color,
+                  padding:
+                      const EdgeInsets.only(left: 14.0, right: 14.0, top: 14),
+                  child: TableCalendar(
+                    focusedDay: _focusedDay,
+                    headerVisible: false,
+                    firstDay: DateTime.utc(2010, 10, 16),
+                    lastDay: DateTime.utc(2030, 3, 14),
+                    daysOfWeekStyle: const DaysOfWeekStyle(
+                      weekdayStyle: TextStyle(fontWeight: FontWeight.w500),
                     ),
-                    const SizedBox(
-                      width: 6,
-                    ),
-                    HabitData(
-                      numberOfHabits: numberOfHabits,
-                    ),
-                    const SizedBox(
-                      width: 6,
-                    ),
-                    SchedulesData(
-                      numberOfSchedules: numberOfSchedules,
-                    ),
-                    const SizedBox(
-                      width: 6,
-                    ),
-                    EntriesData(
-                      numberOfEntries: numberOfEntriesInYear ?? 0,
-                    )
-                  ],
-                ),
-              ),
-              const SizedBox(
-                height: 18,
-              ),
-              // // Calendar to check and change the date of the events and tasks shown on homepage
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                child: TableCalendar(
-                  focusedDay: _focusedDay,
-                  headerVisible: false,
-                  firstDay: DateTime.utc(2010, 10, 16),
-                  lastDay: DateTime.utc(2030, 3, 14),
-                  daysOfWeekStyle: const DaysOfWeekStyle(
-                      weekdayStyle: TextStyle(fontWeight: FontWeight.w500)),
-                  availableCalendarFormats: const {
-                    CalendarFormat.week: 'Week',
-                  },
-                  selectedDayPredicate: (day) {
-                    return isSameDay(_selectedDay, day);
-                  },
-                  calendarFormat: calendarFormat,
-                  onFormatChanged: (format) {
-                    setState(() {
-                      calendarFormat = format;
-                    });
-                  },
-                  onDaySelected: (selectedDay, focusedDay) {
-                    onDaySelected(selectedDay, focusedDay);
-                    dataOverviewCheck(focusedDay);
-                  },
-                  calendarStyle: CalendarStyle(
-                    isTodayHighlighted: false,
-                    todayDecoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                      shape: BoxShape.circle,
-                    ),
-                    todayTextStyle: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color),
-                    selectedDecoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                      shape: BoxShape.circle,
-                    ),
-                    selectedTextStyle: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color),
-                    weekendTextStyle: TextStyle(
-                      color: Theme.of(context).primaryColorDark,
+                    availableCalendarFormats: const {
+                      CalendarFormat.week: 'Week',
+                    },
+                    selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                    calendarFormat: calendarFormat,
+                    onFormatChanged: (format) {
+                      setState(() {
+                        calendarFormat = format;
+                      });
+                    },
+                    onDaySelected: (selectedDay, focusedDay) {
+                      onDaySelected(selectedDay, focusedDay);
+                      dataOverviewCheck(focusedDay);
+                    },
+                    onDayLongPressed: (selectedDay, focusedDay) {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) =>
+                            CalendarViewScreen(initialDay: selectedDay),
+                      ));
+                    },
+                    calendarStyle: CalendarStyle(
+                      isTodayHighlighted: false,
+                      selectedDecoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      selectedTextStyle: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(
-                height: 14,
-              ),
-              isEventEmpty == true && isTaskEmpty == true
-                  ? Padding(
-                      padding: EdgeInsets.only(left: 14.0, right: 14.0),
-                      child: SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.6,
-                        child: Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image(
-                                height: 200,
-                                width: 200,
-                                image: AssetImage(
-                                    'assets/images/allCompletedBackground.png'),
-                              ),
-                              Text(
-                                'Phew! Take a break',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w500, fontSize: 18),
-                                textAlign: TextAlign.center,
-                              ),
-                              SizedBox(
-                                height: 4,
-                              ),
-                              Text(
-                                'Click on the + icon to add a new object',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.grey),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
+                );
+              },
+            ),
+          ),
+
+          // SliverAppBar Content
+          SliverList(
+              delegate: SliverChildListDelegate([
+            isEventEmpty == true && isTaskEmpty == true && numberOfEntries == 0
+                ? Padding(
+                    padding: EdgeInsets.only(left: 14.0, right: 14.0),
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.6,
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image(
+                              height: 250,
+                              width: 250,
+                              image: AssetImage(
+                                  'assets/images/allCompletedBackground.png'),
+                            ),
+                            Text(
+                              'Nothing to see here',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w500, fontSize: 24),
+                              textAlign: TextAlign.center,
+                            ),
+                            SizedBox(
+                              height: 4,
+                            ),
+                            Text(
+                              isFirstTime == true
+                                  ? 'Add new tasks, events or notes to get started'
+                                  : 'Click on the + icon to add a new object',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey),
+                              textAlign: TextAlign.center,
+                            ),
+                            SizedBox(
+                              height: 4,
+                            ),
+                          ],
                         ),
-                      ),
-                    )
-                  : SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                        child: DashboardCardLayout(
-                            numberOfTasks: numberOfTasks,
-                            numberOfSchedules: numberOfSchedules,
-                            focusedDay: _focusedDay),
                       ),
                     ),
-            ],
-          ),
-        ),
-        bottomSheet:
-            // Display and AD in between the events tile and tasks tile (testing)
-            isAdLoaded && Platform.isAndroid
-                ? SizedBox(
-                    height: bannerAd.size.height.toDouble(),
-                    width: bannerAd.size.width.toDouble(),
-                    child: Center(child: AdWidget(ad: bannerAd)),
-                  )
-                : const SizedBox(),
-        // Add new object floating button
-        floatingActionButton: FloatingActionButton(
-          onPressed: () async {
-            // Check if the platform is windows or android
-            // And display a sheet if android and dialog if windows
-            Platform.isWindows
-                ? showDialog(
-                    context: context,
-                    builder: (context) {
-                      return Dialog(
-                        backgroundColor:
-                            Theme.of(context).scaffoldBackgroundColor,
-                        child: SizedBox(
-                          width: MediaQuery.of(context).size.width / 2,
-                          child: const Column(
-                            children: [
-                              SizedBox(
-                                height: 20,
-                              ),
-                              Text(
-                                'Basic types of objects',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 18),
-                              ),
-                              SizedBox(
-                                height: 20,
-                              ),
-                              Expanded(child: TypesOfObjects()),
-                              Text(
-                                'More types of objects will be added soon...',
-                              ),
-                              SizedBox(
-                                height: 20,
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  )
-                : showObjectsModalBottomSheet(context);
-          },
-          backgroundColor: Theme.of(context).primaryColor,
-          elevation: 0,
-          child: Icon(
-            Icons.add,
-            size: 24,
-            color: Theme.of(context).textTheme.bodyMedium?.color,
-          ),
-        ).animate().scaleXY(
-              curve: Curves.easeInOutBack,
-              delay: const Duration(
-                milliseconds: 1000,
-              ),
-            ),
+                  ).animate().fade(delay: Duration(milliseconds: 600))
+                : SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          left: 14.0, right: 14, bottom: 14),
+                      child: DashboardCardLayout(
+                          numberOfTasks: numberOfTasks ?? 0,
+                          numberOfSchedules: numberOfSchedules ?? 0,
+                          numberOfEntries: numberOfEntries ?? 0,
+                          focusedDay: _focusedDay),
+                    ),
+                  ),
+          ]))
+        ],
       ),
+      bottomSheet:
+          // Display and AD in between the events tile and tasks tile (testing)
+          isAdLoaded && defaultTargetPlatform == TargetPlatform.android
+              ? SizedBox(
+                  height: bannerAd.size.height.toDouble(),
+                  width: bannerAd.size.width.toDouble(),
+                  child: Center(child: AdWidget(ad: bannerAd)),
+                )
+              : const SizedBox(),
     );
+  }
+}
+
+/// [TableCalendar] widget for [SliverPersistentHeader] as a Persistent [AppBar].
+class _CalendarHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final double minExtent;
+  final double maxExtent;
+  final Widget Function(BuildContext, double) childBuilder;
+
+  _CalendarHeaderDelegate({
+    required this.minExtent,
+    required this.maxExtent,
+    required this.childBuilder,
+  });
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return childBuilder(context, shrinkOffset);
+  }
+
+  @override
+  bool shouldRebuild(_CalendarHeaderDelegate oldDelegate) {
+    return oldDelegate.minExtent != minExtent ||
+        oldDelegate.maxExtent != maxExtent ||
+        oldDelegate.childBuilder != childBuilder;
   }
 }

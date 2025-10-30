@@ -1,5 +1,7 @@
 import 'package:bloom/authentication_screens/signup_screen.dart';
 import 'package:bloom/notifications/notification.dart';
+import 'package:bloom/storage_permission.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -62,10 +64,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Welcome to',
-                      style: TextStyle(
-                          fontSize: 18,
-                          color: Theme.of(context).primaryColorDark)),
+                  Text('Welcome to', style: TextStyle(fontSize: 18)),
                   const Text(
                     'Bloom - Productive',
                     style: TextStyle(
@@ -104,9 +103,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text('Easily Create and Schedule',
-                      style: TextStyle(
-                          fontSize: 18,
-                          color: Theme.of(context).primaryColorDark)),
+                      style: TextStyle(fontSize: 18)),
                   const Text(
                     'Tasks & Events',
                     style: TextStyle(
@@ -151,14 +148,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       alignment: WrapAlignment.center,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Text('Write ',
-                            style: TextStyle(
-                                fontSize: 18,
-                                color: Theme.of(context).primaryColorDark)),
-                        Text('down ',
-                            style: TextStyle(
-                                fontSize: 18,
-                                color: Theme.of(context).primaryColorDark)),
+                        Text('Write ', style: TextStyle(fontSize: 18)),
+                        Text('down ', style: TextStyle(fontSize: 18)),
                         const Text(
                           'Notes',
                           style: TextStyle(
@@ -166,18 +157,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        Text(' and',
-                            style: TextStyle(
-                                fontSize: 18,
-                                color: Theme.of(context).primaryColorDark)),
-                        Text(' format',
-                            style: TextStyle(
-                                fontSize: 18,
-                                color: Theme.of(context).primaryColorDark)),
-                        Text(' with ',
-                            style: TextStyle(
-                                fontSize: 18,
-                                color: Theme.of(context).primaryColorDark)),
+                        Text(' and', style: TextStyle(fontSize: 18)),
+                        Text(' format', style: TextStyle(fontSize: 18)),
+                        Text(' with ', style: TextStyle(fontSize: 18)),
                         const Text(
                           'Rich Text Editing',
                           style: TextStyle(
@@ -224,10 +206,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       alignment: WrapAlignment.center,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Text('Stay ',
-                            style: TextStyle(
-                                fontSize: 18,
-                                color: Theme.of(context).primaryColorDark)),
+                        Text('Stay ', style: TextStyle(fontSize: 18)),
                         const Text(
                           'Connected',
                           style: TextStyle(
@@ -235,10 +214,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        Text(' on all your ',
-                            style: TextStyle(
-                                fontSize: 18,
-                                color: Theme.of(context).primaryColorDark)),
+                        Text(' on all your ', style: TextStyle(fontSize: 18)),
                         const Text(
                           'Devices',
                           style: TextStyle(
@@ -265,13 +241,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   const Padding(
                     padding: EdgeInsets.all(8.0),
                     child: Text(
-                        "With cross-device sync everything is updated across Android and Windows—just log in and pick up where you left off!",
+                        "With cross-device sync everything is updated across all your devices—just log in and pick up where you left off!",
                         textAlign: TextAlign.center),
                   ),
                   const Padding(
                     padding: EdgeInsets.all(8.0),
                     child: Text(
-                      "*Windows client will be available in a future update.",
+                      "*Other plaforms will be available soon.",
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
@@ -293,14 +269,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       alignment: WrapAlignment.center,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Text('Never',
-                            style: TextStyle(
-                                fontSize: 18,
-                                color: Theme.of(context).primaryColorDark)),
-                        Text(' miss a ',
-                            style: TextStyle(
-                                fontSize: 18,
-                                color: Theme.of(context).primaryColorDark)),
+                        Text('Never', style: TextStyle(fontSize: 18)),
+                        Text(' miss a ', style: TextStyle(fontSize: 18)),
                         const Text(
                           'Task',
                           style: TextStyle(
@@ -315,10 +285,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        Text(' or a ',
-                            style: TextStyle(
-                                fontSize: 18,
-                                color: Theme.of(context).primaryColorDark)),
+                        Text(' or a ', style: TextStyle(fontSize: 18)),
                         const Text(
                           'Deadline',
                           style: TextStyle(
@@ -345,7 +312,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   const Padding(
                     padding: EdgeInsets.all(6.0),
                     child: Text(
-                      "Bloom needs permission to send you notifications.",
+                      "Bloom needs few permissions to function as intended",
                       textAlign: TextAlign.center,
                       style: TextStyle(fontWeight: FontWeight.w500),
                     ),
@@ -364,7 +331,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         width: 8,
                       ),
                       Text(
-                        "To remind you of your Tasks.",
+                        "To remind you of your Tasks",
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -384,7 +351,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         width: 8,
                       ),
                       Text(
-                        "To remind you of your Events.",
+                        "To remind you of your Events",
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -397,9 +364,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        Icons.more_horiz_rounded,
-                        color: Theme.of(context).primaryColor,
+                        Icons.download,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
+                      SizedBox(
+                        width: 8,
+                      ),
+                      Text(
+                        "To Download and Update automatically",
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 68.0),
+                    child: Divider(),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.more_horiz_rounded),
                       SizedBox(
                         width: 8,
                       ),
@@ -433,18 +417,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   year2023: false,
                   stopIndicatorColor: Colors.transparent,
                   value: value,
-                  borderRadius: BorderRadius.circular(15),
-                  color: Theme.of(context).primaryColor,
-                  backgroundColor: Theme.of(context).primaryColorLight,
                 ),
               ),
             ),
-            ElevatedButton(
+            FilledButton(
               onPressed: () async {
                 if (currentPage == 4) {
                   try {
-                    // Request for notification permission
-                    final bool granted = await NotificationService.init();
+                    // Request for notification and storage permission
+                    bool granted;
+                    // FIXME: CHECK IF THIS ACTUALLY WORKS AND SENDS NOTIFICATIONS ON WEB
+                    if (!kIsWeb) {
+                      granted = await NotificationService.init() &&
+                          await StoragePermission.init();
+                    } else {
+                      granted = true;
+                    }
                     if (granted) {
                       setState(() {
                         page = 2.0;
@@ -454,16 +442,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           margin: const EdgeInsets.all(6),
                           behavior: SnackBarBehavior.floating,
                           showCloseIcon: true,
-                          backgroundColor: Theme.of(context).primaryColor,
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12)),
                           content: Text(
-                            'Notification access denied. You will not receive any reminders.',
-                            style: TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.color),
+                            'Permission access denied. Bloom might not run as expected.',
                           )));
                     }
                     // Navigate to Login screen after requesting
@@ -480,11 +462,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       curve: Curves.easeIn);
                 }
               },
-              child: Text(
-                currentPage == 4 ? 'Grant permission' : 'Next',
-                style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyMedium?.color),
-              ),
+              child: Text(currentPage == 4 ? 'Grant permission' : 'Next'),
             )
           ],
         ),

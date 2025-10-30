@@ -6,7 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class CalendarViewScreen extends StatefulWidget {
-  const CalendarViewScreen({super.key});
+  final DateTime initialDay;
+  const CalendarViewScreen({super.key, required this.initialDay});
 
   @override
   State<CalendarViewScreen> createState() => _CalendarViewScreenState();
@@ -33,7 +34,7 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
   @override
   void initState() {
     super.initState();
-    selectedDateNotifier = ValueNotifier<DateTime>(DateTime.now());
+    selectedDateNotifier = ValueNotifier<DateTime>(widget.initialDay);
     loadAllEvents(); // Call the loadAllEvents method to load them when the page is shown
     loadColorPreferences();
   }
@@ -163,7 +164,6 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(toolbarHeight: 0),
       body: Padding(
         padding: MediaQuery.of(context).size.width < mobileWidth
             ? const EdgeInsets.all(0)
@@ -173,7 +173,8 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
             builder: (context, date, _) {
               return DayView(
                 controller: calendarViewEventController,
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                showHalfHours: true,
                 headerStyle: HeaderStyle(
                     decoration: BoxDecoration(
                         color: Theme.of(context).appBarTheme.backgroundColor),
@@ -188,15 +189,8 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
                       },
                     ),
                     titleAlign: TextAlign.left,
-                    headerTextStyle: TextStyle(
-                        fontWeight: Theme.of(context)
-                            .appBarTheme
-                            .titleTextStyle!
-                            .fontWeight,
-                        fontSize: Theme.of(context)
-                            .appBarTheme
-                            .titleTextStyle!
-                            .fontSize),
+                    headerTextStyle:
+                        TextStyle(fontWeight: FontWeight.w500, fontSize: 18),
                     rightIconConfig: IconDataConfig(
                       icon: (context) {
                         return Row(
@@ -210,9 +204,6 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
                                     minWidth: 28,
                                     maxHeight: 28,
                                     maxWidth: 28),
-                                color: Theme.of(context).primaryColor,
-                                backgroundColor:
-                                    Theme.of(context).primaryColorLight,
                               ),
                             // Button for more options
                             // PopupMenuButton(
@@ -268,6 +259,8 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
                         ),
                         child: Text(
                           title,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
                           style: TextStyle(
                               color: Theme.of(context)
                                   .textTheme

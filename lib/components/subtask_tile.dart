@@ -96,22 +96,10 @@ class _SubTaskTileState extends State<SubTaskTile> {
                         borderRadius: BorderRadius.circular(12)),
                     content: Wrap(
                       children: [
-                        Text(
-                          'Deleted: ',
-                          style: TextStyle(
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.color),
-                        ),
+                        Text('Deleted: '),
                         Text(
                           widget.taskTitle,
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.color),
+                          style: TextStyle(fontWeight: FontWeight.bold),
                           overflow: TextOverflow.ellipsis,
                         )
                       ],
@@ -123,10 +111,7 @@ class _SubTaskTileState extends State<SubTaskTile> {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                     color: Colors.red, borderRadius: BorderRadius.circular(8)),
-                child: Icon(
-                  Icons.delete_rounded,
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                ),
+                child: Icon(Icons.delete_rounded),
               ),
             ),
           ),
@@ -216,9 +201,8 @@ class _SubTaskTileState extends State<SubTaskTile> {
                         : widget.priorityLevel == 2
                             ? Colors.amber
                             : Colors.blue,
-                checkColor: Theme.of(context).scaffoldBackgroundColor,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(100)),
+                    borderRadius: BorderRadius.circular(4)),
               ),
               const SizedBox(
                 width: 4,

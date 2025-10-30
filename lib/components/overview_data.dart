@@ -9,28 +9,37 @@ class TaskData extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 70,
-      width: 70,
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          color: Theme.of(context).primaryColorLight),
+    return Card(
+      color: Theme.of(context).colorScheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         borderRadius: BorderRadius.circular(15),
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
             builder: (context) => const GoalsScreen(
                   tabIndex: 0,
                 ))),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              numberOfTasks == null ? "0" : "$numberOfTasks",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w400),
-            ),
-            Text('Pending')
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                numberOfTasks == null ? "0" : "$numberOfTasks",
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              Text('Pending',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.8),
+                      ))
+            ],
+          ),
         ),
       ),
     );
@@ -43,28 +52,37 @@ class HabitData extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 70,
-      width: 70,
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          color: Theme.of(context).primaryColorLight),
+    return Card(
+      color: Theme.of(context).colorScheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         borderRadius: BorderRadius.circular(15),
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
             builder: (context) => const GoalsScreen(
                   tabIndex: 1,
                 ))),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              "$numberOfHabits",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w400),
-            ),
-            Text('Habits')
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                "$numberOfHabits",
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              Text('Habits',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.8),
+                      ))
+            ],
+          ),
         ),
       ),
     );
@@ -78,28 +96,37 @@ class SchedulesData extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 70,
-      width: 70,
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          color: Theme.of(context).primaryColorLight),
+    return Card(
+      color: Theme.of(context).colorScheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         borderRadius: BorderRadius.circular(15),
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
             builder: (context) => const GoalsScreen(
                   tabIndex: 2,
                 ))),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              numberOfSchedules == null ? "0" : "$numberOfSchedules",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w400),
-            ),
-            Text('Events')
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                numberOfSchedules == null ? "0" : "$numberOfSchedules",
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              Text('Events',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.8),
+                      ))
+            ],
+          ),
         ),
       ),
     );
@@ -112,25 +139,67 @@ class EntriesData extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 70,
-      width: 70,
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          color: Theme.of(context).primaryColorLight),
+    return Card(
+      color: Theme.of(context).colorScheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         borderRadius: BorderRadius.circular(15),
         onTap: () => Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => const EntriesScreen())),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                "$numberOfEntries",
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              Text('Entries',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.8),
+                      ))
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class NumberOfEntries extends StatelessWidget {
+  final int? numberOfEntries;
+
+  const NumberOfEntries({super.key, this.numberOfEntries});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Theme.of(context).colorScheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "$numberOfEntries",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w400),
+              numberOfEntries == 0 ? "..." : "$numberOfEntries",
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
-            Text('Entries')
+            Text(
+              numberOfEntries == 1 ? "Entry made" : "Entries made",
+              style: TextStyle(color: Colors.grey),
+            ),
           ],
         ),
       ),
@@ -138,104 +207,68 @@ class EntriesData extends StatelessWidget {
   }
 }
 
-class NumberOfEntriesInYear extends StatelessWidget {
-  final int? numberOfEntriesInYear;
+class NumberOfTasks extends StatelessWidget {
+  final int? completedTasks;
 
-  const NumberOfEntriesInYear({super.key, this.numberOfEntriesInYear});
+  const NumberOfTasks({super.key, this.completedTasks});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    return Card(
+      color: Theme.of(context).colorScheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(
-              Icons.book_rounded,
-              color: Colors.indigo,
-              size: 16,
+            Text(
+              completedTasks == 0 ? "..." : "$completedTasks",
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             Text(
-              "$numberOfEntriesInYear/Year",
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-              ),
+              "Tasks Checked",
+              style: TextStyle(color: Colors.grey),
             ),
           ],
         ),
-        Text(
-          numberOfEntriesInYear == 1 ? "Entry made" : "Entries made",
-          style: TextStyle(color: Colors.grey[700], fontSize: 12),
-        ),
-      ],
+      ),
     );
   }
 }
 
-class NumberOfTasksInYear extends StatelessWidget {
-  final int? completedTasksInYear;
+class NumberOfEvents extends StatelessWidget {
+  final int? attendedEvents;
 
-  const NumberOfTasksInYear({super.key, this.completedTasksInYear});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Icon(
-              Icons.check_circle_rounded,
-              color: Colors.green,
-              size: 16,
-            ),
-            Text(
-              "$completedTasksInYear/Year",
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        Text(
-          "Tasks Checked",
-          style: TextStyle(color: Colors.grey[700], fontSize: 12),
-        ),
-      ],
-    );
-  }
-}
-
-class NumberOfEventsInYear extends StatelessWidget {
-  final int? attendedEventsInYear;
-
-  const NumberOfEventsInYear({super.key, this.attendedEventsInYear});
+  const NumberOfEvents({super.key, this.attendedEvents});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    return Card(
+      color: Theme.of(context).colorScheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(
-              Icons.calendar_month_rounded,
-              color: Colors.red,
-              size: 16,
+            Text(
+              attendedEvents == 0 ? "..." : "$attendedEvents",
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             Text(
-              "$attendedEventsInYear/Year",
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-              ),
+              "Events Attended",
+              style: TextStyle(color: Colors.grey),
             ),
           ],
         ),
-        Text(
-          "Events Attended",
-          style: TextStyle(color: Colors.grey[700], fontSize: 12),
-        ),
-      ],
+      ),
     );
   }
 }

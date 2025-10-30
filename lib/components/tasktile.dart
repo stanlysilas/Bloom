@@ -25,6 +25,7 @@ class TaskTile extends StatefulWidget {
   final String taskMode;
   final EdgeInsetsGeometry? innerPadding;
   final BoxDecoration? decoration;
+  final BorderRadius? borderRadius;
   TaskTile({
     super.key,
     required this.taskTitle,
@@ -41,6 +42,7 @@ class TaskTile extends StatefulWidget {
     required this.taskMode,
     this.innerPadding,
     this.decoration,
+    this.borderRadius,
   });
 
   @override
@@ -79,6 +81,7 @@ class _TaskTileState extends State<TaskTile> {
   @override
   Widget build(BuildContext context) {
     return Slidable(
+      closeOnScroll: true,
       endActionPane: ActionPane(
         motion: const ScrollMotion(),
         children: [
@@ -145,121 +148,148 @@ class _TaskTileState extends State<TaskTile> {
           ),
         ],
       ),
-      child: InkWell(
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => ShowTaskDetailsScreen(
-              isCompleted: widget.isCompleted,
-              taskTitle: widget.taskTitle,
-              taskNotes: widget.taskNotes,
-              taskId: widget.taskId,
-              taskUniqueId: widget.taskUniqueId,
-              taskGroup: widget.taskGroup,
-              taskGroups: widget.taskGroups,
-              taskDateTime: widget.taskDateTime,
-              priorityLevel: widget.priorityLevel,
-              addedOn: widget.addedOn,
-              priorityLevelString: widget.priorityLevelString,
-              taskMode: widget.taskMode,
+      child: Material(
+        borderRadius: widget.borderRadius ?? BorderRadius.circular(0),
+        child: InkWell(
+          borderRadius: widget.borderRadius ?? BorderRadius.circular(0),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => ShowTaskDetailsScreen(
+                isCompleted: widget.isCompleted,
+                taskTitle: widget.taskTitle,
+                taskNotes: widget.taskNotes,
+                taskId: widget.taskId,
+                taskUniqueId: widget.taskUniqueId,
+                taskGroup: widget.taskGroup,
+                taskGroups: widget.taskGroups,
+                taskDateTime: widget.taskDateTime,
+                priorityLevel: widget.priorityLevel,
+                addedOn: widget.addedOn,
+                priorityLevelString: widget.priorityLevelString,
+                taskMode: widget.taskMode,
+              ),
             ),
           ),
-        ),
-        child: Container(
-          padding: widget.innerPadding ?? const EdgeInsets.all(0),
-          decoration: widget.decoration ?? BoxDecoration(),
-          child: Row(
-            children: [
-              // Checkbox for the task
-              Checkbox(
-                value: widget.isCompleted,
-                onChanged: (newValue) async {
-                  setState(() {
-                    // Delay the task removal
-                    Future.delayed(const Duration(milliseconds: 1000),
-                        () async {
-                      final updateData = {'isCompleted': newValue};
-                      updateTask(
-                          _documentReference, updateData['isCompleted']!);
+          child: Container(
+            padding: widget.innerPadding ?? const EdgeInsets.all(0),
+            decoration: widget.decoration ?? BoxDecoration(),
+            child: Row(
+              children: [
+                // Checkbox for the task
+                Checkbox(
+                  value: widget.isCompleted,
+                  onChanged: (newValue) async {
+                    setState(() {
+                      // Delay the task removal
+                      Future.delayed(const Duration(milliseconds: 1000),
+                          () async {
+                        final updateData = {'isCompleted': newValue};
+                        updateTask(
+                            _documentReference, updateData['isCompleted']!);
 
-                      if (newValue == true) {
-                        player.setVolume(1);
-                        await player
-                            .play(AssetSource('audio/task_completed.mp3'));
-                        NotificationService.cancelNotification(
-                            widget.taskUniqueId);
-                      }
+                        if (newValue == true) {
+                          player.setVolume(1);
+                          await player
+                              .play(AssetSource('audio/task_completed.mp3'));
+                          NotificationService.cancelNotification(
+                              widget.taskUniqueId);
+                        }
+                      });
+                      widget.isCompleted =
+                          newValue!; // Update local state (optional)
                     });
-                    widget.isCompleted =
-                        newValue!; // Update local state (optional)
-                  });
-                  if (widget.isCompleted) {
-                    // Generate a date from the task date
-                    final taskCompletedDate = DateTime(
-                        widget.taskDateTime.year,
-                        widget.taskDateTime.month,
-                        widget.taskDateTime.day,
-                        0,
-                        0,
-                        0);
-                    // Save the reference to only the date of this task in a streaks collections in users collection
-                    await FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(userId)
-                        .collection('streaks')
-                        .doc('streaks')
-                        .set({
-                      'tasksCompletedDates':
-                          FieldValue.arrayUnion([taskCompletedDate]),
-                    }, SetOptions(merge: true));
-                  }
-                },
-                side: BorderSide(
-                    color: widget.priorityLevel == 0
-                        ? Theme.of(context).iconTheme.color!
-                        : widget.priorityLevel == 1
-                            ? Colors.red
-                            : widget.priorityLevel == 2
-                                ? Colors.amber
-                                : Colors.blue),
-                activeColor: widget.priorityLevel == 0
-                    ? Theme.of(context).iconTheme.color
-                    : widget.priorityLevel == 1
-                        ? Colors.red
-                        : widget.priorityLevel == 2
-                            ? Colors.amber
-                            : Colors.blue,
-                checkColor: Theme.of(context).scaffoldBackgroundColor,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(100)),
-              ),
-              const SizedBox(
-                width: 4,
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.taskTitle,
-                      maxLines: 1,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 16,
-                        overflow: TextOverflow.ellipsis,
-                        decoration: widget.isCompleted
-                            ? TextDecoration.lineThrough
-                            : TextDecoration.none,
-                        decorationStyle: TextDecorationStyle.solid,
-                        decorationThickness: 3,
-                      ),
-                    ),
-                    if (widget.taskGroup != '')
+                    if (widget.isCompleted) {
+                      // Generate a date from the task date
+                      final taskCompletedDate = DateTime(
+                          widget.taskDateTime.year,
+                          widget.taskDateTime.month,
+                          widget.taskDateTime.day,
+                          0,
+                          0,
+                          0);
+                      // Save the reference to only the date of this task in a streaks collections in users collection
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(userId)
+                          .collection('streaks')
+                          .doc('streaks')
+                          .set({
+                        'tasksCompletedDates':
+                            FieldValue.arrayUnion([taskCompletedDate]),
+                      }, SetOptions(merge: true));
+                    }
+                  },
+                  side: BorderSide(
+                      color: widget.priorityLevel == 0
+                          ? Theme.of(context).iconTheme.color!
+                          : widget.priorityLevel == 1
+                              ? Colors.red
+                              : widget.priorityLevel == 2
+                                  ? Colors.amber
+                                  : Colors.blue),
+                  activeColor: widget.priorityLevel == 0
+                      ? Theme.of(context).iconTheme.color
+                      : widget.priorityLevel == 1
+                          ? Colors.red
+                          : widget.priorityLevel == 2
+                              ? Colors.amber
+                              : Colors.blue,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4)),
+                ),
+                const SizedBox(
+                  width: 4,
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        widget.taskGroup,
+                        widget.taskTitle,
                         maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 18,
+                          overflow: TextOverflow.ellipsis,
+                          decoration: widget.isCompleted
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
+                          decorationStyle: TextDecorationStyle.solid,
+                          decorationThickness: 3,
+                        ),
                       ),
+                      if (widget.taskGroup != '')
+                        Text(
+                          widget.taskGroup,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      widget.taskDateTime.isBefore(
+                                DateTime(
+                                  now.year,
+                                  now.month,
+                                  now.day,
+                                  now.hour,
+                                  now.minute - 1,
+                                  now.second,
+                                ),
+                              ) &&
+                              widget.isCompleted == false
+                          ? const Text(
+                              'Overdue',
+                              style: TextStyle(
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 12),
+                            )
+                          : const SizedBox()
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
                     widget.taskDateTime.isBefore(
                               DateTime(
                                 now.year,
@@ -271,67 +301,43 @@ class _TaskTileState extends State<TaskTile> {
                               ),
                             ) &&
                             widget.isCompleted == false
-                        ? const Text(
-                            'Overdue',
-                            style: TextStyle(
-                                color: Colors.red,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 12),
+                        ? Text(
+                            DateFormat.MEd().format(widget.taskDateTime),
+                            style: const TextStyle(
+                                color: Colors.red, fontWeight: FontWeight.w500),
                           )
-                        : const SizedBox()
+                        : Text(
+                            DateFormat.MEd().format(widget.taskDateTime),
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                    widget.taskDateTime.isBefore(
+                              DateTime(
+                                now.year,
+                                now.month,
+                                now.day,
+                                now.hour,
+                                now.minute - 1,
+                                now.second,
+                              ),
+                            ) &&
+                            widget.isCompleted == false
+                        ? Text(
+                            DateFormat('h:mm a').format(widget.taskDateTime),
+                            maxLines: 1,
+                            style: const TextStyle(
+                                color: Colors.red, fontWeight: FontWeight.w500),
+                            overflow: TextOverflow.ellipsis,
+                          )
+                        : Text(
+                            DateFormat('h:mm a').format(widget.taskDateTime),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: Colors.grey),
+                          ),
                   ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  widget.taskDateTime.isBefore(
-                            DateTime(
-                              now.year,
-                              now.month,
-                              now.day,
-                              now.hour,
-                              now.minute - 1,
-                              now.second,
-                            ),
-                          ) &&
-                          widget.isCompleted == false
-                      ? Text(
-                          DateFormat.MEd().format(widget.taskDateTime),
-                          style: const TextStyle(
-                              color: Colors.red, fontWeight: FontWeight.w500),
-                        )
-                      : Text(
-                          DateFormat.MEd().format(widget.taskDateTime),
-                          style: const TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                  widget.taskDateTime.isBefore(
-                            DateTime(
-                              now.year,
-                              now.month,
-                              now.day,
-                              now.hour,
-                              now.minute - 1,
-                              now.second,
-                            ),
-                          ) &&
-                          widget.isCompleted == false
-                      ? Text(
-                          DateFormat('h:mm a').format(widget.taskDateTime),
-                          maxLines: 1,
-                          style: const TextStyle(
-                              color: Colors.red, fontWeight: FontWeight.w500),
-                          overflow: TextOverflow.ellipsis,
-                        )
-                      : Text(
-                          DateFormat('h:mm a').format(widget.taskDateTime),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                ],
-              )
-            ],
+                )
+              ],
+            ),
           ),
         ),
       ),

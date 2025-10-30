@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.2.1+16
+version: 2.2.3+19
 
 environment:
   sdk: '>=3.4.1 <4.0.0'
@@ -34,32 +34,36 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
+  app_installer: ^1.3.1
   audioplayers: ^6.1.0
   bitsdojo_window: ^0.1.6
   calendar_view: ^1.2.0
-  cloud_firestore: ^5.6.2
+  cloud_firestore: ^6.0.3
   contextual_menu: ^0.1.2
   cupertino_icons: ^1.0.6
   desktop_context_menu: ^0.1.1
+  device_info_plus: ^12.1.0
+  dynamic_color: ^1.8.1
   emoji_picker_flutter: ^4.3.0
   feedback: ^3.1.0
-  firebase_ai: ^2.1.0
-  firebase_auth: ^5.4.1
-  firebase_core: ^3.10.1
-  firebase_messaging: ^15.2.1
-  firebase_ui_firestore: ^1.6.3
-  firebase_ui_oauth_google: ^1.3.2
+  firebase_ai: ^3.4.0
+  firebase_auth: ^6.1.1
+  firebase_core: ^4.2.0
+  firebase_messaging: ^16.0.3
+  firebase_ui_firestore: ^2.0.0
+  firebase_ui_oauth_google: ^2.0.0
   fl_chart: ^1.0.0
   fluent_ui: ^4.11.2
   flutter_acrylic: ^1.1.4
   flutter_animate: ^4.5.0
   flutter_background_service: ^5.1.0
   flutter_colorpicker: ^1.1.0
-  flutter_email_sender: ^7.0.0
+  flutter_email_sender: ^8.0.0
   flutter_heatmap_calendar: ^1.0.5
   flutter_local_notifications: ^19.2.1
   flutter_native_splash: ^2.4.1
   flutter_slidable: ^4.0.0
+  flutter_svg: ^2.2.1
   flutter_quill: ^11.4.1
   flutter_quill_to_pdf: ^2.3.7
   google_mobile_ads: ^6.0.0
@@ -67,15 +71,19 @@ dependencies:
   hive_ce: ^2.8.0+3
   hive_ce_flutter: ^2.2.0
   # home_widget: ^0.7.0
+  http: ^1.5.0
   # iconsax: ^0.0.8
+  # install_plugin: ^2.1.0
   in_app_purchase: ^3.2.3
   intl: ^0.20.2
-  local_auth: ^2.3.0
+  local_auth: ^3.0.0
   lottie: ^3.3.1
+  package_info_plus: ^9.0.0
+  path_provider: ^2.1.5
   permission_handler: ^12.0.0+1
   provider: ^6.1.2
   redacted: ^1.0.13
-  share_plus: ^11.0.0
+  share_plus: ^12.0.1
   shared_preferences: ^2.2.3
   skeletonizer: ^2.0.1
   smooth_page_indicator: ^1.1.0
@@ -94,7 +102,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 # Flutter native splash
 flutter_native_splash:
@@ -113,7 +121,7 @@ flutter_native_splash:
   # of your splash screen to a solid color.  Use background_image to set the background of your
   # splash screen to a png image.  This is useful for gradients. The image will be stretch to the
   # size of the app. Only one parameter can be used, color and background_image cannot both be set.
-  color: "#FFFFFF"
+  color: "#F7F9FB"
   #background_image: "assets/background.png"
 
   # Optional parameters are listed below.  To enable a parameter, uncomment the line by removing
@@ -121,7 +129,7 @@ flutter_native_splash:
 
   # The image parameter allows you to specify an image used in the splash screen.  It must be a
   # png file and should be sized for 4x pixel density.
-  image: assets/splash_screen/default_splash_icon_light.png
+  image: assets/splash_screen/splashIconBloom.png
 
   # The branding property allows you to specify an image used as branding in the splash screen.
   # It must be a png file. It is supported for Android, iOS and the Web.  For Android 12,
@@ -140,9 +148,9 @@ flutter_native_splash:
   # parameters from above. If the image_dark parameter is specified, color_dark or
   # background_image_dark must be specified.  color_dark and background_image_dark cannot both be
   # set.
-  color_dark: "#1A1A1A"
+  color_dark: "#171A20"
   #background_image_dark: "assets/dark-background.png"
-  image_dark: assets/splash_screen/default_splash_icon_dark.png
+  image_dark: assets/splash_screen/splashIconBloom.png
   # branding_dark: assets/splash_screen/EverflowLogoAppBranding_Dark.png
 
   # From Android 12 onwards, the splash screen is handled differently than in previous versions.
@@ -156,13 +164,13 @@ flutter_native_splash:
     # 640 pixels in diameter.
     # App icon without an icon background: This should be 1152×1152 pixels, and fit within a circle
     # 768 pixels in diameter.
-    image: assets/splash_screen/default_splash_icon_light.png
+    image: assets/splash_screen/splashIconBloom.png
 
     # Splash screen background color.
-    color: "#FFFFFF"
+    color: "#F7F9FB"
 
     # App icon background color.
-    icon_background_color: "#FFFFFF"
+    # icon_background_color: "#92B4F4"
 
     # The branding property allows you to specify an image used as branding in the splash screen.
     # branding: assets/splash_screen/EverflowLogoAppBranding_Light.png
@@ -170,9 +178,9 @@ flutter_native_splash:
     # The image_dark, color_dark, icon_background_color_dark, and branding_dark set values that
     # apply when the device is in dark mode. If they are not specified, the app will use the
     # parameters from above.
-    image_dark: assets/splash_screen/default_splash_icon_dark.png
-    color_dark: "#1A1A1A"
-    icon_background_color_dark: "#1A1A1A"
+    image_dark: assets/splash_screen/splashIconBloom.png
+    color_dark: "#171A20"
+    # icon_background_color_dark: "#5E7CE2"
     # branding_dark: assets/splash_screen/EverflowLogoAppBranding_Dark.png
 
   # The android, ios and web parameters can be used to disable generating a splash screen on a given

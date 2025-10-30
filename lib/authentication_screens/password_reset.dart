@@ -20,14 +20,21 @@ class PasswordReset extends StatelessWidget {
       body: Padding(
         padding: EdgeInsets.symmetric(
             horizontal:
-                MediaQuery.of(context).size.width > mobileWidth ? 180 : 0),
+                MediaQuery.of(context).size.width > mobileWidth ? 250 : 14),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Instructions text widget
+            // Email field heading
             const Padding(
-              padding: EdgeInsets.all(14.0),
+              padding: EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
-                  "Enter your registered email and click on 'Get link' to get a password reset link."),
+                'Email',
+                textAlign: TextAlign.left,
+              ),
+            ),
+            const SizedBox(
+              height: 5,
             ),
             // Email text field
             Padding(
@@ -48,12 +55,33 @@ class PasswordReset extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(14.0),
               child: InkWell(
+                borderRadius: BorderRadius.circular(100),
                 onTap: () async {
                   // Logic to send password reset link to the entered email
                   try {
                     if (emailController.text.trim().isNotEmpty) {
                       await FirebaseAuth.instance.sendPasswordResetEmail(
                           email: emailController.text.trim());
+                      // Clear the email field and send a snackbar for acknowledgement
+                      emailController.clear();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          margin: const EdgeInsets.all(6),
+                          behavior: SnackBarBehavior.floating,
+                          showCloseIcon: true,
+                          backgroundColor: Theme.of(context).primaryColor,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          content: Text(
+                            'Password reset link has been sent to the above email address',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color:
+                                  Theme.of(context).textTheme.bodyMedium?.color,
+                            ),
+                          ),
+                        ),
+                      );
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
@@ -132,7 +160,26 @@ class PasswordReset extends StatelessWidget {
                   ),
                 ),
               ),
-            )
+            ),
+            // Some important information about the mail and password reset option that users should know about
+            Text(
+              'Steps:',
+              style: TextStyle(fontSize: 24),
+            ),
+            Text('• Enter your registered email'),
+            Text('• Click on Get link'),
+            Text(
+                '• An email with the password reset link will be sent to the entered email'),
+            Text('• Click on the link and enter your new password and save'),
+            Text(
+                '• Come back and login again with your email and new password'),
+            Text(
+              'Important:',
+              style: TextStyle(fontSize: 24),
+            ),
+            Text(
+                '• If you do not see any email in you Primary inbox, please check the Spam folder'),
+            Text('• The password reset link is absolutely safe to click on'),
           ],
         ),
       ),

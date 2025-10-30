@@ -56,7 +56,6 @@ class _RatingDialogState extends State<RatingDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog.adaptive(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       icon: Text(
         userRatingIcons[userRating - 1],
         textAlign: TextAlign.center,
@@ -64,10 +63,6 @@ class _RatingDialogState extends State<RatingDialog> {
       ),
       // Heading for rating
       title: Text('Rate Bloom'),
-      titleTextStyle: TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.w400,
-      ),
       content: SizedBox(
         height: 120,
         child: Column(
@@ -92,7 +87,7 @@ class _RatingDialogState extends State<RatingDialog> {
                         index < userRating
                             ? Icons.star_rate_rounded
                             : Icons.star_border_rounded,
-                        color: Colors.amber,
+                        color: Colors.amber.shade700,
                         size: 30,
                       ),
                     ),
@@ -107,7 +102,6 @@ class _RatingDialogState extends State<RatingDialog> {
           ],
         ),
       ),
-      contentTextStyle: TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
       actions: [
         // A submit button for submitting the feedback and rating
         TextButton(
@@ -131,8 +125,6 @@ class _RatingDialogState extends State<RatingDialog> {
           child: isSubmitting
               ? CircularProgressIndicator(
                   year2023: false,
-                  color: Theme.of(context).primaryColor,
-                  backgroundColor: Theme.of(context).primaryColorLight,
                 )
               : Text('Submit'),
         )

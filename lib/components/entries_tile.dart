@@ -9,6 +9,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
+import 'package:local_auth/local_auth.dart';
 
 class EntriesTile extends StatelessWidget {
   final String content;
@@ -31,6 +32,8 @@ class EntriesTile extends StatelessWidget {
   final bool? isTemplate;
   final String? templateType;
   final EdgeInsetsGeometry? innerPadding;
+  final BoxDecoration? decoration;
+  final BorderRadius? borderRadius;
   EntriesTile({
     super.key,
     required this.content,
@@ -53,6 +56,8 @@ class EntriesTile extends StatelessWidget {
     this.mainId,
     this.isTemplate,
     this.templateType,
+    this.decoration,
+    this.borderRadius,
   });
 
   // Required variables
@@ -65,7 +70,7 @@ class EntriesTile extends StatelessWidget {
     if (delta.length == 1 && delta.first.value == '\n') {
       return RichText(
         text: TextSpan(
-          text: '...',
+          text: title,
           style: textstyle,
         ),
         maxLines: 1,
@@ -128,28 +133,11 @@ class EntriesTile extends StatelessWidget {
                           margin: const EdgeInsets.all(6),
                           behavior: SnackBarBehavior.floating,
                           showCloseIcon: true,
-                          closeIconColor:
-                              Theme.of(context).textTheme.bodyMedium?.color,
-                          backgroundColor: Theme.of(context).primaryColor,
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12)),
                           content: favorited
-                              ? Text(
-                                  'Added to favorites',
-                                  style: TextStyle(
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.color),
-                                )
-                              : Text(
-                                  'Removed from favorites',
-                                  style: TextStyle(
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.color),
-                                ),
+                              ? Text('Added to favorites')
+                              : Text('Removed from favorites'),
                         ),
                       );
                     },
@@ -194,30 +182,12 @@ class EntriesTile extends StatelessWidget {
                           margin: const EdgeInsets.all(6),
                           behavior: SnackBarBehavior.floating,
                           showCloseIcon: true,
-                          closeIconColor:
-                              Theme.of(context).textTheme.bodyMedium?.color,
-                          backgroundColor: Theme.of(context).primaryColor,
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12)),
                           content: Wrap(
                             children: [
-                              Text(
-                                'Deleted: ',
-                                style: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.color),
-                              ),
-                              quillDeltaToRichText(
-                                  context,
-                                  TextStyle(
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.color,
-                                      overflow: TextOverflow.ellipsis,
-                                      fontFamily: 'Nunito'))
+                              Text('Deleted: '),
+                              quillDeltaToRichText(context, TextStyle())
                             ],
                           ),
                         ),
@@ -239,136 +209,164 @@ class EntriesTile extends StatelessWidget {
               ],
             )
           : null,
-      child: ListTile(
-        dense: true,
-        onTap: () async {
-          try {
-            // If the entry is a template then do not proceed to display it
-            if (isTemplate == false || isTemplate == null) {
-              // Check if the entry is locked or not and proceed to display if its not
-              if (isEntryLocked) {
-                final bool isAuthenticated = await checkForBiometrics(
-                    'Please authenticate to open this entry', context);
-                if (isAuthenticated) {
+      child: Material(
+        borderRadius: borderRadius ?? BorderRadius.circular(0),
+        child: InkWell(
+          borderRadius: borderRadius ?? BorderRadius.circular(0),
+          onTap: () async {
+            try {
+              // If the entry is a template then do not proceed to display it
+              if (isTemplate == false || isTemplate == null) {
+                // Check if the entry is locked or not and proceed to display if its not
+                if (isEntryLocked) {
+                  final bool isAuthenticated = await checkForBiometrics(
+                      'Please authenticate to open this entry', context);
+                  if (isAuthenticated) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => NoteLayout(
+                          description: content,
+                          title: title,
+                          noteId: id,
+                          emoji: emoji,
+                          backgroundImageUrl: backgroundImageUrl,
+                          attachments: [attachments],
+                          childNotes: [children],
+                          hasChildren: hasChildren,
+                          isFavorite: isFavorite,
+                          date: date,
+                          time: time ?? '',
+                          type: type,
+                          mode: NoteMode.display,
+                          isSynced: isSynced,
+                          dateTime: dateTime,
+                          isEntryLocked: isAuthenticated,
+                        ),
+                      ),
+                    );
+                  }
+                } else {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => NoteLayout(
                         description: content,
                         title: title,
                         noteId: id,
+                        mainId: mainId,
                         emoji: emoji,
                         backgroundImageUrl: backgroundImageUrl,
                         attachments: [attachments],
                         childNotes: [children],
                         hasChildren: hasChildren,
                         isFavorite: isFavorite,
+                        isTemplate: isTemplate,
+                        templateType: templateType,
                         date: date,
                         time: time ?? '',
                         type: type,
                         mode: NoteMode.display,
                         isSynced: isSynced,
                         dateTime: dateTime,
-                        isEntryLocked: isAuthenticated,
+                        isEntryLocked: isEntryLocked,
                       ),
                     ),
                   );
                 }
-              } else {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => NoteLayout(
-                      description: content,
-                      title: title,
-                      noteId: id,
-                      mainId: mainId,
-                      emoji: emoji,
-                      backgroundImageUrl: backgroundImageUrl,
-                      attachments: [attachments],
-                      childNotes: [children],
-                      hasChildren: hasChildren,
-                      isFavorite: isFavorite,
-                      isTemplate: isTemplate,
-                      templateType: templateType,
-                      date: date,
-                      time: time ?? '',
-                      type: type,
-                      mode: NoteMode.display,
-                      isSynced: isSynced,
-                      dateTime: dateTime,
-                      isEntryLocked: isEntryLocked,
-                    ),
-                  ),
-                );
+              }
+            } on LocalAuthException catch (e) {
+              if (e.code == LocalAuthExceptionCode.noCredentialsSet) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    margin: const EdgeInsets.all(6),
+                    behavior: SnackBarBehavior.floating,
+                    showCloseIcon: true,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    content: Text(
+                        'Set a screen lock to the device to unlock this entry.')));
               }
             }
-          } catch (e) {
-            //
-          }
-        },
-        contentPadding: innerPadding ?? const EdgeInsets.all(0),
-        leading: emoji.isNotEmpty
-            ? Padding(
-                padding: const EdgeInsets.all(0),
-                child: Container(
-                    padding: const EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: Theme.of(context).primaryColorLight),
-                    child: isEntryLocked
-                        ? Icon(
-                            Icons.lock_rounded,
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color,
-                          )
-                        : Text(
-                            emoji,
-                            style: TextStyle(fontSize: 19),
-                          )),
-              )
-            : Padding(
-                padding: const EdgeInsets.all(0),
-                child: Container(
-                    padding: const EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: Theme.of(context).primaryColorLight),
-                    child: Icon(
-                      Icons.note_add_rounded,
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
-                    )),
-              ),
-        title: Text(
-          title.isEmpty ? 'Untitled' : title,
-          maxLines: 1,
-          style: TextStyle(
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-              fontSize: 16,
-              overflow: TextOverflow.ellipsis,
-              fontWeight: FontWeight.w500),
-        ),
-        subtitle: quillDeltaToRichText(
-            context,
-            TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-                overflow: TextOverflow.ellipsis,
-                fontFamily: 'Nunito')),
-        trailing: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            // Date and time of the entry
-            Text(
-              DateFormat.MEd().format(addedOn),
-              overflow: TextOverflow.ellipsis,
+          },
+          child: Container(
+            decoration: decoration ?? BoxDecoration(),
+            padding: innerPadding ?? const EdgeInsets.all(0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              spacing: 6,
+              children: [
+                emoji.isNotEmpty
+                    ? Container(
+                        padding: const EdgeInsets.all(10.0),
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .secondaryContainer),
+                        child: isEntryLocked
+                            ? Icon(
+                                Icons.lock_rounded,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSecondaryContainer,
+                              )
+                            : Text(
+                                emoji,
+                                style: TextStyle(fontSize: 20),
+                              ))
+                    : Container(
+                        padding: const EdgeInsets.all(10.0),
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .secondaryContainer),
+                        child: Icon(
+                          Icons.note_add_rounded,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSecondaryContainer,
+                        )),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        title.isEmpty ? 'Untitled' : title,
+                        maxLines: 1,
+                        style: TextStyle(
+                            fontSize: 18,
+                            overflow: TextOverflow.ellipsis,
+                            fontWeight: FontWeight.w500),
+                      ),
+                      quillDeltaToRichText(
+                          context,
+                          TextStyle(
+                              color: Colors.grey,
+                              overflow: TextOverflow.ellipsis,
+                              fontFamily: 'Nunito'))
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    // Date and time of the entry
+                    Text(
+                      DateFormat.MEd().format(addedOn),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      DateFormat('h:mm a').format(addedOn),
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                )
+              ],
             ),
-            Text(
-              DateFormat('h:mm a').format(addedOn),
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
+          ),
         ),
-        leadingAndTrailingTextStyle:
-            TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
       ),
     ).animate().fade(delay: const Duration(milliseconds: 50));
   }

@@ -59,6 +59,7 @@ class _TaskstabviewState extends State<Taskstabview> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
+        physics: NeverScrollableScrollPhysics(),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,19 +74,17 @@ class _TaskstabviewState extends State<Taskstabview> {
                     backgroundColor: sortValue != 'Recent tasks' ||
                             completedSortValue != 'Incomplete' ||
                             priorityLevel != 'High to Low'
-                        ? Theme.of(context).primaryColorLight
-                        : Theme.of(context).primaryColor,
+                        ? Theme.of(context).colorScheme.surfaceContainer
+                        : Theme.of(context).colorScheme.secondaryContainer,
                     side: BorderSide.none,
                     labelStyle: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                        color:
+                            Theme.of(context).colorScheme.onSecondaryContainer,
                         fontSize: 14,
                         fontWeight: FontWeight.w500),
                     iconTheme: IconThemeData(
-                        color: sortValue != 'Recent tasks' ||
-                                completedSortValue != 'Incomplete' ||
-                                priorityLevel != 'High to Low'
-                            ? Theme.of(context).primaryColor
-                            : Theme.of(context).textTheme.bodyMedium?.color),
+                        color:
+                            Theme.of(context).colorScheme.onSecondaryContainer),
                     onPressed: () {
                       setState(() {
                         sortValue = 'Recent tasks';
@@ -105,19 +104,17 @@ class _TaskstabviewState extends State<Taskstabview> {
                     backgroundColor: sortValue != 'Recent tasks' ||
                             completedSortValue != 'Incomplete' ||
                             priorityLevel != 'High to Low'
-                        ? Theme.of(context).primaryColor
-                        : Theme.of(context).primaryColorLight,
+                        ? Theme.of(context).colorScheme.secondaryContainer
+                        : Theme.of(context).colorScheme.surfaceContainer,
                     side: BorderSide.none,
                     labelStyle: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                        color:
+                            Theme.of(context).colorScheme.onSecondaryContainer,
                         fontSize: 14,
                         fontWeight: FontWeight.w500),
                     iconTheme: IconThemeData(
-                        color: sortValue != 'Recent tasks' ||
-                                completedSortValue != 'Incomplete' ||
-                                priorityLevel != 'High to Low'
-                            ? Theme.of(context).textTheme.bodyMedium?.color
-                            : Theme.of(context).primaryColor),
+                        color:
+                            Theme.of(context).colorScheme.onSecondaryContainer),
                     onPressed: () {
                       // Functionality to show the filter and other options as a modal bottom sheet
                       showAdaptiveDialog(
@@ -127,8 +124,6 @@ class _TaskstabviewState extends State<Taskstabview> {
                               backgroundColor:
                                   Theme.of(context).scaffoldBackgroundColor,
                               title: const Text('Filters'),
-                              titleTextStyle: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.w500),
                               contentPadding: EdgeInsets.symmetric(
                                   horizontal: 0, vertical: 8),
                               content: StatefulBuilder(builder:
@@ -423,7 +418,7 @@ class _TaskstabviewState extends State<Taskstabview> {
                                     Navigator.of(context).pop();
                                     return;
                                   },
-                                  child: Text('Cancel'),
+                                  child: Text('Close'),
                                 ),
                               ],
                             );
@@ -477,15 +472,15 @@ class _TaskstabviewState extends State<Taskstabview> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Image(
-                              height: 200,
-                              width: 200,
+                              height: 250,
+                              width: 250,
                               image: AssetImage(
                                   'assets/images/allCompletedBackground.png'),
                             ),
                             Text(
                               'Hooray! Completed all your tasks',
                               style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.w500),
+                                  fontSize: 24, fontWeight: FontWeight.w500),
                               textAlign: TextAlign.center,
                             ),
                             SizedBox(
@@ -519,6 +514,7 @@ class _TaskstabviewState extends State<Taskstabview> {
                     child: ListView.builder(
                       scrollDirection: Axis.vertical,
                       itemCount: tasksList.length,
+                      physics: NeverScrollableScrollPhysics(),
                       itemBuilder: (context, index) {
                         DocumentSnapshot document = tasksList[index];
                         String taskId = document.id;

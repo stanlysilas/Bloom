@@ -64,21 +64,24 @@ class _GardenState extends State<Garden> {
                       ..rotateY(angleX),
                     alignment: FractionalOffset.center,
                     child: GestureDetector(
-                      onHorizontalDragUpdate: (details) {
-                        setState(() {
-                          dragPositionX += details.delta.dx;
-                          dragPositionX %= 360;
-                        });
-                      },
+                      // onHorizontalDragUpdate: (details) {
+                      //   setState(() {
+                      //     dragPositionX -= details.delta.dx;
+                      //     dragPositionX %= 360;
+                      //   });
+                      // },
                       onVerticalDragUpdate: (details) {
                         setState(() {
-                          dragPositionY += details.delta.dy;
+                          if (dragPositionY > -70 && dragPositionY < 0) {
+                            dragPositionY += details.delta.dy;
+                          }
+                          print(dragPositionY);
                           dragPositionX %= 360;
                         });
                       },
                       child: Container(
-                        height: 300,
-                        width: 300,
+                        height: 330,
+                        width: 330,
                         decoration: const BoxDecoration(
                             color: Colors.green,
                             border: Border(

@@ -1,6 +1,7 @@
 import 'package:bloom/authentication_screens/firebase_api.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/timezone.dart' as tz;
 
@@ -12,15 +13,18 @@ class NotificationService {
 
   // Check firebase for any app updates and send instant notification if yes
   static Future<void> checkForUpdates() async {
+    int buildNumberAndroid = 0;
+    final info = await PackageInfo.fromPlatform();
+    buildNumberAndroid = int.tryParse(info.buildNumber) ?? 0;
     FirebaseFirestore.instance
         .collection('appData')
         .doc('appData')
         .get()
         .then((value) {
-      if (value['latestAndroidVersion'] != '2.2.1') {
+      if (value.exists && value['buildNumberAndroid'] > buildNumberAndroid) {
         showInstantNotification(
             'Bloom has an update!',
-            'Version ${value['latestAndroidVersion']} is now available to download',
+            'Go to Settings > Info > About app > Download update to download and update Bloom',
             DateTime.now().millisecondsSinceEpoch.remainder(100000));
       }
     });

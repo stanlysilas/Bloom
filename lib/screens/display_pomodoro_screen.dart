@@ -38,7 +38,7 @@ class _DisplayPomodoroScreenState extends State<DisplayPomodoroScreen> {
   }
 
   // Banner ADs initialization method
-  initBannerAd() {
+  void initBannerAd() {
     bannerAd = BannerAd(
       size: AdSize.banner,
       adUnitId: "ca-app-pub-5607290715305671/4836853736",
@@ -128,10 +128,7 @@ class _DisplayPomodoroScreenState extends State<DisplayPomodoroScreen> {
         Provider.of<PomodoroTimerProvider>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Pomodoro',
-          style: TextStyle(fontWeight: FontWeight.w500),
-        ),
+        title: const Text('Pomodoro'),
         actions: [
           IconButton(
               onPressed: () {
@@ -177,7 +174,7 @@ class _DisplayPomodoroScreenState extends State<DisplayPomodoroScreen> {
                     daysOfWeekStyle: const DaysOfWeekStyle(
                         weekdayStyle: TextStyle(fontWeight: FontWeight.w500)),
                     calendarStyle: CalendarStyle(
-                      todayDecoration:  BoxDecoration(
+                      todayDecoration: BoxDecoration(
                         color: Theme.of(context).primaryColor,
                         shape: BoxShape.circle,
                       ),
@@ -254,16 +251,16 @@ class _DisplayPomodoroScreenState extends State<DisplayPomodoroScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Expanded(
-                                child: Image(
-                                  image: AssetImage(
-                                      'assets/images/allCompletedBackground.png'),
-                                ),
+                              Image(
+                                height: 250,
+                                width: 250,
+                                image: AssetImage(
+                                    'assets/images/pomodoroCompletedBackground.png'),
                               ),
                               Text(
-                                "Completed all your Pomodoro's",
+                                'Take a break',
                                 style: TextStyle(
-                                    fontWeight: FontWeight.w500, fontSize: 18),
+                                    fontWeight: FontWeight.w500, fontSize: 24),
                                 textAlign: TextAlign.center,
                               ),
                               SizedBox(
@@ -326,19 +323,20 @@ class _DisplayPomodoroScreenState extends State<DisplayPomodoroScreen> {
           ],
         ),
       ),
-      bottomNavigationBar:
-          // Display and AD in between the events tile and tasks tile (testing)
-          isAdLoaded
-              ? SizedBox(
-                  height: bannerAd.size.height.toDouble(),
-                  width: bannerAd.size.width.toDouble(),
-                  child: Center(child: AdWidget(ad: bannerAd)),
-                )
-              : const SizedBox(),
+      // bottomNavigationBar:
+      //     // Display and AD in between the events tile and tasks tile (testing)
+      //     isAdLoaded
+      //         ? SizedBox(
+      //             height: bannerAd.size.height.toDouble(),
+      //             width: bannerAd.size.width.toDouble(),
+      //             child: Center(child: AdWidget(ad: bannerAd)),
+      //           )
+      //         : const SizedBox(),
       // Add task floating button
-      floatingActionButton: InkWell(
-        borderRadius: BorderRadius.circular(100),
-        onTap: () {
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        onPressed: () {
           // Check if the platform is windows or android
           // And display a sheet if android and dialog if windows
           Platform.isWindows
@@ -346,8 +344,6 @@ class _DisplayPomodoroScreenState extends State<DisplayPomodoroScreen> {
                   context: context,
                   builder: (context) {
                     return Dialog(
-                      backgroundColor:
-                          Theme.of(context).scaffoldBackgroundColor,
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width / 2,
                         child: Column(
@@ -368,34 +364,13 @@ class _DisplayPomodoroScreenState extends State<DisplayPomodoroScreen> {
                   context: context,
                   isScrollControlled: true,
                   useSafeArea: true,
-                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                  constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width,
-                    maxHeight: MediaQuery.of(context).size.height,
-                  ),
                   builder: (BuildContext context) {
                     return AddPomodoro(currentDateTime: _focusedDay);
                   },
                   showDragHandle: true,
                 );
         },
-        child: Container(
-          height: 52,
-          width: 52,
-          decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
-              borderRadius: BorderRadius.circular(100)),
-          child: Icon(
-            Icons.add,
-            size: 25,
-            color: Theme.of(context).textTheme.bodyMedium?.color,
-          ),
-        ).animate().scaleXY(
-              curve: Curves.easeInOutBack,
-              duration: const Duration(
-                milliseconds: 800,
-              ),
-            ),
+        child: Icon(Icons.add),
       ),
     ).animate().fadeIn(
           duration: const Duration(milliseconds: 500),

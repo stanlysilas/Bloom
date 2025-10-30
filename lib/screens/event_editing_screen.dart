@@ -1,4 +1,4 @@
-import 'package:bloom/components/mybuttons.dart';
+import 'package:bloom/components/bloom_buttons.dart';
 import 'package:bloom/components/mytextfield.dart';
 import 'package:bloom/notifications/notification.dart';
 import 'package:bloom/responsive/dimensions.dart';
@@ -225,8 +225,8 @@ class _EventEditingScreenState extends State<EventEditingScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColorLight,
-                    borderRadius: BorderRadius.circular(10),
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -244,12 +244,11 @@ class _EventEditingScreenState extends State<EventEditingScreen> {
                             const Spacer(),
                             // Start Event date selection field
                             Flexible(
-                              child: ExtraOptionsButton(
+                              child: BloomMaterialListTile(
                                 outerPadding: const EdgeInsets.only(left: 14),
-                                decoration: BoxDecoration(
-                                    color: Theme.of(context)
-                                        .scaffoldBackgroundColor,
-                                    borderRadius: BorderRadius.circular(8)),
+                                color:
+                                    Theme.of(context).scaffoldBackgroundColor,
+                                borderRadius: BorderRadius.circular(8),
                                 label: DateFormat('dd-MM-yy').format(startDate),
                                 textAlign: TextAlign.center,
                                 onTap: () {
@@ -259,12 +258,11 @@ class _EventEditingScreenState extends State<EventEditingScreen> {
                             ),
                             // Start Event time selection field
                             Flexible(
-                              child: ExtraOptionsButton(
+                              child: BloomMaterialListTile(
                                 outerPadding: const EdgeInsets.only(left: 14),
-                                decoration: BoxDecoration(
-                                    color: Theme.of(context)
-                                        .scaffoldBackgroundColor,
-                                    borderRadius: BorderRadius.circular(8)),
+                                color:
+                                    Theme.of(context).scaffoldBackgroundColor,
+                                borderRadius: BorderRadius.circular(8),
                                 label: startTime.format(context),
                                 textAlign: TextAlign.center,
                                 onTap: () {
@@ -289,12 +287,11 @@ class _EventEditingScreenState extends State<EventEditingScreen> {
                             const Spacer(),
                             // End Event date selection field
                             Flexible(
-                              child: ExtraOptionsButton(
+                              child: BloomMaterialListTile(
                                 outerPadding: const EdgeInsets.only(left: 14),
-                                decoration: BoxDecoration(
-                                    color: Theme.of(context)
-                                        .scaffoldBackgroundColor,
-                                    borderRadius: BorderRadius.circular(8)),
+                                color:
+                                    Theme.of(context).scaffoldBackgroundColor,
+                                borderRadius: BorderRadius.circular(8),
                                 label: DateFormat('dd-MM-yy').format(endDate),
                                 onTap: () {
                                   selectDate(false);
@@ -304,12 +301,11 @@ class _EventEditingScreenState extends State<EventEditingScreen> {
                             ),
                             // End Event time selection field
                             Flexible(
-                              child: ExtraOptionsButton(
+                              child: BloomMaterialListTile(
                                 outerPadding: const EdgeInsets.only(left: 14),
-                                decoration: BoxDecoration(
-                                    color: Theme.of(context)
-                                        .scaffoldBackgroundColor,
-                                    borderRadius: BorderRadius.circular(8)),
+                                color:
+                                    Theme.of(context).scaffoldBackgroundColor,
+                                borderRadius: BorderRadius.circular(8),
                                 label: endTime.format(context),
                                 textAlign: TextAlign.center,
                                 onTap: () {
@@ -473,13 +469,13 @@ class _EventEditingScreenState extends State<EventEditingScreen> {
                     width: double.maxFinite,
                     padding: const EdgeInsets.all(15.0),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                      borderRadius: BorderRadius.circular(100),
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Center(
                       child: Text(
                         'Update event',
-                        style: TextStyle(fontSize: 16),
+                        style: TextStyle(fontSize: 18),
                       ),
                     ),
                   ),

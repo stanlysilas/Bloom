@@ -1,4 +1,4 @@
-import 'package:bloom/components/mybuttons.dart';
+import 'package:bloom/components/bloom_buttons.dart';
 import 'package:bloom/components/mytextfield.dart';
 import 'package:bloom/notifications/notification.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -206,8 +206,8 @@ class AddSubTaskModalState extends State<AddSubTaskModal> {
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColorLight,
-                borderRadius: BorderRadius.circular(10),
+                color: Theme.of(context).colorScheme.surfaceContainer,
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
                 children: [
@@ -220,10 +220,9 @@ class AddSubTaskModalState extends State<AddSubTaskModal> {
                       const Spacer(),
                       // Date picker
                       Flexible(
-                        child: ExtraOptionsButton(
-                          decoration: BoxDecoration(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              borderRadius: BorderRadius.circular(8)),
+                        child: BloomMaterialListTile(
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                          borderRadius: BorderRadius.circular(8),
                           label: DateFormat('dd-MM-yyyy').format(subTaskDate!),
                           textAlign: TextAlign.center,
                           onTap: selectDate,
@@ -241,10 +240,9 @@ class AddSubTaskModalState extends State<AddSubTaskModal> {
                       const Spacer(),
                       // Time picker
                       Flexible(
-                        child: ExtraOptionsButton(
-                          decoration: BoxDecoration(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              borderRadius: BorderRadius.circular(8)),
+                        child: BloomMaterialListTile(
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                          borderRadius: BorderRadius.circular(8),
                           label: _subTaskTime!.format(context),
                           textAlign: TextAlign.center,
                           onTap: selectTime,
@@ -465,16 +463,13 @@ class AddSubTaskModalState extends State<AddSubTaskModal> {
                 width: double.maxFinite,
                 padding: const EdgeInsets.all(15.0),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                  borderRadius: BorderRadius.circular(100),
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: Center(
                   child: Text(
                     'Create new subtask',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: Theme.of(context).textTheme.bodyMedium?.color),
+                    style: TextStyle(fontSize: 18),
                   ),
                 ),
               ),

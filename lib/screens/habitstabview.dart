@@ -16,6 +16,7 @@ class _HabitstabviewState extends State<Habitstabview> {
   // Required variables
   String sortValue = 'recent';
   final user = FirebaseAuth.instance.currentUser;
+  final List<String> daysOfWeek = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
   // Method to fetch habits
   Stream<QuerySnapshot> fetchHabits() {
     final day = DateTime.now();
@@ -29,14 +30,13 @@ class _HabitstabviewState extends State<Habitstabview> {
     // Apply completion filter (if not empty or null)
     if (sortValue == 'all') {
       query = query;
-    } 
+    }
     // else if (sortValue == 'recent') {
     //   query = query
     //       .orderBy('habitDateTime', descending: true);
-    // } 
+    // }
     else if (sortValue == 'oldest') {
-      query = query
-          .orderBy('habitDateTime', descending: false);
+      query = query.orderBy('habitDateTime', descending: false);
     } else if (sortValue == 'today') {
       query = query
           .where('habitDateTime', isGreaterThanOrEqualTo: dayStart)
@@ -57,24 +57,24 @@ class _HabitstabviewState extends State<Habitstabview> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
                 spacing: 8,
                 children: [
                   // Default sorting button
                   RawChip(
                     backgroundColor: sortValue != 'recent'
-                        ? Theme.of(context).primaryColorLight
-                        : Theme.of(context).primaryColor,
+                        ? Theme.of(context).colorScheme.surfaceVariant
+                        : Theme.of(context).colorScheme.secondaryContainer,
                     side: BorderSide.none,
                     labelStyle: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                        color:
+                            Theme.of(context).colorScheme.onSecondaryContainer,
                         fontSize: 14,
                         fontWeight: FontWeight.w500),
                     iconTheme: IconThemeData(
-                        color: sortValue != 'recent'
-                            ? Theme.of(context).primaryColor
-                            : Theme.of(context).textTheme.bodyMedium?.color),
+                        color:
+                            Theme.of(context).colorScheme.onSecondaryContainer),
                     onPressed: () {
                       setState(() {
                         sortValue = 'recent';
@@ -88,17 +88,17 @@ class _HabitstabviewState extends State<Habitstabview> {
                   // Custom filters button
                   RawChip(
                     backgroundColor: sortValue != 'recent'
-                        ? Theme.of(context).primaryColor
-                        : Theme.of(context).primaryColorLight,
+                        ? Theme.of(context).colorScheme.secondaryContainer
+                        : Theme.of(context).colorScheme.surfaceVariant,
                     side: BorderSide.none,
                     labelStyle: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                        color:
+                            Theme.of(context).colorScheme.onSecondaryContainer,
                         fontSize: 14,
                         fontWeight: FontWeight.w500),
                     iconTheme: IconThemeData(
-                        color: sortValue != 'recent'
-                            ? Theme.of(context).textTheme.bodyMedium?.color
-                            : Theme.of(context).primaryColor),
+                        color:
+                            Theme.of(context).colorScheme.onSecondaryContainer),
                     onPressed: () {
                       // Functionality to show the filter and other options as a modal bottom sheet
                       showAdaptiveDialog(
@@ -108,8 +108,6 @@ class _HabitstabviewState extends State<Habitstabview> {
                               backgroundColor:
                                   Theme.of(context).scaffoldBackgroundColor,
                               title: const Text('Filters'),
-                              titleTextStyle: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.w500),
                               contentPadding: EdgeInsets.symmetric(
                                   horizontal: 0, vertical: 8),
                               content: StatefulBuilder(builder:
@@ -282,7 +280,7 @@ class _HabitstabviewState extends State<Habitstabview> {
                                     Navigator.of(context).pop();
                                     return;
                                   },
-                                  child: Text('Cancel'),
+                                  child: Text('Close'),
                                 ),
                               ],
                             );
@@ -292,6 +290,19 @@ class _HabitstabviewState extends State<Habitstabview> {
                         ? Icons.check_rounded
                         : Icons.filter_list_rounded),
                     label: Text('Filter'),
+                  ),
+                  Spacer(),
+                  // Topbar for displaying the day of the week name parallel to the buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ...List.generate(daysOfWeek.length, (index) {
+                        return Padding(
+                            padding:
+                                EdgeInsetsGeometry.symmetric(horizontal: 5.5),
+                            child: Text(daysOfWeek[index]));
+                      }),
+                    ],
                   ),
                 ],
               ),
@@ -334,15 +345,15 @@ class _HabitstabviewState extends State<Habitstabview> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Image(
-                              height: 200,
-                              width: 200,
+                              height: 250,
+                              width: 250,
                               image: AssetImage(
-                                  'assets/images/allCompletedBackground.png'),
+                                  'assets/images/habitsEmptyBackground.png'),
                             ),
                             Text(
                               'You have no habits',
                               style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.w500),
+                                  fontSize: 24, fontWeight: FontWeight.w500),
                               textAlign: TextAlign.center,
                             ),
                             SizedBox(
@@ -371,44 +382,42 @@ class _HabitstabviewState extends State<Habitstabview> {
                     );
                   }
                   List tasksList = snapshot.data!.docs;
-                  return SizedBox(
-                    height: MediaQuery.of(context).size.height,
-                    child: ListView.builder(
-                      scrollDirection: Axis.vertical,
-                      itemCount: tasksList.length,
-                      itemBuilder: (context, index) {
-                        DocumentSnapshot document = tasksList[index];
-                        String habitId = document.id;
-                        Map<String, dynamic> data =
-                            document.data() as Map<String, dynamic>;
-                        String habitName = data['habitName'];
-                        String habitNotes = data['habitNotes'];
-                        int habitUniqueId = data['habitUniqueId'] ?? 0;
-                        Timestamp timestamp = data['habitDateTime'];
-                        List daysOfWeek = data['daysOfWeek'] ?? [];
-                        List completedDaysOfWeek =
-                            data['completedDaysOfWeek'] ?? [];
-                        List completedDates = data['completedDates'] ?? [];
-                        DateTime habitDateTime = timestamp.toDate();
-                        List habitGroups = data['habitGroups'];
-                        Timestamp timeStamp = data['addedOn'];
-                        DateTime addedOn = timeStamp.toDate();
-                        return HabitTile(
-                          innerPadding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 8),
-                          habitId: habitId,
-                          habitName: habitName,
-                          habitNotes: habitNotes,
-                          habitDateTime: habitDateTime,
-                          habitGroups: habitGroups,
-                          daysOfWeek: daysOfWeek,
-                          completedDaysOfWeek: completedDaysOfWeek,
-                          addedOn: addedOn,
-                          habitUniqueId: habitUniqueId,
-                          completedDates: completedDates,
-                        );
-                      },
-                    ),
+                  return ListView.builder(
+                    scrollDirection: Axis.vertical,
+                    shrinkWrap: true,
+                    itemCount: tasksList.length,
+                    itemBuilder: (context, index) {
+                      DocumentSnapshot document = tasksList[index];
+                      String habitId = document.id;
+                      Map<String, dynamic> data =
+                          document.data() as Map<String, dynamic>;
+                      String habitName = data['habitName'];
+                      String habitNotes = data['habitNotes'];
+                      int habitUniqueId = data['habitUniqueId'] ?? 0;
+                      Timestamp timestamp = data['habitDateTime'];
+                      List daysOfWeek = data['daysOfWeek'] ?? [];
+                      List completedDaysOfWeek =
+                          data['completedDaysOfWeek'] ?? [];
+                      List completedDates = data['completedDates'] ?? [];
+                      DateTime habitDateTime = timestamp.toDate();
+                      List habitGroups = data['habitGroups'];
+                      Timestamp timeStamp = data['addedOn'];
+                      DateTime addedOn = timeStamp.toDate();
+                      return HabitTile(
+                        innerPadding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 8),
+                        habitId: habitId,
+                        habitName: habitName,
+                        habitNotes: habitNotes,
+                        habitDateTime: habitDateTime,
+                        habitGroups: habitGroups,
+                        daysOfWeek: daysOfWeek,
+                        completedDaysOfWeek: completedDaysOfWeek,
+                        addedOn: addedOn,
+                        habitUniqueId: habitUniqueId,
+                        completedDates: completedDates,
+                      );
+                    },
                   );
                 }),
           ],

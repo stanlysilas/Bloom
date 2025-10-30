@@ -1,4 +1,4 @@
-import 'package:bloom/components/mybuttons.dart';
+import 'package:bloom/components/bloom_buttons.dart';
 import 'package:bloom/components/mytextfield.dart';
 import 'package:bloom/notifications/notification.dart';
 import 'package:bloom/responsive/dimensions.dart';
@@ -221,8 +221,8 @@ class _TaskEditingScreenState extends State<TaskEditingScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColorLight,
-                    borderRadius: BorderRadius.circular(10),
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
                     children: [
@@ -235,11 +235,9 @@ class _TaskEditingScreenState extends State<TaskEditingScreen> {
                           const Spacer(),
                           // Date picker
                           Flexible(
-                            child: ExtraOptionsButton(
-                              decoration: BoxDecoration(
-                                  color:
-                                      Theme.of(context).scaffoldBackgroundColor,
-                                  borderRadius: BorderRadius.circular(8)),
+                            child: BloomMaterialListTile(
+                              color: Theme.of(context).scaffoldBackgroundColor,
+                              borderRadius: BorderRadius.circular(8),
                               label: DateFormat('dd-MM-yyyy').format(taskDate!),
                               textAlign: TextAlign.center,
                               onTap: selectDate,
@@ -257,11 +255,9 @@ class _TaskEditingScreenState extends State<TaskEditingScreen> {
                           const Spacer(),
                           // Time picker
                           Flexible(
-                            child: ExtraOptionsButton(
-                              decoration: BoxDecoration(
-                                  color:
-                                      Theme.of(context).scaffoldBackgroundColor,
-                                  borderRadius: BorderRadius.circular(8)),
+                            child: BloomMaterialListTile(
+                              color: Theme.of(context).scaffoldBackgroundColor,
+                              borderRadius: BorderRadius.circular(8),
                               label: _taskTime!.format(context),
                               textAlign: TextAlign.center,
                               onTap: selectTime,
@@ -476,13 +472,13 @@ class _TaskEditingScreenState extends State<TaskEditingScreen> {
                     width: double.maxFinite,
                     padding: const EdgeInsets.all(15.0),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                      borderRadius: BorderRadius.circular(100),
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Center(
                       child: Text(
                         'Update task',
-                        style: TextStyle(fontSize: 16),
+                        style: TextStyle(fontSize: 18),
                       ),
                     ),
                   ),

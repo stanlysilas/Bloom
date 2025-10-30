@@ -3,12 +3,14 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  app_links
   audioplayers_windows
   bitsdojo_window_windows
   cloud_firestore
   contextual_menu
   desktop_context_menu_windows
   desktop_webview_auth
+  dynamic_color
   emoji_picker_flutter
   file_selector_windows
   firebase_auth

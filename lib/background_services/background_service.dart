@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 
+@pragma('vm:entry-point')
 class BackgroundService {
   // Initialize the background service for running pomodoro
   Future<void> initializeService() async {
@@ -22,7 +23,8 @@ class BackgroundService {
                 AndroidForegroundType.dataSync,
               ],
               initialNotificationTitle: "Pomodoro started",
-              initialNotificationContent: "A Pomodoro is running in the background"),
+              initialNotificationContent:
+                  "A Pomodoro is running in the background"),
           iosConfiguration: IosConfiguration(
             onForeground: onStart,
             onBackground: onIosBackground,
@@ -40,7 +42,7 @@ class BackgroundService {
 
   // On start function of the background service, has all the services needed to be started
   @pragma('vm:entry-point')
-  static onStart(ServiceInstance service) async {
+  static Future<void> onStart(ServiceInstance service) async {
     Duration elapsed = Duration.zero;
     int completedPomodoros = 0;
     String state = 'Work';
@@ -110,6 +112,7 @@ class BackgroundService {
   }
 
 // iOS background task handler
+  @pragma('vm:entry-point')
   static bool onIosBackground(ServiceInstance service) {
     WidgetsFlutterBinding.ensureInitialized();
     return true;

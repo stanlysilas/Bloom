@@ -4,9 +4,6 @@ import 'dart:io';
 
 import 'package:bloom/components/book_card.dart';
 import 'package:bloom/components/entries_tile.dart';
-import 'package:bloom/components/mybuttons.dart';
-import 'package:bloom/screens/custom_templates_screen.dart';
-import 'package:bloom/screens/upgrade_subscription_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +12,6 @@ import 'package:flutter_quill/quill_delta.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl/intl.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-import 'package:table_calendar/table_calendar.dart';
 
 class EntriesScreen extends StatefulWidget {
   const EntriesScreen({super.key});
@@ -29,9 +25,6 @@ class _EntriesScreenState extends State<EntriesScreen> {
   final user = FirebaseAuth.instance.currentUser;
   final searchController = TextEditingController();
   final searchFocusNode = FocusNode();
-  CalendarFormat _calendarFormat = CalendarFormat.week;
-  var _focusedDay = DateTime.now();
-  var _selectedDay = DateTime.now();
   bool toggleDayView = false;
   bool toggleSearch = false;
   int? numberOfBooks = 0;
@@ -49,17 +42,18 @@ class _EntriesScreenState extends State<EntriesScreen> {
   void initState() {
     super.initState();
     searchController.addListener(onSearchChanged);
-    fetchEntriesForCalendar();
-    // Formate intial date and time to strings
+    // Format intial date and time to strings
     setState(() {
       date = DateFormat('dd-MM-yyyy').format(now);
       time = DateFormat('h:mm a').format(now);
     });
     fetchAccountData();
     // initBannerAd();
+    migrateLowercaseFields('entries');
+    migrateLowercaseFields('books');
   }
 
-  // Fetch accountData
+  /// Fetch accountData
   void fetchAccountData() async {
     final docRef =
         FirebaseFirestore.instance.collection('users').doc(user?.uid);
@@ -73,8 +67,34 @@ class _EntriesScreenState extends State<EntriesScreen> {
     } else {}
   }
 
-  // Banner ADs initialization method
-  initBannerAd() {
+  /// Migrate the Title's of old Entries to support
+  /// the new Fuzzy search logic.
+  Future<void> migrateLowercaseFields(String type) async {
+    final collection = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user?.uid)
+        .collection(type);
+
+    final snapshot = await collection.get();
+    for (var doc in snapshot.docs) {
+      final data = doc.data();
+      final fieldName = {
+        'entries': 'mainEntryTitle',
+        'books': 'bookTitle',
+      }[type];
+
+      if (fieldName != null &&
+          data[fieldName] != null &&
+          data['${fieldName}_lower'] == null) {
+        await doc.reference.update({
+          '${fieldName}_lower': data[fieldName].toString().toLowerCase(),
+        });
+      }
+    }
+  }
+
+  /// Banner ADs initialization method
+  void initBannerAd() {
     bannerAd = BannerAd(
       size: AdSize.banner,
       adUnitId: "ca-app-pub-5607290715305671/5324741224",
@@ -110,14 +130,27 @@ class _EntriesScreenState extends State<EntriesScreen> {
     searchFirestore(searchController.text);
   }
 
-  Future searchFirestore(String query) async {
+  /// Search the [FirebaseFirestore] for the user's query.
+  /// [query] a [String] that is the user's search query.
+  Future<void> searchFirestore(String query) async {
     if (query.isEmpty) {
-      setState(() {
-        searchResults = [];
-      });
-      return searchResults;
-    } else {
-      QuerySnapshot snapshot = await FirebaseFirestore.instance
+      setState(() => searchResults = []);
+      return;
+    }
+
+    final normalized = query.toLowerCase();
+
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user?.uid)
+        .collection('entries')
+        .where('mainEntryTitle_lower', isGreaterThanOrEqualTo: normalized)
+        .where('mainEntryTitle_lower', isLessThanOrEqualTo: '$normalized\uf8ff')
+        .get();
+
+    // Fallback: if no results found, try legacy field
+    if (snapshot.docs.isEmpty) {
+      final legacySnapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(user?.uid)
           .collection('entries')
@@ -125,35 +158,13 @@ class _EntriesScreenState extends State<EntriesScreen> {
           .where('mainEntryTitle', isLessThanOrEqualTo: '$query\uf8ff')
           .get();
 
-      setState(() {
-        searchResults = snapshot.docs;
-      });
+      setState(() => searchResults = legacySnapshot.docs);
+    } else {
+      setState(() => searchResults = snapshot.docs);
     }
   }
 
-  void onDaySelected(DateTime selectedDay, DateTime focusedDay) async {
-    setState(() {
-      _selectedDay = selectedDay;
-      _focusedDay = focusedDay;
-    });
-  }
-
-  Stream<QuerySnapshot> fetchEntriesForDay(DateTime date) {
-    var dayStart =
-        DateTime(_focusedDay.year, _focusedDay.month, _focusedDay.day, 0, 0, 0);
-    var dayEnd = DateTime(
-        _focusedDay.year, _focusedDay.month, _focusedDay.day, 23, 59, 59);
-    return FirebaseFirestore.instance
-        .collection('users')
-        .doc(user?.uid)
-        .collection('entries')
-        .where('addedOn', isGreaterThanOrEqualTo: dayStart)
-        .where('addedOn', isLessThanOrEqualTo: dayEnd)
-        .orderBy('addedOn', descending: true)
-        .snapshots();
-  }
-
-  // Method to retrieve the books
+  /// Method to retrieve the books
   Stream<List<Map<String, dynamic>>> fetchBooks() {
     Stream<QuerySnapshot<Map<String, dynamic>>> query;
     if (sortValue == 'Recents') {
@@ -187,7 +198,7 @@ class _EntriesScreenState extends State<EntriesScreen> {
     });
   }
 
-  // Method to retrieve the documents of entries collection to display them
+  /// Method to retrieve the documents of entries collection to display them
   Stream<List<Map<String, dynamic>>> fetchEntries() {
     Stream<QuerySnapshot<Map<String, dynamic>>> query;
     if (sortValue == 'Recents') {
@@ -235,43 +246,7 @@ class _EntriesScreenState extends State<EntriesScreen> {
     });
   }
 
-  Map<DateTime, List<Entry>> _entries = {};
-
-  // fetch tasks for displaying dot on the calendar
-  Future<void> fetchEntriesForCalendar() async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user?.uid)
-        .collection('entries')
-        .get();
-
-    Map<DateTime, List<Entry>> entries = {};
-
-    for (var doc in snapshot.docs) {
-      Timestamp timestamp = doc['addedOn'];
-      DateTime dateTime = timestamp.toDate();
-      DateTime date = normalizeDate(dateTime);
-      Entry entry = Entry(
-        id: doc.id,
-      );
-
-      // Group events by date
-      if (entries[date] == null) {
-        entries[date] = [];
-      }
-      entries[date]!.add(entry);
-    }
-
-    setState(() {
-      _entries = entries;
-    });
-  }
-
-  DateTime normalizeDate(DateTime date) {
-    return DateTime(date.year, date.month, date.day, 0, 0, 0);
-  }
-
-  // Function to convert Quill Delta to RichText
+  /// Function to convert Quill Delta to RichText
   RichText quillDeltaToRichText(String deltaJson) {
     final Delta delta = Delta.fromJson(jsonDecode(deltaJson));
     final List<TextSpan> children = [];
@@ -332,17 +307,6 @@ class _EntriesScreenState extends State<EntriesScreen> {
                     : searchController;
               },
               icon: const Icon(Icons.search_rounded)),
-          // IconButton(
-          //   onPressed: () {
-          //     setState(() {
-          //       toggleDayView = !toggleDayView;
-          //     });
-          //     fetchEntriesForDay(_focusedDay);
-          //   },
-          //   icon: toggleDayView
-          //       ? const Icon(Icons.book_rounded)
-          //       : const Icon(Icons.calendar_month_rounded),
-          // ),
         ],
         bottom: toggleSearch
             ? PreferredSize(
@@ -355,8 +319,9 @@ class _EntriesScreenState extends State<EntriesScreen> {
                   child: SearchBar(
                     controller: searchController,
                     focusNode: searchFocusNode,
-                    backgroundColor: WidgetStatePropertyAll(
-                        Theme.of(context).primaryColorLight),
+                    autoFocus: true,
+                    shape: WidgetStatePropertyAll(RoundedRectangleBorder(
+                        borderRadius: BorderRadiusGeometry.circular(16))),
                     padding: const WidgetStatePropertyAll(
                         EdgeInsets.symmetric(horizontal: 16.0)),
                     onTapOutside: (event) {
@@ -364,17 +329,15 @@ class _EntriesScreenState extends State<EntriesScreen> {
                     },
                     leading: const Icon(Icons.search_rounded),
                     trailing: [
-                      if (searchResults.isNotEmpty)
+                      if (searchController.text.isNotEmpty)
                         IconButton(
                             onPressed: () {
                               searchFocusNode.unfocus();
-                              setState(() {
-                                toggleSearch = false;
-                              });
+                              searchController.clear();
                             },
                             icon: const Icon(Icons.close_rounded))
                     ],
-                    hintText: 'Search (case sensitive)',
+                    hintText: 'Search entries',
                     elevation: const WidgetStatePropertyAll(0),
                   ),
                 ))
@@ -383,41 +346,63 @@ class _EntriesScreenState extends State<EntriesScreen> {
       body: toggleSearch
           ? SingleChildScrollView(
               child: Column(
-                mainAxisAlignment: searchResults.isEmpty
-                    ? MainAxisAlignment.center
-                    : MainAxisAlignment.start,
-                crossAxisAlignment: searchResults.isEmpty
-                    ? CrossAxisAlignment.center
-                    : CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
+                  // padding: EdgeInsets.only(left: 14.0, right: 14.0),
                   searchResults.isEmpty && searchController.text.isEmpty
-                      ? const Center(
-                          child: Padding(
-                          padding: EdgeInsets.only(left: 14.0, right: 14.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Enter the title of an entry to search for it. Searches are case sensitive.',
-                                style: TextStyle(color: Colors.grey),
-                                textAlign: TextAlign.center,
-                              ),
-                              Text(
-                                "Eg: If an entry title is 'Entry title', then it won't be shown if you search 'entry title'",
-                                style: TextStyle(color: Colors.grey),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                        ))
-                      : searchResults.isEmpty
-                          ? const Center(
+                      ? SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.8,
+                          child: Center(
                               child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 16.0, horizontal: 14),
-                                child: Text(
-                                  'No matching results',
-                                  style: TextStyle(fontWeight: FontWeight.w500),
+                            padding: EdgeInsets.only(left: 14.0, right: 14.0),
+                            child: Text(
+                              'Enter the title of an entry to search for it',
+                              style: TextStyle(color: Colors.grey),
+                              textAlign: TextAlign.center,
+                            ),
+                          )),
+                        )
+                      : searchResults.isEmpty
+                          ? SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.8,
+                              width: double.maxFinite,
+                              child: Padding(
+                                padding:
+                                    EdgeInsets.only(left: 14.0, right: 14.0),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Image(
+                                      height: 200,
+                                      width: 200,
+                                      image: AssetImage(
+                                          'assets/images/searchEmpty.png'),
+                                    ),
+                                    Text(
+                                      'No results',
+                                      style: TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w500),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    SizedBox(
+                                      height: 4,
+                                    ),
+                                    SizedBox(
+                                      width: 200,
+                                      child: Text(
+                                        'Try adjusting your search or using a different search term.',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.grey),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 14,
+                                    ),
+                                  ],
                                 ),
                               ),
                             )
@@ -429,6 +414,7 @@ class _EntriesScreenState extends State<EntriesScreen> {
                                 style: TextStyle(fontWeight: FontWeight.w500),
                               ),
                             ),
+                  // TODO: DISPLAY THE BOOKS HERE FOR SEARCH RESULTS
                   if (searchResults.isNotEmpty)
                     SizedBox(
                       height: MediaQuery.of(context).size.height,
@@ -470,7 +456,7 @@ class _EntriesScreenState extends State<EntriesScreen> {
                             } else {
                               return EntriesTile(
                                 innerPadding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 4),
+                                    horizontal: 14, vertical: 10),
                                 content: entryDescription,
                                 title: entryTitle,
                                 emoji: entryEmoji,
@@ -494,755 +480,486 @@ class _EntriesScreenState extends State<EntriesScreen> {
                 ],
               ),
             )
-          : toggleDayView
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Display the calendar at top
-                    TableCalendar(
-                      pageAnimationCurve: Curves.easeInBack,
-                      pageAnimationDuration: const Duration(milliseconds: 500),
-                      formatAnimationCurve: Curves.easeInOut,
-                      formatAnimationDuration:
-                          const Duration(milliseconds: 500),
-                      focusedDay: _focusedDay,
-                      firstDay: DateTime.utc(2010, 10, 16),
-                      lastDay: DateTime.utc(2030, 3, 14),
-                      selectedDayPredicate: (day) {
-                        return isSameDay(_selectedDay, day);
-                      },
-                      headerStyle: HeaderStyle(
-                        titleTextStyle: const TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 17),
-                        formatButtonTextStyle: const TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 14),
-                        formatButtonDecoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: Theme.of(context).primaryColorDark,
-                          ),
+          : SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Default sorting button
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                    child: Row(
+                      spacing: 8,
+                      children: [
+                        RawChip(
+                          backgroundColor: sortValue != 'Recents'
+                              ? Theme.of(context).colorScheme.surfaceContainer
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .secondaryContainer,
+                          side: BorderSide.none,
+                          labelStyle: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer),
+                          iconTheme: IconThemeData(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer),
+                          onPressed: () {
+                            setState(() {
+                              sortValue = 'Recents';
+                            });
+                          },
+                          avatar: Icon(sortValue != 'Recents'
+                              ? Icons.filter_alt_rounded
+                              : Icons.check_rounded),
+                          label: Text('Default'),
                         ),
-                      ),
-                      daysOfWeekStyle: const DaysOfWeekStyle(
-                          weekdayStyle: TextStyle(fontWeight: FontWeight.w500)),
-                      calendarStyle: CalendarStyle(
-                        isTodayHighlighted: false,
-                        todayDecoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor,
-                          shape: BoxShape.circle,
+                        // Custom filters button
+                        RawChip(
+                          backgroundColor: sortValue != 'Recents'
+                              ? Theme.of(context).colorScheme.secondaryContainer
+                              : Theme.of(context).colorScheme.surfaceContainer,
+                          side: BorderSide.none,
+                          labelStyle: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer),
+                          iconTheme: IconThemeData(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer),
+                          onPressed: () {
+                            // Functionality to show the filter and other options as a modal bottom sheet
+                            showAdaptiveDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog.adaptive(
+                                    backgroundColor: Theme.of(context)
+                                        .scaffoldBackgroundColor,
+                                    title: const Text('Filters'),
+                                    contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 0, vertical: 8),
+                                    content: StatefulBuilder(builder:
+                                        (BuildContext context,
+                                            StateSetter setState) {
+                                      return SingleChildScrollView(
+                                        child: SizedBox(
+                                          height: 260,
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              // Recent button
+                                              ListTile(
+                                                dense: true,
+                                                minVerticalPadding: 0,
+                                                contentPadding:
+                                                    EdgeInsets.symmetric(
+                                                        horizontal: 4),
+                                                leading: Radio.adaptive(
+                                                    value: 'Recents',
+                                                    groupValue: sortValue,
+                                                    onChanged:
+                                                        (String? sortvalue) {
+                                                      setState(() {
+                                                        sortValue = sortvalue!;
+                                                      });
+                                                      stateUpdate();
+                                                    }),
+                                                horizontalTitleGap: 0,
+                                                title: Text(
+                                                  'Recent',
+                                                  textAlign: TextAlign.start,
+                                                ),
+                                                subtitle: Text(
+                                                    'Sort the entries from recent to oldest'),
+                                                subtitleTextStyle: TextStyle(
+                                                    color: Colors.grey),
+                                                onTap: () {
+                                                  setState(() {
+                                                    sortValue = 'Recents';
+                                                  });
+                                                  stateUpdate();
+                                                },
+                                              ),
+                                              // Oldest button
+                                              ListTile(
+                                                dense: true,
+                                                minVerticalPadding: 0,
+                                                contentPadding:
+                                                    EdgeInsets.symmetric(
+                                                        horizontal: 4),
+                                                leading: Radio.adaptive(
+                                                    value: 'Oldest',
+                                                    groupValue: sortValue,
+                                                    onChanged:
+                                                        (String? sortvalue) {
+                                                      setState(() {
+                                                        sortValue = sortvalue!;
+                                                      });
+                                                      stateUpdate();
+                                                    }),
+                                                horizontalTitleGap: 0,
+                                                title: Text(
+                                                  'Oldest',
+                                                  textAlign: TextAlign.start,
+                                                ),
+                                                subtitle: Text(
+                                                    'Sort the entries from oldest to recent'),
+                                                subtitleTextStyle: TextStyle(
+                                                    color: Colors.grey),
+                                                onTap: () {
+                                                  setState(() {
+                                                    sortValue = 'Oldest';
+                                                  });
+                                                  stateUpdate();
+                                                },
+                                              ),
+                                              // Favorites button
+                                              ListTile(
+                                                dense: true,
+                                                minVerticalPadding: 0,
+                                                contentPadding:
+                                                    EdgeInsets.symmetric(
+                                                        horizontal: 4),
+                                                leading: Radio.adaptive(
+                                                    value: 'Favorite',
+                                                    groupValue: sortValue,
+                                                    onChanged:
+                                                        (String? sortvalue) {
+                                                      setState(() {
+                                                        sortValue = sortvalue!;
+                                                      });
+                                                      stateUpdate();
+                                                    }),
+                                                horizontalTitleGap: 0,
+                                                title: Text(
+                                                  'Favorite',
+                                                  textAlign: TextAlign.start,
+                                                ),
+                                                subtitle: Text(
+                                                    'Show only favorite entries'),
+                                                subtitleTextStyle: TextStyle(
+                                                    color: Colors.grey),
+                                                onTap: () {
+                                                  setState(() {
+                                                    sortValue = 'Favorite';
+                                                  });
+                                                  stateUpdate();
+                                                },
+                                              ),
+                                              // Locked button
+                                              ListTile(
+                                                dense: true,
+                                                minVerticalPadding: 0,
+                                                contentPadding:
+                                                    EdgeInsets.symmetric(
+                                                        horizontal: 4),
+                                                leading: Radio.adaptive(
+                                                    value: 'Locked',
+                                                    groupValue: sortValue,
+                                                    onChanged:
+                                                        (String? sortvalue) {
+                                                      setState(() {
+                                                        sortValue = sortvalue!;
+                                                      });
+                                                      stateUpdate();
+                                                    }),
+                                                horizontalTitleGap: 0,
+                                                title: Text(
+                                                  'Locked',
+                                                  textAlign: TextAlign.start,
+                                                ),
+                                                subtitle: Text(
+                                                    'Show only locked entries'),
+                                                subtitleTextStyle: TextStyle(
+                                                    color: Colors.grey),
+                                                onTap: () {
+                                                  setState(() {
+                                                    sortValue = 'Locked';
+                                                  });
+                                                  stateUpdate();
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                    actions: [
+                                      // Cancel button
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                          return;
+                                        },
+                                        child: Text('Close'),
+                                      ),
+                                    ],
+                                  );
+                                });
+                          },
+                          avatar: Icon(sortValue != 'Recents'
+                              ? Icons.check_rounded
+                              : Icons.filter_list_rounded),
+                          label: Text('Filter'),
                         ),
-                        todayTextStyle: TextStyle(
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color),
-                        selectedDecoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor,
-                          shape: BoxShape.circle,
-                        ),
-                        selectedTextStyle: TextStyle(
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color),
-                        weekendTextStyle: TextStyle(
-                          color: Theme.of(context).primaryColorDark,
-                        ),
-                        markerDecoration: BoxDecoration(
-                          color: Theme.of(context).primaryColorDark,
-                          shape: BoxShape.circle,
-                        ),
-                        markersAlignment: Alignment.bottomCenter,
-                      ),
-                      eventLoader: (day) {
-                        // Return the list of entries for the given day
-                        return _entries[normalizeDate(day)] ?? [];
-                      },
-                      availableCalendarFormats: const {
-                        CalendarFormat.month: 'Week',
-                        CalendarFormat.twoWeeks: 'Month',
-                        CalendarFormat.week: '2 Weeks',
-                      },
-                      calendarFormat: _calendarFormat,
-                      onFormatChanged: (format) {
-                        return setState(() {
-                          _calendarFormat = format;
-                        });
-                      },
-                      onDaySelected: (selectedDay, focusedDay) async {
-                        return onDaySelected(selectedDay, focusedDay);
-                      },
-                    ).animate().fadeIn(
-                          duration: const Duration(
-                            milliseconds: 500,
-                          ),
-                        ),
-                    const SizedBox(
-                      height: 24,
+                      ],
                     ),
-                    // Display the entries(notes) matching to the selected or focused day
-                    Expanded(
-                      child: StreamBuilder<QuerySnapshot>(
-                        stream: fetchEntriesForDay(_focusedDay),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return Skeletonizer(
+                  ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  if (numberOfBooks != 0)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: Text(
+                        'Books',
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary),
+                      ),
+                    ),
+                  const SizedBox(
+                    height: 6,
+                  ),
+                  StreamBuilder(
+                      stream: fetchBooks(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 14.0),
+                            child: const Skeletonizer(
                               enabled: true,
-                              containersColor:
-                                  Theme.of(context).primaryColorLight,
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 14.0),
-                                child: ListTile(
-                                  leading: Icon(Icons.abc),
-                                  title: Text(
-                                    'So this is the text of the title of the object here...',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
+                              child: SizedBox(
+                                height: 120,
+                                width: 120,
+                                child: Column(
+                                  children: [
+                                    Icon(Icons.abc),
+                                    Text(
+                                      'So this is the text of the title of the object here...',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                      ),
+                                      maxLines: 1,
                                     ),
-                                    maxLines: 1,
-                                  ),
-                                  subtitle: Text(
-                                    'So this is the text of the subtitle of the object here...',
-                                    maxLines: 1,
-                                  ),
-                                  trailing: Text('End'),
+                                    Text(
+                                      'So this is the text of the subtitle of the object here...',
+                                      maxLines: 1,
+                                    ),
+                                    Text('End'),
+                                  ],
                                 ),
                               ),
                             )
                                 .animate()
-                                .fade(delay: const Duration(milliseconds: 50));
-                          }
-                          if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
-                            return Center(
-                              child: SizedBox(
-                                height: MediaQuery.of(context).size.height,
-                                child: const Padding(
-                                  padding:
-                                      EdgeInsets.only(left: 14.0, right: 14.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Image(
-                                        height: 200,
-                                        width: 200,
-                                        image: AssetImage(
-                                            'assets/images/allCompletedBackground.png'),
-                                      ),
-                                      Text(
-                                        'No entries made on this day',
-                                        style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w500),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      Text(
-                                        'Click on the + icon to make a new entry.',
-                                        style: TextStyle(
-                                            color: Colors.grey,
-                                            fontWeight: FontWeight.w500),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ).animate().fadeIn(
-                                    delay: const Duration(milliseconds: 100),
-                                  ),
-                            );
-                          }
-                          if (snapshot.hasError) {
-                            return Center(
-                              child: Text(
-                                  'Encountered an error while retrieving entries for ${DateFormat.yMMMMd().format(_focusedDay)}'),
-                            ).animate().fadeIn(
-                                  duration: const Duration(milliseconds: 500),
-                                );
-                          }
-                          final entries = snapshot.data!.docs;
-                          return SizedBox(
-                            height: MediaQuery.of(context).size.height,
-                            child: ListView.builder(
-                                itemCount: entries.length,
-                                itemBuilder: (context, index) {
-                                  final entry = entries[index];
-                                  final entryDescription =
-                                      entry['mainEntryDescription'] ?? '{}';
-                                  final entryTitle =
-                                      entry['mainEntryTitle'] ?? '';
-                                  final entryBackgroundImageUrl =
-                                      entry['backgroundImageUrl'] ?? '';
-                                  final entryId = entry['mainEntryId'] ?? '';
-                                  final entryType =
-                                      entry['mainEntryType'] ?? '';
-                                  final entryEmoji =
-                                      entry['mainEntryEmoji'] ?? '';
-                                  final entryAttachments =
-                                      entry['attachments'] ?? [];
-                                  final entryChildren = entry['children'];
-                                  final entryHasChildren = entry['hasChildren'];
-                                  final Timestamp timestamp = entry['addedOn'];
-                                  final Timestamp datetime = entry['dateTime'];
-                                  final DateTime entryDate = timestamp.toDate();
-                                  final DateTime dateTime = datetime.toDate();
-                                  final DateTime addedOn = entryDate;
-                                  final entryIsFavorite = entry['isFavorite'];
-                                  final date = DateFormat('dd-MM-yyyy')
-                                      .format(entryDate);
-                                  final entryTime =
-                                      entry['dateTime']?.toDate() ?? '';
-                                  final time =
-                                      DateFormat('h:mm a').format(entryTime);
-                                  final isSynced = entry['synced'];
-                                  final isEntryLocked =
-                                      entry['isEntryLocked'] ?? false;
-                                  return EntriesTile(
-                                    innerPadding: const EdgeInsets.symmetric(
-                                        horizontal: 14, vertical: 4),
-                                    content: entryDescription,
-                                    title: entryTitle,
-                                    emoji: entryEmoji,
-                                    date: date,
-                                    time: time,
-                                    id: entryId,
-                                    type: entryType,
-                                    backgroundImageUrl: entryBackgroundImageUrl,
-                                    attachments: entryAttachments,
-                                    hasChildren: entryHasChildren,
-                                    children: entryChildren,
-                                    isFavorite: entryIsFavorite,
-                                    addedOn: addedOn,
-                                    dateTime: dateTime,
-                                    isSynced: isSynced,
-                                    isEntryLocked: isEntryLocked,
-                                  );
-                                }),
+                                .fade(delay: const Duration(milliseconds: 50)),
                           );
-                        },
+                        }
+                        if (snapshot.hasData && snapshot.data!.isEmpty) {
+                          return const SizedBox();
+                        }
+                        if (snapshot.hasError) {
+                          return const Center(
+                            child:
+                                Text('Error occurred while fetching books...'),
+                          );
+                        } else {
+                          final books = snapshot.data!;
+                          return Container(
+                            height: 140,
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            width: MediaQuery.of(context).size.width,
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              scrollDirection: Axis.horizontal,
+                              itemCount: books.length,
+                              itemBuilder: (context, index) {
+                                final book = books[index];
+                                final String bookId = book['bookId'];
+                                final String type = book['type'];
+                                final String bookIcon = book['bookEmoji'];
+                                final String bookTitle = book['bookTitle'];
+                                final String bookDescription =
+                                    book['bookDescription'];
+                                final Timestamp timestamp = book['addedOn'];
+                                final DateTime addedOn = timestamp.toDate();
+                                final bool hasChildren = book['hasChildren'];
+                                final bool isBookLocked =
+                                    book['isBookLocked'] ?? false;
+                                return SizedBox(
+                                  width: 120,
+                                  child: BookCard(
+                                    type: type,
+                                    isTemplate: false,
+                                    hasChildren: hasChildren,
+                                    dateTime: addedOn,
+                                    bookId: bookId,
+                                    emoji: bookIcon,
+                                    title: bookTitle,
+                                    description: bookDescription,
+                                    isBookLocked: isBookLocked,
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        }
+                      }),
+                  if (numberOfBooks != 0)
+                    SizedBox(
+                      height: 16,
+                    ),
+                  if (numberOfEntries != 0)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: Text(
+                        'Notes',
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary),
                       ),
                     ),
-                  ],
-                )
-              : SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Default sorting button
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                        child: Row(
-                          spacing: 8,
-                          children: [
-                            RawChip(
-                              backgroundColor: sortValue != 'Recents'
-                                  ? Theme.of(context).primaryColorLight
-                                  : Theme.of(context).primaryColor,
-                              side: BorderSide.none,
-                              labelStyle: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.color,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500),
-                              iconTheme: IconThemeData(
-                                  color: sortValue != 'Recents'
-                                      ? Theme.of(context).primaryColor
-                                      : Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.color),
-                              onPressed: () {
-                                setState(() {
-                                  sortValue = 'Recents';
-                                });
-                              },
-                              avatar: Icon(sortValue != 'Recents'
-                                  ? Icons.filter_alt_rounded
-                                  : Icons.check_rounded),
-                              label: Text('Default'),
-                            ),
-                            // Custom filters button
-                            RawChip(
-                              backgroundColor: sortValue != 'Recents'
-                                  ? Theme.of(context).primaryColor
-                                  : Theme.of(context).primaryColorLight,
-                              side: BorderSide.none,
-                              labelStyle: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.color,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500),
-                              iconTheme: IconThemeData(
-                                  color: sortValue != 'Recents'
-                                      ? Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.color
-                                      : Theme.of(context).primaryColor),
-                              onPressed: () {
-                                // Functionality to show the filter and other options as a modal bottom sheet
-                                showAdaptiveDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      return AlertDialog.adaptive(
-                                        backgroundColor: Theme.of(context)
-                                            .scaffoldBackgroundColor,
-                                        title: const Text('Filters'),
-                                        titleTextStyle: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w500),
-                                        contentPadding: EdgeInsets.symmetric(
-                                            horizontal: 0, vertical: 8),
-                                        content: StatefulBuilder(builder:
-                                            (BuildContext context,
-                                                StateSetter setState) {
-                                          return SingleChildScrollView(
-                                            child: SizedBox(
-                                              height: 260,
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  // Recent button
-                                                  ListTile(
-                                                    dense: true,
-                                                    minVerticalPadding: 0,
-                                                    contentPadding:
-                                                        EdgeInsets.symmetric(
-                                                            horizontal: 4),
-                                                    leading: Radio.adaptive(
-                                                        value: 'Recents',
-                                                        groupValue: sortValue,
-                                                        onChanged: (String?
-                                                            sortvalue) {
-                                                          setState(() {
-                                                            sortValue =
-                                                                sortvalue!;
-                                                          });
-                                                          stateUpdate();
-                                                        }),
-                                                    horizontalTitleGap: 0,
-                                                    title: Text(
-                                                      'Recent',
-                                                      textAlign:
-                                                          TextAlign.start,
-                                                    ),
-                                                    subtitle: Text(
-                                                        'Sort the entries from recent to oldest'),
-                                                    titleTextStyle: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                        color: Theme.of(context)
-                                                            .textTheme
-                                                            .bodyMedium
-                                                            ?.color),
-                                                    subtitleTextStyle:
-                                                        TextStyle(
-                                                            color: Colors.grey),
-                                                    onTap: () {
-                                                      setState(() {
-                                                        sortValue = 'Recents';
-                                                      });
-                                                      stateUpdate();
-                                                    },
-                                                  ),
-                                                  // Oldest button
-                                                  ListTile(
-                                                    dense: true,
-                                                    minVerticalPadding: 0,
-                                                    contentPadding:
-                                                        EdgeInsets.symmetric(
-                                                            horizontal: 4),
-                                                    leading: Radio.adaptive(
-                                                        value: 'Oldest',
-                                                        groupValue: sortValue,
-                                                        onChanged: (String?
-                                                            sortvalue) {
-                                                          setState(() {
-                                                            sortValue =
-                                                                sortvalue!;
-                                                          });
-                                                          stateUpdate();
-                                                        }),
-                                                    horizontalTitleGap: 0,
-                                                    title: Text(
-                                                      'Oldest',
-                                                      textAlign:
-                                                          TextAlign.start,
-                                                    ),
-                                                    subtitle: Text(
-                                                        'Sort the entries from oldest to recent'),
-                                                    titleTextStyle: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                        color: Theme.of(context)
-                                                            .textTheme
-                                                            .bodyMedium
-                                                            ?.color),
-                                                    subtitleTextStyle:
-                                                        TextStyle(
-                                                            color: Colors.grey),
-                                                    onTap: () {
-                                                      setState(() {
-                                                        sortValue = 'Oldest';
-                                                      });
-                                                      stateUpdate();
-                                                    },
-                                                  ),
-                                                  // Favorites button
-                                                  ListTile(
-                                                    dense: true,
-                                                    minVerticalPadding: 0,
-                                                    contentPadding:
-                                                        EdgeInsets.symmetric(
-                                                            horizontal: 4),
-                                                    leading: Radio.adaptive(
-                                                        value: 'Favorites',
-                                                        groupValue: sortValue,
-                                                        onChanged: (String?
-                                                            sortvalue) {
-                                                          setState(() {
-                                                            sortValue =
-                                                                sortvalue!;
-                                                          });
-                                                          stateUpdate();
-                                                        }),
-                                                    horizontalTitleGap: 0,
-                                                    title: Text(
-                                                      'Favorite',
-                                                      textAlign:
-                                                          TextAlign.start,
-                                                    ),
-                                                    subtitle: Text(
-                                                        'Show only favorite entries'),
-                                                    titleTextStyle: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                        color: Theme.of(context)
-                                                            .textTheme
-                                                            .bodyMedium
-                                                            ?.color),
-                                                    subtitleTextStyle:
-                                                        TextStyle(
-                                                            color: Colors.grey),
-                                                    onTap: () {
-                                                      setState(() {
-                                                        sortValue = 'Favorite';
-                                                      });
-                                                      stateUpdate();
-                                                    },
-                                                  ),
-                                                  // Locked button
-                                                  ListTile(
-                                                    dense: true,
-                                                    minVerticalPadding: 0,
-                                                    contentPadding:
-                                                        EdgeInsets.symmetric(
-                                                            horizontal: 4),
-                                                    leading: Radio.adaptive(
-                                                        value: 'Locked',
-                                                        groupValue: sortValue,
-                                                        onChanged: (String?
-                                                            sortvalue) {
-                                                          setState(() {
-                                                            sortValue =
-                                                                sortvalue!;
-                                                          });
-                                                          stateUpdate();
-                                                        }),
-                                                    horizontalTitleGap: 0,
-                                                    title: Text(
-                                                      'Locked',
-                                                      textAlign:
-                                                          TextAlign.start,
-                                                    ),
-                                                    subtitle: Text(
-                                                        'Show only locked entries'),
-                                                    titleTextStyle: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                        color: Theme.of(context)
-                                                            .textTheme
-                                                            .bodyMedium
-                                                            ?.color),
-                                                    subtitleTextStyle:
-                                                        TextStyle(
-                                                            color: Colors.grey),
-                                                    onTap: () {
-                                                      setState(() {
-                                                        sortValue = 'Locked';
-                                                      });
-                                                      stateUpdate();
-                                                    },
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          );
-                                        }),
-                                        actions: [
-                                          // Cancel button
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                              return;
-                                            },
-                                            child: Text('Cancel'),
-                                          ),
-                                        ],
-                                      );
-                                    });
-                              },
-                              avatar: Icon(sortValue != 'Recents'
-                                  ? Icons.check_rounded
-                                  : Icons.filter_list_rounded),
-                              label: Text('Filter'),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      if (numberOfBooks != 0)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: const Text('Books'),
-                        ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      StreamBuilder(
-                          stream: fetchBooks(),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 14.0),
-                                child: const Skeletonizer(
-                                  enabled: true,
-                                  child: SizedBox(
-                                    height: 120,
-                                    width: 120,
-                                    child: Column(
-                                      children: [
-                                        Icon(Icons.abc),
-                                        Text(
-                                          'So this is the text of the title of the object here...',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                          ),
-                                          maxLines: 1,
-                                        ),
-                                        Text(
-                                          'So this is the text of the subtitle of the object here...',
-                                          maxLines: 1,
-                                        ),
-                                        Text('End'),
-                                      ],
-                                    ),
-                                  ),
-                                ).animate().fade(
-                                    delay: const Duration(milliseconds: 50)),
-                              );
-                            }
-                            if (snapshot.hasData && snapshot.data!.isEmpty) {
-                              return const SizedBox();
-                            }
-                            if (snapshot.hasError) {
-                              return const Center(
-                                child: Text(
-                                    'Error occurred while fetching books...'),
-                              );
-                            } else {
-                              final books = snapshot.data!;
-                              return Container(
-                                height: 140,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 4),
-                                width: MediaQuery.of(context).size.width,
-                                child: ListView.builder(
-                                  shrinkWrap: true,
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: books.length,
-                                  itemBuilder: (context, index) {
-                                    final book = books[index];
-                                    final String bookId = book['bookId'];
-                                    final String type = book['type'];
-                                    final String bookIcon = book['bookEmoji'];
-                                    final String bookTitle = book['bookTitle'];
-                                    final String bookDescription =
-                                        book['bookDescription'];
-                                    final Timestamp timestamp = book['addedOn'];
-                                    final DateTime addedOn = timestamp.toDate();
-                                    final bool hasChildren =
-                                        book['hasChildren'];
-                                    return BookCard(
-                                      type: type,
-                                      isTemplate: false,
-                                      hasChildren: hasChildren,
-                                      dateTime: addedOn,
-                                      bookId: bookId,
-                                      emoji: bookIcon,
-                                      title: bookTitle,
-                                      description: bookDescription,
-                                    );
-                                  },
-                                ),
-                              );
-                            }
-                          }),
-                      if (numberOfBooks != 0)
-                        SizedBox(
-                          height: 14,
-                        ),
-                      if (numberOfEntries != 0)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: const Text('Notes'),
-                        ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      StreamBuilder<List<Map<String, dynamic>>>(
-                          stream: fetchEntries(),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return Skeletonizer(
-                                enabled: true,
-                                containersColor:
-                                    Theme.of(context).primaryColorLight,
-                                child: ListTile(
-                                  leading: Icon(Icons.abc),
-                                  title: Text(
-                                    'So this is the text of the title of the object here...',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                    ),
-                                    maxLines: 1,
-                                  ),
-                                  subtitle: Text(
-                                    'So this is the text of the subtitle of the object here...',
-                                    maxLines: 1,
-                                  ),
-                                  trailing: Text('End'),
-                                ),
-                              ).animate().fade(
-                                  delay: const Duration(milliseconds: 50));
-                            }
-                            if (numberOfBooks == 0 && numberOfEntries == 0) {
-                              return const SizedBox(
-                                child: Padding(
-                                  padding:
-                                      EdgeInsets.only(left: 14.0, right: 14.0),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image(
-                                        height: 200,
-                                        width: 200,
-                                        image: AssetImage(
-                                            'assets/images/allCompletedBackground.png'),
-                                      ),
-                                      Text(
-                                        'Make a new entry',
-                                        style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w500),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      SizedBox(
-                                        height: 4,
-                                      ),
-                                      Text(
-                                        'Click on the + icon to make a new note, document your life and more',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.grey),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }
-                            if (snapshot.hasError) {
-                              return const Center(
-                                child: Text(
-                                    'Error occurred while getting entries...'),
-                              );
-                            } else {
-                              final entries = snapshot.data!;
-                              return ListView.builder(
-                                shrinkWrap: true,
-                                itemCount: entries.length,
-                                itemBuilder: (context, index) {
-                                  final entry = entries[index];
-                                  final entryDescription =
-                                      entry['mainEntryDescription'];
-                                  final entryTitle =
-                                      entry['mainEntryTitle'] ?? '';
-                                  final entryBackgroundImageUrl =
-                                      entry['backgroundImageUrl'] ?? '';
-                                  final entryId = entry['mainEntryId'] ?? '';
-                                  final entryType =
-                                      entry['mainEntryType'] ?? '';
-                                  final entryEmoji =
-                                      entry['mainEntryEmoji'] ?? '';
-                                  final entryAttachments =
-                                      entry['attachments'] ?? [];
-                                  final entryChildren = entry['children'];
-                                  final entryHasChildren = entry['hasChildren'];
-                                  final Timestamp timestamp = entry['addedOn'];
-                                  final Timestamp datetime = entry['dateTime'];
-                                  final DateTime entryDate = timestamp.toDate();
-                                  final DateTime dateTime = datetime.toDate();
-                                  final DateTime addedOn = entryDate;
-                                  final date = DateFormat('dd-MM-yyyy')
-                                      .format(entryDate);
-                                  final entryTime =
-                                      entry['dateTime']?.toDate() ?? '';
-                                  final entryIsFavorite = entry['isFavorite'];
-                                  final time =
-                                      DateFormat('h:mm a').format(entryTime);
-                                  final isSynced = entry['synced'];
-                                  final isEntryLocked =
-                                      entry['isEntryLocked'] ?? false;
-                                  return EntriesTile(
-                                    innerPadding: const EdgeInsets.symmetric(
-                                        horizontal: 14),
-                                    content: entryDescription,
-                                    title: entryTitle,
-                                    emoji: entryEmoji,
-                                    date: date,
-                                    time: time,
-                                    id: entryId,
-                                    type: entryType,
-                                    backgroundImageUrl:
-                                        entryBackgroundImageUrl ?? '',
-                                    attachments: entryAttachments ?? [],
-                                    hasChildren: entryHasChildren ?? false,
-                                    children: entryChildren ?? [],
-                                    isFavorite: entryIsFavorite ?? false,
-                                    addedOn: addedOn,
-                                    dateTime: dateTime,
-                                    isSynced: isSynced,
-                                    isEntryLocked: isEntryLocked,
-                                    isTemplate: false,
-                                  );
-                                },
-                              );
-                            }
-                          }),
-                    ],
+                  const SizedBox(
+                    height: 6,
                   ),
-                ),
+                  StreamBuilder<List<Map<String, dynamic>>>(
+                      stream: fetchEntries(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Skeletonizer(
+                            enabled: true,
+                            containersColor:
+                                Theme.of(context).primaryColorLight,
+                            child: ListTile(
+                              leading: Icon(Icons.abc),
+                              title: Text(
+                                'So this is the text of the title of the object here...',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                                maxLines: 1,
+                              ),
+                              subtitle: Text(
+                                'So this is the text of the subtitle of the object here...',
+                                maxLines: 1,
+                              ),
+                              trailing: Text('End'),
+                            ),
+                          )
+                              .animate()
+                              .fade(delay: const Duration(milliseconds: 50));
+                        }
+                        if (numberOfBooks == 0 && numberOfEntries == 0) {
+                          return const SizedBox(
+                            child: Padding(
+                              padding: EdgeInsets.only(left: 14.0, right: 14.0),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image(
+                                    height: 200,
+                                    width: 200,
+                                    image: AssetImage(
+                                        'assets/images/allCompletedBackground.png'),
+                                  ),
+                                  Text(
+                                    'Make a new entry',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  SizedBox(
+                                    height: 4,
+                                  ),
+                                  Text(
+                                    'Click on the + icon to make a new note, document your life and more',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.grey),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+                        if (snapshot.hasError) {
+                          return const Center(
+                            child:
+                                Text('Error occurred while getting entries...'),
+                          );
+                        } else {
+                          final entries = snapshot.data!;
+                          return ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: entries.length,
+                            physics: NeverScrollableScrollPhysics(),
+                            itemBuilder: (context, index) {
+                              final entry = entries[index];
+                              final entryDescription =
+                                  entry['mainEntryDescription'];
+                              final entryTitle = entry['mainEntryTitle'] ?? '';
+                              final entryBackgroundImageUrl =
+                                  entry['backgroundImageUrl'] ?? '';
+                              final entryId = entry['mainEntryId'] ?? '';
+                              final entryType = entry['mainEntryType'] ?? '';
+                              final entryEmoji = entry['mainEntryEmoji'] ?? '';
+                              final entryAttachments =
+                                  entry['attachments'] ?? [];
+                              final entryChildren = entry['children'];
+                              final entryHasChildren = entry['hasChildren'];
+                              final Timestamp timestamp = entry['addedOn'];
+                              final Timestamp datetime = entry['dateTime'];
+                              final DateTime entryDate = timestamp.toDate();
+                              final DateTime dateTime = datetime.toDate();
+                              final DateTime addedOn = entryDate;
+                              final date =
+                                  DateFormat('dd-MM-yyyy').format(entryDate);
+                              final entryTime =
+                                  entry['dateTime']?.toDate() ?? '';
+                              final entryIsFavorite = entry['isFavorite'];
+                              final time =
+                                  DateFormat('h:mm a').format(entryTime);
+                              final isSynced = entry['synced'];
+                              final isEntryLocked =
+                                  entry['isEntryLocked'] ?? false;
+                              return EntriesTile(
+                                innerPadding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 10),
+                                content: entryDescription,
+                                title: entryTitle,
+                                emoji: entryEmoji,
+                                date: date,
+                                time: time,
+                                id: entryId,
+                                type: entryType,
+                                backgroundImageUrl:
+                                    entryBackgroundImageUrl ?? '',
+                                attachments: entryAttachments ?? [],
+                                hasChildren: entryHasChildren ?? false,
+                                children: entryChildren ?? [],
+                                isFavorite: entryIsFavorite ?? false,
+                                addedOn: addedOn,
+                                dateTime: dateTime,
+                                isSynced: isSynced,
+                                isEntryLocked: isEntryLocked,
+                                isTemplate: false,
+                              );
+                            },
+                          );
+                        }
+                      }),
+                ],
+              ),
+            ),
       bottomSheet:
           // Display and AD in between the events tile and tasks tile (testing)
           isAdLoaded && Platform.isAndroid
@@ -1252,133 +969,133 @@ class _EntriesScreenState extends State<EntriesScreen> {
                   child: Center(child: AdWidget(ad: bannerAd)),
                 )
               : const SizedBox(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          showModalBottomSheet(
-            context: context,
-            showDragHandle: true,
-            enableDrag: true,
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            builder: (context) {
-              return SafeArea(
-                child: Column(
-                  children: [
-                    // Display all the basic objects
-                    const Expanded(
-                      child: TypesOfEntries(),
-                    ),
-                    // Display a button to more templates
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'More entry ',
-                        ),
-                        InkWell(
-                          onTap: () {
-                            if (subscriptionPlan == 'free') {
-                              showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      backgroundColor: Theme.of(context)
-                                          .scaffoldBackgroundColor,
-                                      icon: Icon(
-                                        Icons.payment_rounded,
-                                      ),
-                                      iconColor: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.color,
-                                      title: const Text(
-                                          'Upgrade to use templates'),
-                                      titleTextStyle: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.w400,
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.color,
-                                      ),
-                                      content: const Text(
-                                        'To use custom templates, you need to be on either the Pro or the Lifetime subscription plans',
-                                      ),
-                                      contentTextStyle: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w400),
-                                      actions: [
-                                        // Button to cancel and close the dialog box
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context),
-                                          style: const ButtonStyle(
-                                            foregroundColor:
-                                                WidgetStatePropertyAll(
-                                                    Colors.red),
-                                          ),
-                                          child: const Text('Cancel'),
-                                        ),
-                                        // Button to redirect to the subscriptions page
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context).push(
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        UpgradeSubscriptionScreen()));
-                                          },
-                                          style: ButtonStyle(
-                                            foregroundColor:
-                                                WidgetStatePropertyAll(
-                                                    Theme.of(context)
-                                                        .primaryColor),
-                                          ),
-                                          child: const Text('Upgrade'),
-                                        ),
-                                      ],
-                                    );
-                                  });
-                            } else {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) =>
-                                      const CustomTemplatesScreen()));
-                            }
-                          },
-                          child: const Row(
-                            children: [
-                              Text(
-                                'templates',
-                                style: TextStyle(
-                                    decoration: TextDecoration.underline,
-                                    fontWeight: FontWeight.w700),
-                              ),
-                              Icon(
-                                Icons.open_in_new_rounded,
-                                size: 14,
-                              )
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8)
-                  ],
-                ),
-              );
-            },
-          );
-        },
-        backgroundColor: Theme.of(context).primaryColor,
-        child: Icon(
-          Icons.add,
-          size: 24,
-          color: Theme.of(context).textTheme.bodyMedium?.color,
-        ),
-      ).animate().scaleXY(
-            curve: Curves.easeInOutBack,
-            delay: const Duration(
-              milliseconds: 1000,
-            ),
-          ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () async {
+      //     showModalBottomSheet(
+      //       context: context,
+      //       showDragHandle: true,
+      //       enableDrag: true,
+      //       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      //       builder: (context) {
+      //         return SafeArea(
+      //           child: Column(
+      //             children: [
+      //               // Display all the basic objects
+      //               const Expanded(
+      //                 child: TypesOfEntries(),
+      //               ),
+      //               // Display a button to more templates
+      //               Row(
+      //                 mainAxisAlignment: MainAxisAlignment.center,
+      //                 children: [
+      //                   const Text(
+      //                     'More entry ',
+      //                   ),
+      //                   InkWell(
+      //                     onTap: () {
+      //                       if (subscriptionPlan == 'free') {
+      //                         showDialog(
+      //                             context: context,
+      //                             builder: (context) {
+      //                               return AlertDialog(
+      //                                 backgroundColor: Theme.of(context)
+      //                                     .scaffoldBackgroundColor,
+      //                                 icon: Icon(
+      //                                   Icons.payment_rounded,
+      //                                 ),
+      //                                 iconColor: Theme.of(context)
+      //                                     .textTheme
+      //                                     .bodyMedium
+      //                                     ?.color,
+      //                                 title: const Text(
+      //                                     'Upgrade to use templates'),
+      //                                 titleTextStyle: TextStyle(
+      //                                   fontSize: 24,
+      //                                   fontWeight: FontWeight.w400,
+      //                                   color: Theme.of(context)
+      //                                       .textTheme
+      //                                       .bodyMedium
+      //                                       ?.color,
+      //                                 ),
+      //                                 content: const Text(
+      //                                   'To use custom templates, you need to be on either the Pro or the Lifetime subscription plans',
+      //                                 ),
+      //                                 contentTextStyle: TextStyle(
+      //                                     fontSize: 14,
+      //                                     fontWeight: FontWeight.w400),
+      //                                 actions: [
+      //                                   // Button to cancel and close the dialog box
+      //                                   TextButton(
+      //                                     onPressed: () =>
+      //                                         Navigator.pop(context),
+      //                                     style: const ButtonStyle(
+      //                                       foregroundColor:
+      //                                           WidgetStatePropertyAll(
+      //                                               Colors.red),
+      //                                     ),
+      //                                     child: const Text('Cancel'),
+      //                                   ),
+      //                                   // Button to redirect to the subscriptions page
+      //                                   TextButton(
+      //                                     onPressed: () {
+      //                                       Navigator.of(context).push(
+      //                                           MaterialPageRoute(
+      //                                               builder: (context) =>
+      //                                                   UpgradeSubscriptionScreen()));
+      //                                     },
+      //                                     style: ButtonStyle(
+      //                                       foregroundColor:
+      //                                           WidgetStatePropertyAll(
+      //                                               Theme.of(context)
+      //                                                   .primaryColor),
+      //                                     ),
+      //                                     child: const Text('Upgrade'),
+      //                                   ),
+      //                                 ],
+      //                               );
+      //                             });
+      //                       } else {
+      //                         Navigator.of(context).push(MaterialPageRoute(
+      //                             builder: (context) =>
+      //                                 const CustomTemplatesScreen()));
+      //                       }
+      //                     },
+      //                     child: const Row(
+      //                       children: [
+      //                         Text(
+      //                           'templates',
+      //                           style: TextStyle(
+      //                               decoration: TextDecoration.underline,
+      //                               fontWeight: FontWeight.w700),
+      //                         ),
+      //                         Icon(
+      //                           Icons.open_in_new_rounded,
+      //                           size: 14,
+      //                         )
+      //                       ],
+      //                     ),
+      //                   ),
+      //                 ],
+      //               ),
+      //               const SizedBox(height: 8)
+      //             ],
+      //           ),
+      //         );
+      //       },
+      //     );
+      //   },
+      //   backgroundColor: Theme.of(context).primaryColor,
+      //   child: Icon(
+      //     Icons.add,
+      //     size: 24,
+      //     color: Theme.of(context).textTheme.bodyMedium?.color,
+      //   ),
+      // ).animate().scaleXY(
+      //       curve: Curves.easeInOutBack,
+      //       delay: const Duration(
+      //         milliseconds: 1000,
+      //       ),
+      //     ),
     );
   }
 }

@@ -1,20 +1,15 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:bloom/components/mybuttons.dart';
+import 'package:bloom/components/bloom_buttons.dart';
 import 'package:bloom/responsive/dimensions.dart';
 import 'package:bloom/screens/about_app_screen.dart';
-import 'package:bloom/screens/notification_preferences.dart';
-import 'package:bloom/screens/upgrade_subscription_screen.dart';
-import 'package:bloom/theme/theme_provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:bloom/screens/theme_and_colors_screen.dart';
 import 'package:feedback/feedback.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -29,10 +24,7 @@ class _SettingsPageState extends State<SettingsPage> {
   // late String font;
   late BannerAd bannerAd;
   bool isAdLoaded = false;
-  int? colorSchemeValue = 0;
-  int? themeSchemeValue;
   bool isHTML = false;
-  String? subscriptionPlan;
   final user = FirebaseAuth.instance.currentUser;
   final Uri privacyPolicyUri =
       Uri.parse('https://bloomproductive.framer.website/privacy-policy');
@@ -43,35 +35,6 @@ class _SettingsPageState extends State<SettingsPage> {
   void initState() {
     super.initState();
     // initBannerAd();
-    getThemeSchemeValue();
-    subscriptionPlanCheck();
-  }
-
-// Method to check and display a update available tag
-  void subscriptionPlanCheck() {
-    FirebaseFirestore.instance
-        .collection('users')
-        .doc(user?.uid)
-        .get()
-        .then((value) {
-      if (value.exists && value.data()!.containsKey('subscriptionPlan')) {
-        setState(() {
-          if (value['subscriptionPlan'] == 'free' ||
-              value['subscriptionPlan'] == '' ||
-              value['subscriptionPlan'] == null) {
-            subscriptionPlan = 'free';
-          } else if (value['subscriptionPlan'] == 'pro') {
-            subscriptionPlan = 'pro';
-          } else {
-            subscriptionPlan = 'ultra';
-          }
-        });
-      } else {
-        setState(() {
-          subscriptionPlan = 'free';
-        });
-      }
-    });
   }
 
   // Method to send the email to the developer
@@ -101,14 +64,9 @@ class _SettingsPageState extends State<SettingsPage> {
           margin: const EdgeInsets.all(6),
           behavior: SnackBarBehavior.floating,
           showCloseIcon: true,
-          backgroundColor: Theme.of(context).primaryColor,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          content: Text(
-            'Feedback sent succesfully. Thank you!',
-            style:
-                TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
-          ),
+          content: Text('Feedback sent succesfully. Thank you!'),
         ),
       );
     } else {
@@ -117,14 +75,9 @@ class _SettingsPageState extends State<SettingsPage> {
           margin: const EdgeInsets.all(6),
           behavior: SnackBarBehavior.floating,
           showCloseIcon: true,
-          backgroundColor: Theme.of(context).primaryColor,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          content: Text(
-            platformResponse,
-            style:
-                TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
-          ),
+          content: Text(platformResponse),
         ),
       );
     }
@@ -139,29 +92,8 @@ class _SettingsPageState extends State<SettingsPage> {
     return screenshotFilePath;
   }
 
-  // Get the themeSchemeValue from SharedPreferences
-  void getThemeSchemeValue() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String themePreference =
-        prefs.getString('themeSchemeValue') ?? 'system';
-
-    if (themePreference == 'light') {
-      setState(() {
-        themeSchemeValue = 0;
-      });
-    } else if (themePreference == 'dark') {
-      setState(() {
-        themeSchemeValue = 1;
-      });
-    } else {
-      setState(() {
-        themeSchemeValue = 2;
-      });
-    }
-  }
-
 // Banner ADs initialization method
-  initBannerAd() {
+  void initBannerAd() {
     bannerAd = BannerAd(
       size: AdSize.banner,
       adUnitId: "ca-app-pub-5607290715305671/5550335450",
@@ -176,14 +108,9 @@ class _SettingsPageState extends State<SettingsPage> {
               margin: const EdgeInsets.all(6),
               behavior: SnackBarBehavior.floating,
               showCloseIcon: true,
-              backgroundColor: Theme.of(context).primaryColor,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
-              content: Text(
-                'Failed to load the Ad. ${error.message}',
-                style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyMedium?.color),
-              )));
+              content: Text('Failed to load the Ad. ${error.message}')));
         },
       ),
       request: const AdRequest(),
@@ -193,13 +120,15 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> launchPrivacyPolicyUrl() async {
-    if (!await launchUrl(privacyPolicyUri, mode: LaunchMode.externalApplication)) {
+    if (!await launchUrl(privacyPolicyUri,
+        mode: LaunchMode.externalApplication)) {
       throw Exception('Could not launch $privacyPolicyUri');
     }
   }
 
   Future<void> launchReportAnIssueUrl() async {
-    if (!await launchUrl(reportAnIssueUri, mode: LaunchMode.externalApplication)) {
+    if (!await launchUrl(reportAnIssueUri,
+        mode: LaunchMode.externalApplication)) {
       throw Exception('Could not launch $reportAnIssueUri');
     }
   }
@@ -218,354 +147,132 @@ class _SettingsPageState extends State<SettingsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Warning to restart the app after changing some settings
-              // font != widget.font
-              //     ? const Padding(
-              //         padding: EdgeInsets.symmetric(vertical: 6.0, horizontal: 14),
-              //         child: Text(
-              //           'To see the changes of some settings, you need to restart the app.',
-              //           style: TextStyle(color: Colors.red),
-              //         ),
-              //       )
-              //     : const SizedBox(),
-              // Upgrade the subscription plan banner
-              // SubscriptionsBanner(
-              //   isFreeUser: subscriptionPlan == 'free' ? true : false,
-              //   currentDate: DateTime.now(),
-              // ),
-              if (subscriptionPlan == 'free')
-                ListTile(
-                  contentPadding: EdgeInsets.symmetric(horizontal: 6),
-                  onTap: () {
-                    // Navigate to the subscription upgrade page/screen
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => UpgradeSubscriptionScreen()));
-                  },
-                  dense: true,
-                  leading: Icon(Icons.star_rounded),
-                  iconColor: Colors.amber,
-                  title: Text(
-                    'Upgrade to Pro',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  subtitle: Text(
-                    'Upgrade your plan to use all the features',
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
-                  ),
-                ),
-              if (subscriptionPlan == 'free') Divider(),
-              // Settings for changing app appearance
-              ExpansionTile(
-                tilePadding: EdgeInsets.symmetric(horizontal: 6),
-                leading: Icon(
-                  Icons.phonelink_setup_rounded,
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
-                ),
-                iconColor: Theme.of(context).textTheme.bodyMedium?.color,
-                dense: true,
-                expandedCrossAxisAlignment: CrossAxisAlignment.start,
-                title: Text(
+              // Preferences Section
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 6),
+                child: Text(
                   'Preferences',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 16,
-                      color: Theme.of(context).textTheme.bodyMedium?.color),
+                  style:
+                      TextStyle(color: Theme.of(context).colorScheme.primary),
                 ),
-                subtitle: const Text(
-                  'Options to change the app preferences',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
-                ),
-                children: [
-                  // App theme switching option
-                  const Text(
-                    'Theme',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-                  ),
-                  const Text(
-                    'Change the main theme of the app',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  const SizedBox(
-                    height: 12,
-                  ),
-                  SizedBox(
-                    width: double.maxFinite,
-                    child: SegmentedButton<int>(
-                      selected: <int>{themeSchemeValue ?? 2},
-                      showSelectedIcon: false,
-                      segments: [
-                        ButtonSegment(
-                            value: 0,
-                            icon: Icon(Icons.sunny,
-                                color: themeSchemeValue != 0
-                                    ? Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.color
-                                    : Colors.black),
-                            label: Text(
-                              'Light',
-                              style: TextStyle(
-                                  color: themeSchemeValue != 0
-                                      ? Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.color
-                                      : Colors.black),
-                            )),
-                        ButtonSegment(
-                            value: 1,
-                            icon: Icon(Icons.mode_night_rounded,
-                                color: themeSchemeValue != 1
-                                    ? Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.color
-                                    : Colors.black),
-                            label: Text(
-                              'Dark',
-                              style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.color),
-                            )),
-                        ButtonSegment(
-                            value: 2,
-                            icon: Icon(Icons.phone_android_rounded,
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.color),
-                            label: Text(
-                              'System',
-                              style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.color),
-                            )),
-                      ],
-                      style: SegmentedButton.styleFrom(
-                          selectedBackgroundColor:
-                              Theme.of(context).primaryColor.withAlpha(80)),
-                      onSelectionChanged: (value) {
-                        setState(() {
-                          themeSchemeValue = value.first;
-                        });
-
-                        final themeProvider =
-                            Provider.of<ThemeProvider>(context, listen: false);
-
-                        if (themeSchemeValue == 0) {
-                          themeProvider.theme = 'light';
-                        } else if (themeSchemeValue == 1) {
-                          themeProvider.theme = 'dark';
-                        } else {
-                          themeProvider.theme = 'system';
-                        }
-                      },
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  // Notifications settings
-                  ExtraOptionsButton(
-                    icon: const Icon(Icons.notifications_none_rounded),
-                    iconLabelSpace: 8,
-                    useSpacer: true,
-                    label: 'Notifications',
-                    labelStyle: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 16),
-                    endIcon: const Icon(Icons.keyboard_arrow_right_rounded),
-                    innerPadding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 14),
-                    onTap: () {
-                      // Navigate to the notification preferences or settings screen
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) =>
-                              const NotificationPreferences()));
-                    },
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  // Option to change the colors of the objects in CalendarView
-                  // ExtraOptionsButton(
-                  //   icon: Icon(Icons.format_color_fill_rounded),
-                  //   iconLabelSpace: 8,
-                  //   useSpacer: true,
-                  //   label: 'Change object color',
-                  //   labelStyle: TextStyle(
-                  //     fontWeight: FontWeight.w400,
-                  //     fontSize: 16
-                  //   ),
-
-                  // ),
-                  // // Change color scheme of the app title & button
-                  // const Text(
-                  //   'Color scheme',
-                  //   style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-                  // ),
-                  // const SizedBox(
-                  //   height: 12,
-                  // ),
-                  // SizedBox(
-                  //   width: double.maxFinite,
-                  //   child: CupertinoSlidingSegmentedControl(
-                  //     thumbColor: Theme.of(context).primaryColor,
-                  //     children: {
-                  //       0: Container(
-                  //         height: 12,
-                  //         width: 12,
-                  //         decoration: BoxDecoration(
-                  //           borderRadius: BorderRadius.circular(100),
-                  //           color: Theme.of(context).primaryColor,
-                  //         ),
-                  //       ),
-                  //       1: Container(
-                  //         height: 12,
-                  //         width: 12,
-                  //         decoration: BoxDecoration(
-                  //           borderRadius: BorderRadius.circular(100),
-                  //           color: primaryColorLightMode,
-                  //         ),
-                  //       ),
-                  //       2: Container(
-                  //         height: 12,
-                  //         width: 12,
-                  //         decoration: BoxDecoration(
-                  //             borderRadius: BorderRadius.circular(100),
-                  //             color: secondaryColorLightMode),
-                  //       ),
-                  //     },
-                  //     onValueChanged: (value) {
-                  //       setState(() {
-                  //         colorSchemeValue = value;
-                  //         print(colorSchemeValue);
-                  //       });
-                  //     },
-                  //     groupValue: colorSchemeValue,
-                  //   ),
-                  // ),
-                ],
               ),
-              // Settings for showing help, report buttons and more
-              ExpansionTile(
-                tilePadding: EdgeInsets.symmetric(horizontal: 6),
-                leading: Icon(
-                  Icons.info_outline_rounded,
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
-                ),
-                iconColor: Theme.of(context).textTheme.bodyMedium?.color,
-                dense: true,
-                expandedCrossAxisAlignment: CrossAxisAlignment.start,
-                title: Text(
+              // Theme & Colors Button
+              BloomMaterialListTile(
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(24),
+                    topRight: Radius.circular(24),
+                    bottomLeft: Radius.circular(24),
+                    bottomRight: Radius.circular(24)),
+                icon: Icon(Icons.color_lens,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer),
+                iconLabelSpace: 8,
+                label: 'Theme & Colors',
+                subLabel: 'Light/Dark theme, Color schemes',
+                labelStyle:
+                    const TextStyle(fontWeight: FontWeight.w500, fontSize: 18),
+                innerPadding: const EdgeInsets.all(16),
+                outerPadding: EdgeInsets.symmetric(vertical: 1, horizontal: 14),
+                onTap: () {
+                  // Navigate to Theme & Colors page
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => ThemeAndColorsScreen()));
+                },
+                endIcon: Icon(Icons.keyboard_arrow_right_rounded),
+              ),
+              const SizedBox(height: 16),
+              // Info Section
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Text(
                   'Info',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      color: Theme.of(context).textTheme.bodyMedium?.color),
+                  style:
+                      TextStyle(color: Theme.of(context).colorScheme.primary),
                 ),
-                subtitle: const Text(
-                  'Check for updates, privacy policy, report an issue and more',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
-                ),
-                children: [
-                  ExtraOptionsButton(
-                    label: 'About app',
-                    iconLabelSpace: 8,
-                    useSpacer: true,
-                    icon: const Icon(Icons.android_rounded),
-                    labelStyle: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 16),
-                    innerPadding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 14),
-                    endIcon: const Icon(Icons.keyboard_arrow_right_rounded),
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => const AboutAppScreen())),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  ExtraOptionsButton(
-                    label: 'Privacy Policy',
-                    iconLabelSpace: 8,
-                    useSpacer: true,
-                    icon: const Icon(Icons.privacy_tip_outlined),
-                    labelStyle: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 16),
-                    innerPadding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 14),
-                    endIcon: const Icon(Icons.open_in_new_rounded),
-                    onTap: () async {
-                      await launchPrivacyPolicyUrl();
-                    },
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  ExtraOptionsButton(
-                    label: 'Request a feature',
-                    iconLabelSpace: 8,
-                    useSpacer: true,
-                    icon: const Icon(Icons.report_gmailerrorred_rounded),
-                    labelStyle: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 16),
-                    innerPadding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 14),
-                    endIcon: const Icon(Icons.open_in_new_rounded),
-                    onTap: () async {
-                      await launchReportAnIssueUrl();
-                    },
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  // Option to ask the users to give feedback on the app
-                  ExtraOptionsButton(
-                    icon: const Icon(Icons.feedback_outlined),
-                    iconLabelSpace: 8,
-                    useSpacer: true,
-                    label: 'Feedback',
-                    labelStyle: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                    innerPadding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 14),
-                    endIcon: const Icon(Icons.keyboard_arrow_right_rounded),
-                    onTap: () {
-                      // Show a modal sheet to collect the feedback and rating of the user for the app
-                      BetterFeedback.of(context)
-                          .show((UserFeedback feedback) async {
-                        // Get the path to the screenshot
-                        final screenshotFilePath =
-                            await writeImageToStorage(feedback.screenshot);
-                        send(feedback.text, [screenshotFilePath]);
-                      });
-                    },
-                  ),
-                  // Display the testing screen here. WARNING: Delete or comment the code for release builds. Do not leave this code intact for release builds!!!
-                  // ExtraOptionsButton(
-                  //   icon: const Icon(Icons.feedback_outlined),
-                  //   iconLabelSpace: 8,
-                  //   label: 'Testing screen',
-                  //   labelStyle: const TextStyle(
-                  //     fontWeight: FontWeight.w600,
-                  //     fontSize: 16,
-                  //   ),
-                  //   innerPadding: const EdgeInsets.symmetric(vertical: 12),
-                  //   endIcon: const Icon(Iconsax.arrow_right),
-                  //   onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                  //       builder: (context) => const TestScreen())),
-                  // ),
-                ],
+              ),
+              const SizedBox(height: 6),
+              // About Bloom Button
+              BloomMaterialListTile(
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(24),
+                    topRight: Radius.circular(24),
+                    bottomLeft: Radius.circular(4),
+                    bottomRight: Radius.circular(4)),
+                icon: Icon(Icons.android,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer),
+                iconLabelSpace: 8,
+                label: 'About Bloom',
+                subLabel: 'App version, updates, changelog',
+                labelStyle:
+                    const TextStyle(fontWeight: FontWeight.w500, fontSize: 18),
+                innerPadding: const EdgeInsets.all(16),
+                outerPadding: EdgeInsets.symmetric(vertical: 1, horizontal: 14),
+                onTap: () {
+                  // Navigate to About App page
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => AboutAppScreen()));
+                },
+                endIcon: Icon(Icons.keyboard_arrow_right_rounded),
+              ),
+              // Bloom Privacy Policy Button
+              BloomMaterialListTile(
+                icon: Icon(Icons.privacy_tip,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer),
+                iconLabelSpace: 8,
+                label: 'Privacy Policy',
+                subLabel: 'Read how we protect you',
+                labelStyle:
+                    const TextStyle(fontWeight: FontWeight.w500, fontSize: 18),
+                innerPadding: const EdgeInsets.all(16),
+                outerPadding: EdgeInsets.symmetric(vertical: 1, horizontal: 14),
+                onTap: () async {
+                  await launchPrivacyPolicyUrl();
+                },
+                endIcon: Icon(Icons.open_in_browser),
+              ),
+              // Request a Feature Button
+              BloomMaterialListTile(
+                icon: Icon(Icons.new_releases,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer),
+                iconLabelSpace: 8,
+                label: 'Feature Request',
+                subLabel: 'Suggest ideas for Bloom',
+                labelStyle:
+                    const TextStyle(fontWeight: FontWeight.w500, fontSize: 18),
+                innerPadding: const EdgeInsets.all(16),
+                outerPadding: EdgeInsets.symmetric(vertical: 1, horizontal: 14),
+                onTap: () async {
+                  await launchReportAnIssueUrl();
+                },
+                endIcon: Icon(Icons.open_in_browser),
+              ),
+              // Feedback Button
+              BloomMaterialListTile(
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(4),
+                    topRight: Radius.circular(4),
+                    bottomLeft: Radius.circular(24),
+                    bottomRight: Radius.circular(24)),
+                icon: Icon(Icons.feedback,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer),
+                iconLabelSpace: 8,
+                label: 'Feedback',
+                subLabel: 'Share your thoughts with us',
+                labelStyle:
+                    const TextStyle(fontWeight: FontWeight.w500, fontSize: 18),
+                innerPadding: const EdgeInsets.all(16),
+                outerPadding: EdgeInsets.symmetric(vertical: 1, horizontal: 14),
+                onTap: () {
+                  // Show a modal sheet to collect the feedback and rating of the user for the app
+                  BetterFeedback.of(context)
+                      .show((UserFeedback feedback) async {
+                    // Get the path to the screenshot
+                    final screenshotFilePath =
+                        await writeImageToStorage(feedback.screenshot);
+                    send(feedback.text, [screenshotFilePath]);
+                  });
+                },
+                endIcon: Icon(Icons.keyboard_arrow_right_rounded),
               ),
             ],
           ),

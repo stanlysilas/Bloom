@@ -28,35 +28,31 @@ class MyTextfield extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextField(
-      cursorColor: Theme.of(context).primaryColor,
       focusNode: focusNode,
       minLines: minLines,
       maxLines: maxLines,
       onTapOutside: (event) {
         focusNode.unfocus();
       },
-      style: TextStyle(
-        color: Theme.of(context).textTheme.bodyMedium?.color,
-      ),
       controller: controller,
       keyboardType: textInputType,
       obscureText: obscureText,
       autofocus: autoFocus,
       decoration: InputDecoration(
         prefixIcon: prefixIcon,
-        fillColor: Theme.of(context).primaryColorLight,
+        fillColor: Theme.of(context).colorScheme.surfaceContainer,
         filled: true,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderSide: BorderSide.none,
-          borderRadius: BorderRadius.circular(100),
+          borderRadius: BorderRadius.circular(16),
         ),
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(
-            color: Theme.of(context).primaryColor,
+            color: Theme.of(context).colorScheme.primary,
           ),
-          borderRadius: BorderRadius.circular(100),
+          borderRadius: BorderRadius.circular(16),
         ),
         suffixIcon: suffixIcon,
         hintText: hintText,

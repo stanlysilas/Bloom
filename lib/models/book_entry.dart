@@ -203,6 +203,7 @@ class _BookEntryState extends State<BookEntry> {
                   Expanded(
                     child: MyTextfieldNobackground(
                       controller: titleController,
+                      autoFocus: true,
                       focusNode: FocusNode(),
                       readOnly: true,
                       hintText: '',
@@ -273,7 +274,8 @@ class _BookEntryState extends State<BookEntry> {
                                     padding: const EdgeInsets.all(8.0),
                                     child: CustomTexteditingToolbar(
                                       controller: contentController,
-                                      focusNode: contentFocusNode, onSelected: () {  },
+                                      focusNode: contentFocusNode,
+                                      onSelected: () {},
                                     ),
                                   ),
                                 );

@@ -1,59 +1,78 @@
+import 'package:bloom/theme/colors.dart';
 import 'package:bloom/theme/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeProvider with ChangeNotifier {
-  static const String _themePreferenceKey = 'themeSchemeValue';
+  static const _themePreferenceKey = 'themeSchemeValue';
+  static const _colorSchemePreferenceKey = 'selectedColorSchemeIndex';
 
-  ThemeProvider() {
-    _loadThemeFromPreferences();
-  }
+  String _themeValue = 'system';
+  int _accentIndex = 0;
 
-  String _themeValue = 'system';  // Default to system theme
   ThemeData _themeData = lightTheme;
 
+  ThemeProvider() {
+    _loadPreferences();
+  }
+
   ThemeData get themeData => _themeData;
-  String get theme => _themeValue;
 
-  set theme(String value) {
-    _themeValue = value;
-    _themeData = _getThemeFromValue(value);
-    _saveThemeToPreferences(value);
-    notifyListeners();
-  }
-
-  Future<void> _saveThemeToPreferences(String theme) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_themePreferenceKey, theme);
-  }
-
-  Future<void> _loadThemeFromPreferences() async {
+  Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     _themeValue = prefs.getString(_themePreferenceKey) ?? 'system';
-    _themeData = _getThemeFromValue(_themeValue);
+    _accentIndex = prefs.getInt(_colorSchemePreferenceKey) ?? 0;
+    _buildTheme();
+  }
+
+  void _buildTheme() {
+    final isDark = _themeValue == 'dark' ||
+        (_themeValue == 'system' &&
+            WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+                Brightness.dark);
+
+    final colorScheme = _getColorScheme(isDark);
+    _themeData = ThemeData(
+        useMaterial3: true,
+        colorScheme: colorScheme,
+        scaffoldBackgroundColor: colorScheme.surface,
+        fontFamily: 'Nunito');
     notifyListeners();
   }
 
-  ThemeData _getThemeFromValue(String value) {
-    switch (value) {
-      case 'light':
-        return lightTheme;
-      case 'dark':
-        return darkTheme;
+  ColorScheme _getColorScheme(bool isDark) {
+    switch (_accentIndex) {
+      case 0:
+        return isDark ? blueDarkColorScheme : blueLightColorScheme;
+      // Add future palettes here:
+      case 1:
+        return isDark ? greenDarkColorScheme : greenLightColorScheme;
       default:
-        return WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark
-            ? darkTheme
-            : lightTheme;
+        return isDark ? blueDarkColorScheme : blueLightColorScheme;
     }
+  }
+
+  void setTheme(String value) async {
+    _themeValue = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_themePreferenceKey, value);
+    _buildTheme();
+  }
+
+  void setAccent(int index) async {
+    _accentIndex = index;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_colorSchemePreferenceKey, index);
+    _buildTheme();
   }
 
   void toggleTheme() {
     if (_themeValue == 'light') {
-      theme = 'dark';
+      setTheme('dark');
     } else if (_themeValue == 'dark') {
-      theme = 'system';
+      setTheme('system');
     } else {
-      theme = 'light';
+      setTheme('light');
     }
   }
 }

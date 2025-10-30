@@ -156,7 +156,6 @@ class _ShowTaskDetailsScreenState extends State<ShowTaskDetailsScreen> {
           ),
           // Button for more options like edit, delete etc
           PopupMenuButton(
-            color: Theme.of(context).primaryColorLight,
             popUpAnimationStyle:
                 AnimationStyle(duration: const Duration(milliseconds: 500)),
             itemBuilder: (context) => [
@@ -198,22 +197,23 @@ class _ShowTaskDetailsScreenState extends State<ShowTaskDetailsScreen> {
                       .delete();
                   // Show confirmation that task is deleted
                   ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    margin: const EdgeInsets.all(6),
-                    behavior: SnackBarBehavior.floating,
-                    showCloseIcon: true,
-                    closeIconColor:
-                        Theme.of(context).textTheme.bodyMedium?.color,
-                    backgroundColor: Theme.of(context).primaryColor,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    content: Text(
-                      'Task deleted succesfully',
-                      style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyMedium?.color),
+                    SnackBar(
+                      margin: const EdgeInsets.all(6),
+                      behavior: SnackBarBehavior.floating,
+                      showCloseIcon: true,
+                      closeIconColor:
+                          Theme.of(context).textTheme.bodyMedium?.color,
+                      backgroundColor: Theme.of(context).primaryColor,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      content: Text(
+                        'Task deleted succesfully',
+                        style: TextStyle(
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color),
+                      ),
                     ),
-                  ),
-                );
+                  );
                   Navigator.pop(context);
                 },
               ),

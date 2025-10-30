@@ -11,9 +11,8 @@ Future<bool> checkForBiometrics(
       canAuthenticateWithBiometrics || await auth.isDeviceSupported();
   if (canAuthenticate == true) {
     try {
-      didAuthenticate = await auth.authenticate(
-          localizedReason: localizedReason,
-          options: const AuthenticationOptions(stickyAuth: true));
+      didAuthenticate =
+          await auth.authenticate(localizedReason: localizedReason);
       // ···
     } on PlatformException catch (e) {
       // ...

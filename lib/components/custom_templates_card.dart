@@ -32,68 +32,72 @@ class CustomTemplatesCard extends StatefulWidget {
 class _CustomTemplatesCardState extends State<CustomTemplatesCard> {
   @override
   Widget build(BuildContext context) {
+    // Try to Cache the TemplateThumbnail before building the Card
+    final String templateThumbnail = widget.templateThumbnail;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(15),
-        onTap: () {
-          if (widget.templateType == 'book') {
-            Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => BookLayout(
-                    isTemplate: true,
-                    type: widget.templateType,
-                    dateTime: widget.dateOfCreation,
-                    emoji: widget.templateIcon,
-                    title: widget.templateTitle,
-                    description: widget.templateDescription,
-                    bookLayoutMethod: BookLayoutMethod.display,
-                    children: widget.templateChildren,
-                    bookId: widget.templateId,
-                    // Below settings are true for debugging purposes only
-                    hasChildren: true,
-                    isFavorite: true)));
-          }
-        },
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            color: Theme.of(context).primaryColorLight,
-          ),
-          child: Column(
-            children: [
-              // Image of the template
-              ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    widget.templateThumbnail,
-                    fit: BoxFit.fitWidth,
-                  ).animate().fade(delay: const Duration(milliseconds: 50))),
-              const SizedBox(
-                height: 5,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title of the template
-                  Text(
-                    widget.templateTitle,
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w500),
+      child: Material(
+        borderRadius: BorderRadius.circular(24),
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: () {
+            if (widget.templateType == 'book') {
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => BookLayout(
+                      isTemplate: true,
+                      type: widget.templateType,
+                      dateTime: widget.dateOfCreation,
+                      emoji: widget.templateIcon,
+                      title: widget.templateTitle,
+                      description: widget.templateDescription,
+                      bookLayoutMethod: BookLayoutMethod.display,
+                      children: widget.templateChildren,
+                      bookId: widget.templateId,
+                      // Below settings are true for debugging purposes only
+                      hasChildren: true,
+                      isFavorite: true)));
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              children: [
+                // Image of the template
+                ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.network(
+                      templateThumbnail,
+                      fit: BoxFit.fitWidth,
+                    ).animate().fade(delay: const Duration(milliseconds: 500))),
+                const SizedBox(
+                  height: 5,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title of the template
+                      Text(
+                        widget.templateTitle,
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w500),
+                      ),
+                      // Description of the template
+                      Text(widget.templateDescription),
+                      const SizedBox(
+                        height: 8,
+                      ),
+                      // Date of creation and created by user name
+                      Text(
+                          "Created on: ${DateFormat('LLL, yyyy').format(widget.dateOfCreation)} by: ${widget.createdBy}",
+                          style: TextStyle(color: Colors.grey))
+                    ],
                   ),
-                  // Description of the template
-                  Text(widget.templateDescription),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  // Date of creation and created by user name
-                  Text(
-                    "Created on: ${DateFormat('LLL, yyyy').format(widget.dateOfCreation)} by: ${widget.createdBy}",
-                    style: const TextStyle(color: Colors.grey),
-                  )
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

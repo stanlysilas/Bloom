@@ -5,13 +5,11 @@ import 'package:bloom/components/add_event.dart';
 import 'package:bloom/components/add_taskorhabit.dart';
 import 'package:bloom/models/book_layout.dart';
 import 'package:bloom/models/note_layout.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-// Multiple entries button
 class TypesOfObjects extends StatefulWidget {
+  /// Display all types of objects in a [ListTile] with Bloom's style.
   const TypesOfObjects({
     super.key,
   });
@@ -29,7 +27,7 @@ List typesOfEntries = [
 ];
 List iconsForTypesOfEntries = [
   Icons.task_alt_rounded,
-  Icons.repeat_rounded,
+  Icons.self_improvement_rounded,
   Icons.event_rounded,
   Icons.notes_rounded,
   // Iconsax.timer,
@@ -48,8 +46,6 @@ class _TypesOfObjectsState extends State<TypesOfObjects> {
   final now = DateTime.now();
   String date = '';
   String time = '';
-  bool? isFreeSubscription = true;
-  final userId = FirebaseAuth.instance.currentUser?.uid;
   @override
   void initState() {
 // Formate intial date and time to strings
@@ -57,37 +53,16 @@ class _TypesOfObjectsState extends State<TypesOfObjects> {
       date = DateFormat('dd-MM-yyyy').format(now);
       time = DateFormat('h:mm a').format(now);
     });
-    checkSubscription();
     super.initState();
-  }
-
-  // Check the subscription plan of the user
-  void checkSubscription() async {
-    try {
-      final docSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .get();
-
-      if (docSnapshot.exists) {
-        final data = docSnapshot.data();
-        final plan = data?['subscriptionPlan'];
-
-        setState(() {
-          isFreeSubscription = (plan == null || plan == 'free') ? true : false;
-        });
-      }
-    } catch (e) {
-      //
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       itemCount: typesOfEntries.length,
+      physics: NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
-        return ListTile(
+        return BloomModalListTile(
           onTap: () {
             // Navigate to appropriate page
             if (index == 0) {
@@ -97,10 +72,6 @@ class _TypesOfObjectsState extends State<TypesOfObjects> {
                 context: context,
                 isScrollControlled: true,
                 useSafeArea: true,
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                // constraints: BoxConstraints(
-                //   maxWidth: MediaQuery.of(context).size.width,
-                //   maxHeight: MediaQuery.of(context).size.height,
                 // ),
                 builder: (BuildContext context) {
                   return SafeArea(
@@ -112,7 +83,7 @@ class _TypesOfObjectsState extends State<TypesOfObjects> {
                 },
                 showDragHandle: true,
               );
-            } else if (index == 1 && isFreeSubscription == false) {
+            } else if (index == 1) {
               Navigator.pop(context);
               // Add new event process
               showModalBottomSheet(
@@ -120,11 +91,6 @@ class _TypesOfObjectsState extends State<TypesOfObjects> {
                 isScrollControlled: true,
                 useSafeArea: true,
                 enableDrag: true,
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                // constraints: BoxConstraints(
-                //   maxWidth: MediaQuery.of(context).size.width,
-                //   maxHeight: MediaQuery.of(context).size.height,
-                // ),
                 builder: (BuildContext context) {
                   return SafeArea(
                     child: AddTaskOrHabitModal(
@@ -135,19 +101,6 @@ class _TypesOfObjectsState extends State<TypesOfObjects> {
                 },
                 showDragHandle: true,
               );
-            } else if (index == 1 && isFreeSubscription == true) {
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    margin: const EdgeInsets.all(6),
-                    behavior: SnackBarBehavior.floating,
-                    showCloseIcon: true,
-                    backgroundColor: Colors.green,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    content: Text(
-                        'Upgrade to Pro subscription or Lifetime plan to use Habits')),
-              );
             } else if (index == 2) {
               Navigator.pop(context);
               // Add new event process
@@ -156,11 +109,6 @@ class _TypesOfObjectsState extends State<TypesOfObjects> {
                 isScrollControlled: true,
                 useSafeArea: true,
                 enableDrag: true,
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                // constraints: BoxConstraints(
-                //   maxWidth: MediaQuery.of(context).size.width,
-                //   maxHeight: MediaQuery.of(context).size.height,
-                // ),
                 builder: (BuildContext context) {
                   return AddEventModalSheet(
                     currentDateTime: DateTime.now(),
@@ -230,56 +178,97 @@ class _TypesOfObjectsState extends State<TypesOfObjects> {
               );
             }
           },
-          contentPadding: const EdgeInsets.symmetric(horizontal: 14),
-          dense: true,
-          minVerticalPadding: 0,
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: Theme.of(context).primaryColorLight,
-            ),
-            child: Icon(
-              iconsForTypesOfEntries[index],
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-            ),
+          leadingIcon: Icon(
+            iconsForTypesOfEntries[index],
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
           ),
-          title: Text(
-            typesOfEntries[index],
-            style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-                color: Theme.of(context).textTheme.bodyMedium?.color),
-          ),
-          subtitle: Text(
-            descriptionForTypesOfEntries[index],
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: Colors.grey),
-          ),
+          title: typesOfEntries[index],
+          subTitle: descriptionForTypesOfEntries[index],
         );
       },
     );
   }
 }
 
-class ExtraOptionsButton extends StatefulWidget {
+class BloomModalListTile extends StatefulWidget {
+  /// Bloom's custom [ListTile] button for ModalBottomSheets.
+  final VoidCallback onTap;
+  final String title;
+  final String? subTitle;
+  final Widget? leadingIcon;
+  final TextStyle? titleStyle;
+  const BloomModalListTile(
+      {super.key,
+      required this.onTap,
+      required this.title,
+      this.subTitle,
+      this.leadingIcon,
+      this.titleStyle});
+
+  @override
+  State<BloomModalListTile> createState() => _BloomModalListTileState();
+}
+
+class _BloomModalListTileState extends State<BloomModalListTile> {
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: widget.onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      dense: true,
+      minVerticalPadding: 0,
+      leading: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          color: Theme.of(context).colorScheme.secondaryContainer,
+        ),
+        child: widget.leadingIcon ??
+            Icon(
+              Icons.android,
+              color: Theme.of(context).colorScheme.onSecondaryContainer,
+            ),
+      ),
+      title: Text(
+        widget.title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: widget.titleStyle ??
+            TextStyle(fontWeight: FontWeight.w500, fontSize: 18),
+      ),
+      subtitle: widget.subTitle != null && widget.subTitle!.isNotEmpty
+          ? Text(
+              widget.subTitle ?? '',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: Colors.grey, fontSize: 14),
+            )
+          : null,
+    );
+  }
+}
+
+class BloomMaterialListTile extends StatefulWidget {
+  /// Bloom's custom [ListTile] Material3 Styled button
   final String? label;
+  final String? subLabel;
   final TextStyle? labelStyle;
+  final TextStyle? subLabelStyle;
   final TextAlign? textAlign;
   final Widget? icon;
   final Function()? onTap;
   final EdgeInsetsGeometry? outerPadding;
   final EdgeInsetsGeometry? innerPadding;
   final Widget? endIcon;
-  final BoxDecoration? decoration;
+  final Color? color;
   final double? iconLabelSpace;
   final bool? showTag;
   final String? tagLabel;
   final Widget? tagIcon;
   final Color? tagColor;
   final bool? useSpacer;
-  const ExtraOptionsButton({
+  final BorderRadius? borderRadius;
+  const BloomMaterialListTile({
     super.key,
     this.label,
     this.labelStyle,
@@ -289,82 +278,123 @@ class ExtraOptionsButton extends StatefulWidget {
     this.outerPadding,
     this.innerPadding,
     this.endIcon,
-    this.decoration,
+    this.color,
     this.iconLabelSpace,
     this.showTag,
     this.tagLabel,
     this.tagIcon,
     this.tagColor,
     this.useSpacer,
+    this.borderRadius,
+    this.subLabel,
+    this.subLabelStyle,
   });
 
   @override
-  State<ExtraOptionsButton> createState() => _ExtraOptionsButtonState();
+  State<BloomMaterialListTile> createState() => _BloomMaterialListTileState();
 }
 
-class _ExtraOptionsButtonState extends State<ExtraOptionsButton> {
+class _BloomMaterialListTileState extends State<BloomMaterialListTile> {
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: widget.outerPadding != null
           ? widget.outerPadding!
-          : const EdgeInsets.only(),
-      child: InkWell(
-        onTap: widget.onTap,
-        child: Container(
-          width: double.maxFinite,
-          padding: widget.innerPadding ??
-              const EdgeInsets.only(left: 6, right: 6, top: 2, bottom: 2),
-          decoration: widget.decoration,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              widget.icon ?? const SizedBox(),
-              SizedBox(width: widget.iconLabelSpace ?? 0),
-              if (widget.label != '' || widget.label != null)
-                Text(
-                  widget.label!,
-                  maxLines: 1,
-                  textAlign: widget.textAlign,
-                  style: widget.labelStyle,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              if (widget.showTag == true)
-                const SizedBox(
-                  width: 10,
-                ),
-              // Show the pro feature tag only if the user is on free plan
-              if (widget.showTag == true)
-                Container(
-                  decoration: BoxDecoration(
-                    color: widget.tagColor ??
-                        Theme.of(context).primaryColor.withAlpha(100),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  child: Row(
+          : const EdgeInsets.symmetric(vertical: 1, horizontal: 14),
+      child: Material(
+        color: widget.color ?? Theme.of(context).colorScheme.surfaceContainer,
+        borderRadius: widget.borderRadius ?? BorderRadius.circular(4),
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: widget.borderRadius ?? BorderRadius.circular(4),
+          child: Container(
+            width: double.maxFinite,
+            padding: widget.innerPadding ?? const EdgeInsets.all(16),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (widget.iconLabelSpace != 0)
+                  Container(
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color:
+                              Theme.of(context).colorScheme.secondaryContainer),
+                      child: widget.icon ?? Icon(Icons.android)),
+                SizedBox(width: widget.iconLabelSpace ?? 8),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      widget.tagIcon ??
-                          const Icon(
-                            Icons.payment_rounded,
-                            size: 14,
-                          ),
-                      const SizedBox(
-                        width: 2,
-                      ),
-                      Text(
-                        widget.tagLabel ?? 'Pro feature',
-                        style: const TextStyle(fontSize: 12),
-                      )
+                      if (widget.label != null && widget.label!.isNotEmpty)
+                        Text(
+                          widget.label!,
+                          maxLines: 1,
+                          textAlign: widget.textAlign,
+                          style: widget.labelStyle ??
+                              TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.w500),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      if (widget.subLabel != null &&
+                          widget.subLabel!.isNotEmpty)
+                        Text(
+                          widget.subLabel!,
+                          maxLines: 1,
+                          textAlign: widget.textAlign,
+                          style: widget.subLabelStyle ??
+                              TextStyle(color: Colors.grey[600]),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                     ],
                   ),
                 ),
-              if (widget.useSpacer == true) const Spacer(),
-              if (widget.endIcon != null) widget.endIcon!,
-            ],
+                if (widget.showTag == true)
+                  const SizedBox(
+                    width: 10,
+                  ),
+                // Show the pro feature tag only if the user is on free plan
+                if (widget.showTag == true)
+                  Container(
+                    decoration: BoxDecoration(
+                      color: widget.tagColor ??
+                          Theme.of(context).colorScheme.secondaryContainer,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    child: Row(
+                      children: [
+                        widget.tagIcon ??
+                            Icon(
+                              Icons.payment_rounded,
+                              size: 14,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSecondaryContainer,
+                            ),
+                        const SizedBox(
+                          width: 2,
+                        ),
+                        Text(
+                          widget.tagLabel ?? 'Pro feature',
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSecondaryContainer),
+                        )
+                      ],
+                    ),
+                  ),
+                if (widget.useSpacer == true) const Spacer(),
+                if (widget.endIcon != null) widget.endIcon!,
+              ],
+            ),
           ),
         ),
       ),
@@ -434,13 +464,18 @@ void showObjectsModalBottomSheet(BuildContext context) {
     context: context,
     showDragHandle: true,
     enableDrag: true,
-    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    isScrollControlled: true,
+    useSafeArea: true,
+    constraints: BoxConstraints(
+        minHeight: MediaQuery.of(context).size.height * 0.5,
+        maxHeight: double.infinity),
     builder: (context) {
       return SafeArea(child: TypesOfObjects());
     },
   );
 }
 
+/// Show the Streak [Dialog] for displaying the streak details.
 void showStreakDialogBox(BuildContext context, String fieldReference,
     String dialogTitle, bool isTodayCompleted, bool? streakCleared) {
   int streak = 0;
@@ -502,15 +537,25 @@ void showStreakDialogBox(BuildContext context, String fieldReference,
             : isTodayCompleted == true && streakCleared == false
                 ? const Text("Start your streak anew")
                 : Text('Streak not extended for today'),
-        titleTextStyle: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.w400,
+        // titleTextStyle: TextStyle(
+        //   fontSize: 24,
+        //   fontWeight: FontWeight.w400,
+        // ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 12,
+          children: [
+            isTodayCompleted == false
+                ? Text("Complete a goal today to earn a streak point.")
+                : Text(
+                    "Good job on completing your tasks! Take a break and relax a bit."),
+            Text(
+              "'${selectedQuote}'",
+              textAlign: TextAlign.center,
+            )
+          ],
         ),
-        content: isTodayCompleted == false
-            ? Text(
-                "Complete a goal today to earn a streak point. \t $selectedQuote")
-            : Text(
-                "Good job on completing your tasks! Take a break and relax a bit. $selectedQuote"),
         contentTextStyle: TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
         actions: [
           TextButton(
@@ -526,8 +571,8 @@ void showStreakDialogBox(BuildContext context, String fieldReference,
   );
 }
 
-// Modal Bottom sheet to display the types of entries in entries screen
 class TypesOfEntries extends StatefulWidget {
+  /// Modal Bottom sheet to display the types of entries in entries screen
   const TypesOfEntries({super.key});
 
   @override
@@ -560,8 +605,9 @@ class _TypesOfEntriesState extends State<TypesOfEntries> {
   Widget build(BuildContext context) {
     return ListView.builder(
         itemCount: titleOfEntry.length,
+        physics: NeverScrollableScrollPhysics(),
         itemBuilder: (context, index) {
-          return ListTile(
+          return BloomModalListTile(
             onTap: () {
               if (index == 0) {
                 // Navigate to the note layout page
@@ -604,40 +650,19 @@ class _TypesOfEntriesState extends State<TypesOfEntries> {
                 );
               }
             },
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14),
-            dense: true,
-            minVerticalPadding: 0,
-            leading: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: Theme.of(context).primaryColorLight,
-              ),
-              child: Icon(
-                iconOfEntry[index],
-                color: Theme.of(context).textTheme.bodyMedium?.color,
-              ),
+            leadingIcon: Icon(
+              iconOfEntry[index],
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
             ),
-            title: Text(
-              titleOfEntry[index],
-              style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14,
-                  color: Theme.of(context).textTheme.bodyMedium?.color),
-            ),
-            subtitle: Text(
-              descriptionOfEntry[index],
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: Colors.grey),
-            ),
+            title: titleOfEntry[index],
+            subTitle: descriptionOfEntry[index],
           );
         });
   }
 }
 
-// Modal sheet class for displaying the goals (tasks, habits, events) adding sheet
 class GoalObjectsModalSheet extends StatefulWidget {
+  /// ModalBottomSheet for displaying the goals (tasks, habits, events) [ListTile]'s with Bloom's style.
   const GoalObjectsModalSheet({super.key});
 
   @override
@@ -646,11 +671,10 @@ class GoalObjectsModalSheet extends StatefulWidget {
 
 class _GoalObjectsModalSheetState extends State<GoalObjectsModalSheet> {
   // Lists of required variables and objects
-  final userId = FirebaseAuth.instance.currentUser?.uid;
   List<String> titleOfEntry = ['Task', 'Habit', 'Event'];
   List<IconData> iconOfEntry = [
     Icons.task_alt_rounded,
-    Icons.repeat_rounded,
+    Icons.self_improvement_rounded,
     Icons.event_rounded
   ];
   List<String> descriptionOfEntry = [
@@ -659,41 +683,19 @@ class _GoalObjectsModalSheetState extends State<GoalObjectsModalSheet> {
     'This is an event that you can schedule.',
   ];
   final now = DateTime.now();
-  bool? isFreeSubscription = true;
 
   @override
   void initState() {
     super.initState();
-    checkSubscription();
-  }
-
-  // Check the subscription plan of the user
-  void checkSubscription() async {
-    try {
-      final docSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .get();
-
-      if (docSnapshot.exists) {
-        final data = docSnapshot.data();
-        final plan = data?['subscriptionPlan'];
-
-        setState(() {
-          isFreeSubscription = (plan == null || plan == 'free') ? true : false;
-        });
-      }
-    } catch (e) {
-      //
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
         itemCount: titleOfEntry.length,
+        physics: NeverScrollableScrollPhysics(),
         itemBuilder: (context, index) {
-          return ListTile(
+          return BloomModalListTile(
             onTap: () {
               if (index == 0) {
                 // Navigate to the tasks screen
@@ -703,12 +705,11 @@ class _GoalObjectsModalSheetState extends State<GoalObjectsModalSheet> {
                     isScrollControlled: true,
                     useSafeArea: true,
                     showDragHandle: true,
-                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                     builder: (context) => AddTaskOrHabitModal(
                           currentDateTime: now,
                           isHabit: false,
                         ));
-              } else if (index == 1 && isFreeSubscription == false) {
+              } else if (index == 1) {
                 // Navigate to the habits screen
                 Navigator.pop(context);
                 showModalBottomSheet(
@@ -716,24 +717,10 @@ class _GoalObjectsModalSheetState extends State<GoalObjectsModalSheet> {
                     isScrollControlled: true,
                     useSafeArea: true,
                     showDragHandle: true,
-                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                     builder: (context) => AddTaskOrHabitModal(
                           currentDateTime: now,
                           isHabit: true,
                         ));
-              } else if (index == 1 && isFreeSubscription == true) {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      margin: const EdgeInsets.all(6),
-                      behavior: SnackBarBehavior.floating,
-                      showCloseIcon: true,
-                      backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      content: Text(
-                          'Upgrade to Pro subscription or Lifetime plan to use Habits')),
-                );
               } else if (index == 2) {
                 // Navigate to the events screen
                 Navigator.pop(context);
@@ -742,38 +729,16 @@ class _GoalObjectsModalSheetState extends State<GoalObjectsModalSheet> {
                     isScrollControlled: true,
                     useSafeArea: true,
                     showDragHandle: true,
-                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                     builder: (context) =>
                         AddEventModalSheet(currentDateTime: now));
               }
             },
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14),
-            dense: true,
-            minVerticalPadding: 0,
-            leading: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: Theme.of(context).primaryColorLight,
-              ),
-              child: Icon(
-                iconOfEntry[index],
-                color: Theme.of(context).textTheme.bodyMedium?.color,
-              ),
+            leadingIcon: Icon(
+              iconOfEntry[index],
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
             ),
-            title: Text(
-              titleOfEntry[index],
-              style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14,
-                  color: Theme.of(context).textTheme.bodyMedium?.color),
-            ),
-            subtitle: Text(
-              descriptionOfEntry[index],
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: Colors.grey),
-            ),
+            title: titleOfEntry[index],
+            subTitle: descriptionOfEntry[index],
           );
         });
   }

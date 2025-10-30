@@ -1,11 +1,13 @@
 import 'dart:convert';
 
-import 'package:bloom/components/mybuttons.dart';
+import 'package:bloom/bloom_updater.dart';
+import 'package:bloom/components/bloom_buttons.dart';
 import 'package:bloom/responsive/dimensions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class AboutAppScreen extends StatefulWidget {
   const AboutAppScreen({super.key});
@@ -15,11 +17,9 @@ class AboutAppScreen extends StatefulWidget {
 }
 
 class _AboutAppScreenState extends State<AboutAppScreen> {
-  final Uri downloadLatestVersionUri = Uri.parse(
-      'https://drive.google.com/drive/folders/1-1yrxBKQtcWMIEDnDUZDLJVOPFsAtx6n?usp=drive_link');
-
   String currentVersion = 'default';
-  final int buildNumberAndroid = 16;
+  String newVersion = '';
+  late int buildNumberAndroid = 0;
   late BannerAd bannerAd;
   bool isAdLoaded = false;
   bool? isUpdateAvailable;
@@ -28,7 +28,16 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
   void initState() {
     super.initState();
     updateCheck();
+    getAppInfo();
     // initBannerAd();
+  }
+
+  Future<void> getAppInfo() async {
+    final info = await PackageInfo.fromPlatform();
+    setState(() {
+      currentVersion = info.version;
+      buildNumberAndroid = int.tryParse(info.buildNumber) ?? 0;
+    });
   }
 
 // Method to check and display a update available tag
@@ -39,18 +48,19 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
         .get()
         .then((value) {
       setState(() {
-        currentVersion = value['latestAndroidVersion'];
         if (value.exists && value['buildNumberAndroid'] > buildNumberAndroid) {
           isUpdateAvailable = true;
+          newVersion = value['latestAndroidVersion'];
         } else {
           isUpdateAvailable = false;
+          newVersion = currentVersion;
         }
       });
     });
   }
 
 // Banner ADs initialization method
-  initBannerAd() {
+  void initBannerAd() {
     bannerAd = BannerAd(
       size: AdSize.banner,
       adUnitId: "ca-app-pub-5607290715305671/4045682095",
@@ -81,17 +91,6 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
           .collection('appData')
           .doc('appData')
           .get();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          margin: const EdgeInsets.all(6),
-          behavior: SnackBarBehavior.floating,
-          showCloseIcon: true,
-          backgroundColor: Theme.of(context).primaryColor,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          content: const Text('Checking for updates...'),
-        ),
-      );
 
       if (snapshot.exists) {
         final int latestBuildNumberAndroid =
@@ -100,45 +99,61 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
         if (latestBuildNumberAndroid != 0) {
           // Compare the versions
           if (latestBuildNumberAndroid > buildNumberAndroid) {
-            // Redirect to your website
-            if (await canLaunchUrl(downloadLatestVersionUri)) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  margin: const EdgeInsets.all(6),
-                  behavior: SnackBarBehavior.floating,
-                  showCloseIcon: true,
-                  backgroundColor: Theme.of(context).primaryColor,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  content: const Text(
-                      'Update available, redirecting to the download page.'),
-                ),
-              );
-              await launchUrl(downloadLatestVersionUri,
-                  mode: LaunchMode.externalNonBrowserApplication);
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  margin: const EdgeInsets.all(6),
-                  behavior: SnackBarBehavior.floating,
-                  showCloseIcon: true,
-                  backgroundColor: Theme.of(context).primaryColor,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  content: Text('Could not launch $downloadLatestVersionUri'),
-                ),
-              );
-            }
+            // Show the download and update dialog
+            showAdaptiveDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog.adaptive(
+                    icon: const Icon(Icons.download),
+                    title: Text('New Update Available!'),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                            "Click Update to Download the update and click on install/update when prompted."),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        const Text(
+                            "If prompted please allow storage permission and install unknowm APK, as this is necessary for Bloom to download and update itself"),
+                        const SizedBox(
+                          height: 16,
+                        ),
+                        const Text(
+                            "Note: We neither collect any information nor download any other malicious APKs"),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () async {
+                          // Cancel and close the dialog
+                          Navigator.pop(context);
+                        },
+                        child: Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          // Download and Update the APK
+                          await BloomUpdater.downloadAndInstallApk(context);
+                          // Cancel and close the dialog
+                          Navigator.pop(context);
+                        },
+                        child: Text('Update'),
+                      ),
+                    ],
+                    actionsPadding: const EdgeInsets.all(10),
+                    actionsAlignment: MainAxisAlignment.end,
+                  );
+                });
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 margin: const EdgeInsets.all(6),
                 behavior: SnackBarBehavior.floating,
                 showCloseIcon: true,
-                backgroundColor: Theme.of(context).primaryColor,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
-                content: const Text('App is up to date!'),
+                content: const Text('Bloom is up to date!'),
               ),
             );
           }
@@ -148,7 +163,6 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
               margin: const EdgeInsets.all(6),
               behavior: SnackBarBehavior.floating,
               showCloseIcon: true,
-              backgroundColor: Theme.of(context).primaryColor,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
               content: const Text('Latest version not found in Firestore.'),
@@ -161,7 +175,6 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
             margin: const EdgeInsets.all(6),
             behavior: SnackBarBehavior.floating,
             showCloseIcon: true,
-            backgroundColor: Theme.of(context).primaryColor,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             content: const Text('Document does not exist.'),
@@ -174,7 +187,6 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
           margin: const EdgeInsets.all(6),
           behavior: SnackBarBehavior.floating,
           showCloseIcon: true,
-          backgroundColor: Theme.of(context).primaryColor,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           content: Text('Error checking for new version: $e'),
@@ -194,7 +206,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('About app'),
+        title: const Text('About Bloom'),
       ),
       body: SafeArea(
         child: Padding(
@@ -205,73 +217,58 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 14.0),
-                  child: Text(
-                    'App name',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                const SizedBox(height: 14),
+                // About App section
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: 14),
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainer,
+                      borderRadius: BorderRadius.circular(24)),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Icon of Bloom
+                      Container(
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .secondaryContainer,
+                            borderRadius: BorderRadius.circular(16)),
+                        child: Image.asset(
+                          'assets/icons/default_app_icon_png.png',
+                          scale: 16,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      // Name, version and channel of Bloom
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Name of Bloom
+                          Text(
+                            'Bloom - Productive',
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          // Version+BuildNumber
+                          Text("Version $currentVersion+$buildNumberAndroid"),
+                          // Channel of the app update
+                          Text('Beta Channel')
+                        ],
+                      )
+                    ],
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 14.0),
-                  child: Text(
-                    '• Bloom - Productive',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
-                const SizedBox(
-                  height: 12,
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 14.0),
-                  child: Text(
-                    'Version & Build number',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                  child: Text(
-                    '• $currentVersion+$buildNumberAndroid',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ),
-                const SizedBox(
-                  height: 12,
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 14.0),
-                  child: Text(
-                    'Update channel',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 14.0),
-                  child: Text(
-                    '• Beta',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
-                const SizedBox(
-                  height: 12,
-                ),
+                const SizedBox(height: 16),
+                // ChangeLog Block
                 FutureBuilder<Map<String, dynamic>>(
                   future: loadChangelog(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Center(
-                          child: CircularProgressIndicator(
-                        year2023: false,
-                        color: Theme.of(context).primaryColor,
-                        backgroundColor: Theme.of(context).primaryColorLight,
-                      ));
+                          child: CircularProgressIndicator(year2023: false));
                     } else if (snapshot.hasError) {
                       return const Center(
                           child: Text("Error loading changelog."));
@@ -281,12 +278,20 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                     final versionData = changelog[currentVersion];
 
                     if (versionData == null) {
-                      return const Center(
-                          child: Text("No changelog available."));
+                      return Center(
+                          child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                            'No changelog data available for version: $currentVersion'),
+                      ));
                     }
 
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                    return Container(
+                      margin: EdgeInsets.symmetric(horizontal: 14),
+                      padding: const EdgeInsets.all(14.0),
+                      decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceContainer,
+                          borderRadius: BorderRadius.circular(24)),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -295,7 +300,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 18,
+                              fontSize: 20,
                             ),
                           ),
                           ...List.generate(
@@ -309,14 +314,12 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                                   if (versionData['features'] != null)
                                     const Text(
                                       "• ",
-                                      style: TextStyle(fontSize: 16),
+                                      style: TextStyle(fontSize: 20),
                                     ),
                                   if (versionData['features'] != null)
                                     Expanded(
-                                      child: Text(
-                                        versionData["features"][index],
-                                        style: const TextStyle(fontSize: 16),
-                                      ),
+                                      child:
+                                          Text(versionData["features"][index]),
                                     ),
                                 ],
                               ),
@@ -327,43 +330,27 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                     );
                   },
                 ),
-                const SizedBox(
-                  height: 12,
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 14.0),
-                  child: Text(
-                    'Check for updates',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                const SizedBox(height: 16),
+                // Check for updates button for Android
+                if (!kIsWeb)
+                  BloomMaterialListTile(
+                    borderRadius: BorderRadius.circular(24),
+                    icon: const Icon(Icons.download),
+                    label: isUpdateAvailable == true
+                        ? 'Download Update'
+                        : 'Check for Updates',
+                    subLabel: isUpdateAvailable == true
+                        ? "Version $newVersion is live now!"
+                        : 'You are on the latest version',
+                    showTag: isUpdateAvailable,
+                    tagIcon: const Icon(
+                      Icons.new_releases,
+                      size: 14,
+                    ),
+                    tagLabel: 'Update available',
+                    innerPadding: const EdgeInsets.all(12),
+                    onTap: checkForUpdates,
                   ),
-                ),
-                const SizedBox(
-                  height: 8,
-                ),
-                // Check for updates button
-                ExtraOptionsButton(
-                  icon: const Icon(Icons.system_update_alt_rounded),
-                  iconLabelSpace: 8,
-                  useSpacer: true,
-                  label: isUpdateAvailable == true
-                      ? 'Download update'
-                      : 'Check for updates',
-                  labelStyle: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 16),
-                  showTag: isUpdateAvailable,
-                  tagIcon: const Icon(
-                    Icons.emergency_outlined,
-                    size: 14,
-                  ),
-                  tagLabel: 'Update available',
-                  innerPadding: const EdgeInsets.all(12),
-                  endIcon: const Icon(Icons.open_in_new_rounded),
-                  onTap: checkForUpdates,
-                ),
-                const SizedBox(
-                  height: 12,
-                ),
               ],
             ),
           ),

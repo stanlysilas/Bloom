@@ -1,4 +1,4 @@
-import 'package:bloom/components/mybuttons.dart';
+import 'package:bloom/components/bloom_buttons.dart';
 import 'package:bloom/components/mytextfield.dart';
 import 'package:bloom/notifications/notification.dart';
 import 'package:bloom/responsive/dimensions.dart';
@@ -214,8 +214,8 @@ class _AddEventModalSheetState extends State<AddEventModalSheet> {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColorLight,
-                    borderRadius: BorderRadius.circular(10),
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(24),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -231,12 +231,17 @@ class _AddEventModalSheetState extends State<AddEventModalSheet> {
                           const Spacer(),
                           // Start Event date selection field
                           Flexible(
-                            child: ExtraOptionsButton(
-                              outerPadding: const EdgeInsets.only(left: 14),
-                              decoration: BoxDecoration(
-                                  color:
-                                      Theme.of(context).scaffoldBackgroundColor,
-                                  borderRadius: BorderRadius.circular(8)),
+                            child: BloomMaterialListTile(
+                              outerPadding: const EdgeInsets.all(0),
+                              innerPadding: EdgeInsets.all(6),
+                              icon: SizedBox(),
+                              iconLabelSpace: 0,
+                              useSpacer: false,
+                              labelStyle: TextStyle(fontSize: 16),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .secondaryContainer,
+                              borderRadius: BorderRadius.circular(16),
                               label: DateFormat('dd-MM-yy').format(startDate),
                               textAlign: TextAlign.center,
                               onTap: () {
@@ -244,14 +249,20 @@ class _AddEventModalSheetState extends State<AddEventModalSheet> {
                               },
                             ),
                           ),
+                          const SizedBox(width: 4),
                           // Start Event time selection field
                           Flexible(
-                            child: ExtraOptionsButton(
-                              outerPadding: const EdgeInsets.only(left: 14),
-                              decoration: BoxDecoration(
-                                  color:
-                                      Theme.of(context).scaffoldBackgroundColor,
-                                  borderRadius: BorderRadius.circular(8)),
+                            child: BloomMaterialListTile(
+                              outerPadding: const EdgeInsets.all(0),
+                              innerPadding: EdgeInsets.all(6),
+                              icon: SizedBox(),
+                              iconLabelSpace: 0,
+                              useSpacer: false,
+                              labelStyle: TextStyle(fontSize: 16),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .secondaryContainer,
+                              borderRadius: BorderRadius.circular(16),
                               label: startTime.format(context),
                               textAlign: TextAlign.center,
                               onTap: () {
@@ -273,12 +284,17 @@ class _AddEventModalSheetState extends State<AddEventModalSheet> {
                           const Spacer(),
                           // End Event date selection field
                           Flexible(
-                            child: ExtraOptionsButton(
-                              outerPadding: const EdgeInsets.only(left: 14),
-                              decoration: BoxDecoration(
-                                  color:
-                                      Theme.of(context).scaffoldBackgroundColor,
-                                  borderRadius: BorderRadius.circular(8)),
+                            child: BloomMaterialListTile(
+                              outerPadding: const EdgeInsets.all(0),
+                              innerPadding: EdgeInsets.all(6),
+                              icon: SizedBox(),
+                              iconLabelSpace: 0,
+                              useSpacer: false,
+                              labelStyle: TextStyle(fontSize: 16),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .secondaryContainer,
+                              borderRadius: BorderRadius.circular(16),
                               label: DateFormat('dd-MM-yy').format(endDate),
                               onTap: () {
                                 selectDate(false);
@@ -286,14 +302,20 @@ class _AddEventModalSheetState extends State<AddEventModalSheet> {
                               textAlign: TextAlign.center,
                             ),
                           ),
+                          const SizedBox(width: 4),
                           // End Event time selection field
                           Flexible(
-                            child: ExtraOptionsButton(
-                              outerPadding: const EdgeInsets.only(left: 14),
-                              decoration: BoxDecoration(
-                                  color:
-                                      Theme.of(context).scaffoldBackgroundColor,
-                                  borderRadius: BorderRadius.circular(8)),
+                            child: BloomMaterialListTile(
+                              outerPadding: const EdgeInsets.all(0),
+                              innerPadding: EdgeInsets.all(6),
+                              icon: SizedBox(),
+                              iconLabelSpace: 0,
+                              useSpacer: false,
+                              labelStyle: TextStyle(fontSize: 16),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .secondaryContainer,
+                              borderRadius: BorderRadius.circular(16),
                               label: endTime.format(context),
                               textAlign: TextAlign.center,
                               onTap: () {
@@ -323,15 +345,7 @@ class _AddEventModalSheetState extends State<AddEventModalSheet> {
                                 context: context,
                                 builder: (context) {
                                   return AlertDialog(
-                                    backgroundColor: Theme.of(context)
-                                        .scaffoldBackgroundColor,
-                                    title: Text('Select color',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.color)),
+                                    title: Text('Select color'),
                                     content: SingleChildScrollView(
                                       child: MaterialPicker(
                                         pickerColor: colorCode!,
@@ -339,23 +353,13 @@ class _AddEventModalSheetState extends State<AddEventModalSheet> {
                                       ),
                                     ),
                                     actions: <Widget>[
-                                      InkWell(
-                                        borderRadius:
-                                            BorderRadius.circular(100),
-                                        onTap: () {
+                                      TextButton(
+                                        onPressed: () {
                                           Navigator.of(context).pop();
                                         },
                                         child: Padding(
                                           padding: const EdgeInsets.all(10.0),
-                                          child: Text(
-                                            'Select',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.w500,
-                                                color: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyMedium
-                                                    ?.color),
-                                          ),
+                                          child: Text('Select'),
                                         ),
                                       ),
                                     ],
@@ -367,8 +371,7 @@ class _AddEventModalSheetState extends State<AddEventModalSheet> {
                               width: 20,
                               height: 20,
                               decoration: BoxDecoration(
-                                  color: colorCode,
-                                  borderRadius: BorderRadius.circular(1000)),
+                                  color: colorCode, shape: BoxShape.circle),
                             ),
                           )
                         ],
@@ -432,17 +435,9 @@ class _AddEventModalSheetState extends State<AddEventModalSheet> {
                         margin: const EdgeInsets.all(6),
                         behavior: SnackBarBehavior.floating,
                         showCloseIcon: true,
-                        backgroundColor: Theme.of(context).primaryColor,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
-                        content: Text(
-                          'Event succesfully scheduled!',
-                          style: TextStyle(
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .labelMedium
-                                  ?.color),
-                        ),
+                        content: Text('Event succesfully scheduled!'),
                       ),
                     );
                   },
@@ -451,15 +446,13 @@ class _AddEventModalSheetState extends State<AddEventModalSheet> {
                     width: double.maxFinite,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(1000),
-                      color: Theme.of(context).primaryColor,
+                      borderRadius: BorderRadius.circular(16),
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                     child: Text('Add new event',
                         style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 16,
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color)),
+                            fontSize: 18,
+                            color: Theme.of(context).colorScheme.onPrimary)),
                   ),
                 ),
               )

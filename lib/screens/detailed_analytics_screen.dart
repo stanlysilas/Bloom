@@ -1,3 +1,4 @@
+// import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
 import 'package:intl/intl.dart';
@@ -24,7 +25,7 @@ class DetailedAnalyticsScreen extends StatefulWidget {
 
 class _DetailedAnalyticsScreenState extends State<DetailedAnalyticsScreen> {
   late List<DateTime> weekDates;
-  String viewType = 'heatmap';
+  String viewType = 'Heatmap';
 
   @override
   void initState() {
@@ -62,46 +63,39 @@ class _DetailedAnalyticsScreenState extends State<DetailedAnalyticsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 RawChip(
-                  backgroundColor: Theme.of(context).primaryColor,
+                  backgroundColor:
+                      Theme.of(context).colorScheme.secondaryContainer,
                   labelStyle: TextStyle(
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                      color: Theme.of(context).colorScheme.onSecondaryContainer,
                       fontSize: 14,
                       fontWeight: FontWeight.w500),
                   side: BorderSide.none,
                   avatar: Icon(Icons.filter_alt_rounded),
                   iconTheme: IconThemeData(
-                      color: Theme.of(context).textTheme.bodyMedium?.color),
-                  label: Text('Heatmap'),
+                      color:
+                          Theme.of(context).colorScheme.onSecondaryContainer),
+                  label: Text(viewType),
                   onPressed: () {
                     // Open a dialog to change the analytics view
                     showAdaptiveDialog(
                         context: context,
                         builder: (context) {
                           return AlertDialog.adaptive(
-                            backgroundColor:
-                                Theme.of(context).scaffoldBackgroundColor,
                             title: Text('Select a view'),
-                            titleTextStyle: TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.color,
-                                fontSize: 24,
-                                fontWeight: FontWeight.w500),
                             contentPadding: EdgeInsets.symmetric(
                                 horizontal: 0, vertical: 8),
                             content: SizedBox(
                               height: 150,
                               child: Column(
                                 children: [
-                                  // Display the RadioButtons to select a single view
+                                  // Display the RadioButtons to select a heatmap view
                                   ListTile(
                                     dense: true,
                                     minVerticalPadding: 0,
                                     contentPadding:
                                         EdgeInsets.symmetric(horizontal: 4),
                                     leading: Radio.adaptive(
-                                        value: 'heatmap',
+                                        value: 'Heatmap',
                                         groupValue: viewType,
                                         onChanged: (String? view) {
                                           setState(() {
@@ -116,31 +110,60 @@ class _DetailedAnalyticsScreenState extends State<DetailedAnalyticsScreen> {
                                     ),
                                     subtitle: Text(
                                         'Show a Heatmap of all your objects'),
-                                    titleTextStyle: TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.color),
                                     subtitleTextStyle:
                                         TextStyle(color: Colors.grey),
                                     onTap: () {
                                       setState(() {
-                                        viewType = 'heatmap';
+                                        viewType = 'Heatmap';
                                       });
                                       Navigator.of(context).pop();
                                       stateUpdate();
                                     },
                                   ),
+                                  // Display the RadioButtons to select a graph view
+                                  // ListTile(
+                                  //   dense: true,
+                                  //   minVerticalPadding: 0,
+                                  //   contentPadding:
+                                  //       EdgeInsets.symmetric(horizontal: 4),
+                                  //   leading: Radio.adaptive(
+                                  //       value: 'Graph',
+                                  //       groupValue: viewType,
+                                  //       onChanged: (String? view) {
+                                  //         setState(() {
+                                  //           viewType = view!;
+                                  //         });
+                                  //         // stateUpdate();
+                                  //       }),
+                                  //   horizontalTitleGap: 0,
+                                  //   title: Text(
+                                  //     'Graph',
+                                  //     textAlign: TextAlign.start,
+                                  //   ),
+                                  //   subtitle: Text(
+                                  //       'Show a Graph of all your objects'),
+                                  //   titleTextStyle: TextStyle(
+                                  //       fontWeight: FontWeight.w500,
+                                  //       color: Theme.of(context)
+                                  //           .textTheme
+                                  //           .bodyMedium
+                                  //           ?.color),
+                                  //   subtitleTextStyle:
+                                  //       TextStyle(color: Colors.grey),
+                                  //   onTap: () {
+                                  //     setState(() {
+                                  //       viewType = 'Graph';
+                                  //     });
+                                  //     Navigator.of(context).pop();
+                                  //     stateUpdate();
+                                  //   },
+                                  // ),
                                 ],
                               ),
                             ),
                             actions: [
                               TextButton(
                                   onPressed: () {
-                                    setState(() {
-                                      viewType = 'heatmap';
-                                    });
                                     Navigator.of(context).pop();
                                     stateUpdate();
                                   },
@@ -156,220 +179,222 @@ class _DetailedAnalyticsScreenState extends State<DetailedAnalyticsScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 10),
-                // Heatmap for task completions
-                HeatMap(
-                  datasets: widget.allCompletedByDate,
-                  colorMode: ColorMode.opacity,
-                  showText: false,
-                  scrollable: true,
-                  showColorTip: false,
-                  defaultColor: Theme.of(context).primaryColorDark,
-                  colorsets: {
-                    1: Theme.of(context).primaryColor,
-                  },
-                  onClick: (value) {
-                    if (widget.completedTasksPerDay.containsKey(value)) {
-                      final taskCount = widget.completedTasksPerDay[value];
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          margin: const EdgeInsets.all(6),
-                          behavior: SnackBarBehavior.floating,
-                          backgroundColor: Theme.of(context).primaryColor,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          content: Text(
-                              'Objects added on ${DateFormat('MMM dd, yyyy').format(value)}: $taskCount'),
-                        ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
+                if (viewType == 'Heatmap')
+                  // Heatmap for task completions
+                  HeatMap(
+                    datasets: widget.allCompletedByDate,
+                    colorMode: ColorMode.opacity,
+                    showText: false,
+                    scrollable: true,
+                    defaultColor:
+                        Theme.of(context).colorScheme.surfaceContainer,
+                    colorsets: {
+                      1: Theme.of(context).colorScheme.primary,
+                    },
+                    onClick: (value) {
+                      if (widget.completedTasksPerDay.containsKey(value)) {
+                        final taskCount = widget.completedTasksPerDay[value];
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
                             margin: const EdgeInsets.all(6),
                             behavior: SnackBarBehavior.floating,
-                            backgroundColor: Theme.of(context).primaryColor,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
-                            content: Text('No objects added on this day.')),
-                      );
-                    }
-                  },
-                ),
-                const SizedBox(height: 10),
+                            content: Text(
+                                'Objects added on ${DateFormat('MMM dd, yyyy').format(value)}: $taskCount'),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              margin: const EdgeInsets.all(6),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              content: Text('No objects added on this day.')),
+                        );
+                      }
+                    },
+                  ),
+                if (viewType == 'Graph')
+                  // Graph view analytics for the user
+                  // BarChart(BarChartData(barGroups: [BarChartGroupData(x: x)])),
+                  const SizedBox(height: 10),
                 const Text(
                   "Tasks",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 10),
-                // Heatmap for task completions
-                HeatMap(
-                  datasets: widget.completedTasksPerDay,
-                  colorMode: ColorMode.opacity,
-                  showText: false,
-                  scrollable: true,
-                  showColorTip: false,
-                  defaultColor: Theme.of(context).primaryColorDark,
-                  colorsets: {
-                    1: Theme.of(context).primaryColor,
-                  },
-                  onClick: (value) {
-                    if (widget.completedTasksPerDay.containsKey(value)) {
-                      final taskCount = widget.completedTasksPerDay[value];
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          margin: const EdgeInsets.all(6),
-                          behavior: SnackBarBehavior.floating,
-                          backgroundColor: Theme.of(context).primaryColor,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          content: Text(
-                              'Tasks completed on ${DateFormat('MMM dd, yyyy').format(value)}: $taskCount'),
-                        ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
+                if (viewType == 'Heatmap')
+                  // Heatmap for task completions
+                  HeatMap(
+                    datasets: widget.completedTasksPerDay,
+                    colorMode: ColorMode.opacity,
+                    showText: false,
+                    scrollable: true,
+                    showColorTip: false,
+                    defaultColor:
+                        Theme.of(context).colorScheme.surfaceContainer,
+                    colorsets: {
+                      1: Theme.of(context).colorScheme.primary,
+                    },
+                    onClick: (value) {
+                      if (widget.completedTasksPerDay.containsKey(value)) {
+                        final taskCount = widget.completedTasksPerDay[value];
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
                             margin: const EdgeInsets.all(6),
                             behavior: SnackBarBehavior.floating,
-                            backgroundColor: Theme.of(context).primaryColor,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
-                            content: Text('No tasks completed on this day.')),
-                      );
-                    }
-                  },
-                ),
+                            content: Text(
+                                'Tasks completed on ${DateFormat('MMM dd, yyyy').format(value)}: $taskCount'),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              margin: const EdgeInsets.all(6),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              content: Text('No tasks completed on this day.')),
+                        );
+                      }
+                    },
+                  ),
                 const SizedBox(height: 10),
                 const Text(
                   "Events",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 10),
-                // Heatmap for task completions
-                HeatMap(
-                  datasets: widget.completedEventsByDate,
-                  colorMode: ColorMode.opacity,
-                  showText: false,
-                  scrollable: true,
-                  showColorTip: false,
-                  defaultColor: Theme.of(context).primaryColorDark,
-                  colorsets: {
-                    1: Theme.of(context).primaryColor,
-                  },
-                  onClick: (value) {
-                    if (widget.completedTasksPerDay.containsKey(value)) {
-                      final taskCount = widget.completedTasksPerDay[value];
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          margin: const EdgeInsets.all(6),
-                          behavior: SnackBarBehavior.floating,
-                          backgroundColor: Theme.of(context).primaryColor,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          content: Text(
-                              'Events attended on ${DateFormat('MMM dd, yyyy').format(value)}: $taskCount'),
-                        ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
+                if (viewType == 'Heatmap')
+                  // Heatmap for task completions
+                  HeatMap(
+                    datasets: widget.completedEventsByDate,
+                    colorMode: ColorMode.opacity,
+                    showText: false,
+                    scrollable: true,
+                    showColorTip: false,
+                    defaultColor:
+                        Theme.of(context).colorScheme.surfaceContainer,
+                    colorsets: {
+                      1: Theme.of(context).colorScheme.primary,
+                    },
+                    onClick: (value) {
+                      if (widget.completedEventsByDate.containsKey(value)) {
+                        final eventCount = widget.completedEventsByDate[value];
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
                             margin: const EdgeInsets.all(6),
                             behavior: SnackBarBehavior.floating,
-                            backgroundColor: Theme.of(context).primaryColor,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
-                            content: Text('No events attended on this day.')),
-                      );
-                    }
-                  },
-                ),
+                            content: Text(
+                                'Events attended on ${DateFormat('MMM dd, yyyy').format(value)}: $eventCount'),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              margin: const EdgeInsets.all(6),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              content: Text('No events attended on this day.')),
+                        );
+                      }
+                    },
+                  ),
                 const SizedBox(height: 10),
                 const Text(
                   "Habits",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 10),
-                // Heatmap for task completions
-                HeatMap(
-                  datasets: widget.completedHabitsByDate,
-                  colorMode: ColorMode.opacity,
-                  showText: false,
-                  scrollable: true,
-                  showColorTip: false,
-                  defaultColor: Theme.of(context).primaryColorDark,
-                  colorsets: {
-                    1: Theme.of(context).primaryColor,
-                  },
-                  onClick: (value) {
-                    if (widget.completedTasksPerDay.containsKey(value)) {
-                      final taskCount = widget.completedTasksPerDay[value];
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          margin: const EdgeInsets.all(6),
-                          behavior: SnackBarBehavior.floating,
-                          backgroundColor: Theme.of(context).primaryColor,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          content: Text(
-                              'Habits added on ${DateFormat('MMM dd, yyyy').format(value)}: $taskCount'),
-                        ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
+                if (viewType == 'Heatmap')
+                  // Heatmap for task completions
+                  HeatMap(
+                    datasets: widget.completedHabitsByDate,
+                    colorMode: ColorMode.opacity,
+                    showText: false,
+                    scrollable: true,
+                    showColorTip: false,
+                    defaultColor:
+                        Theme.of(context).colorScheme.surfaceContainer,
+                    colorsets: {
+                      1: Theme.of(context).colorScheme.primary,
+                    },
+                    onClick: (value) {
+                      if (widget.completedHabitsByDate.containsKey(value)) {
+                        final habitCount = widget.completedHabitsByDate[value];
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
                             margin: const EdgeInsets.all(6),
                             behavior: SnackBarBehavior.floating,
-                            backgroundColor: Theme.of(context).primaryColor,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
-                            content: Text('No habits added on this day.')),
-                      );
-                    }
-                  },
-                ),
+                            content: Text(
+                                'Habits added on ${DateFormat('MMM dd, yyyy').format(value)}: $habitCount'),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              margin: const EdgeInsets.all(6),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              content: Text('No habits added on this day.')),
+                        );
+                      }
+                    },
+                  ),
                 const SizedBox(height: 10),
                 const Text(
                   "Entries",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 10),
-                // Heatmap for task completions
-                HeatMap(
-                  datasets: widget.completedEntriesByDate,
-                  colorMode: ColorMode.opacity,
-                  showText: false,
-                  scrollable: true,
-                  showColorTip: false,
-                  defaultColor: Theme.of(context).primaryColorDark,
-                  colorsets: {
-                    1: Theme.of(context).primaryColor,
-                  },
-                  onClick: (value) {
-                    if (widget.completedTasksPerDay.containsKey(value)) {
-                      final taskCount = widget.completedTasksPerDay[value];
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          margin: const EdgeInsets.all(6),
-                          behavior: SnackBarBehavior.floating,
-                          backgroundColor: Theme.of(context).primaryColor,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          content: Text(
-                              'Entries added on ${DateFormat('MMM dd, yyyy').format(value)}: $taskCount'),
-                        ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
+                if (viewType == 'Heatmap')
+                  // Heatmap for task completions
+                  HeatMap(
+                    datasets: widget.completedEntriesByDate,
+                    colorMode: ColorMode.opacity,
+                    showText: false,
+                    scrollable: true,
+                    showColorTip: false,
+                    defaultColor:
+                        Theme.of(context).colorScheme.surfaceContainer,
+                    colorsets: {
+                      1: Theme.of(context).colorScheme.primary,
+                    },
+                    onClick: (value) {
+                      if (widget.completedEntriesByDate.containsKey(value)) {
+                        final entryCount = widget.completedEntriesByDate[value];
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
                             margin: const EdgeInsets.all(6),
                             behavior: SnackBarBehavior.floating,
-                            backgroundColor: Theme.of(context).primaryColor,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
-                            content: Text('No entries added on this day.')),
-                      );
-                    }
-                  },
-                ),
+                            content: Text(
+                                'Entries added on ${DateFormat('MMM dd, yyyy').format(value)}: $entryCount'),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              margin: const EdgeInsets.all(6),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              content: Text('No entries added on this day.')),
+                        );
+                      }
+                    },
+                  ),
                 // SizedBox(
                 //   height: 250,
                 //   child: BarChart(

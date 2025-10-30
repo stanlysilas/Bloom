@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:bloom/components/book_card.dart';
 import 'package:bloom/components/entries_tile.dart';
-import 'package:bloom/components/mybuttons.dart';
+import 'package:bloom/components/bloom_buttons.dart';
 import 'package:bloom/components/textfield_nobackground.dart';
 import 'package:bloom/models/book_entry.dart';
 import 'package:bloom/models/note_layout.dart';
@@ -10,8 +10,11 @@ import 'package:bloom/responsive/dimensions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 // ignore: must_be_immutable
@@ -61,6 +64,7 @@ class _BookLayoutState extends State<BookLayout> {
   late TextEditingController emojiController;
   Timer? saveTimer;
   String? bookId;
+  bool? isLocked;
   late BookLayoutMethod bookLayoutMethod;
   late EmojiNotifier emojiNotifier;
   final titleFocusNode = FocusNode();
@@ -83,6 +87,7 @@ class _BookLayoutState extends State<BookLayout> {
       bookId = widget.bookId;
     }
     loadDefaultTemplateChild();
+    checkSharedPreferencesIfLocked();
     bookLayoutMethod = widget.bookLayoutMethod;
     titleController = TextEditingController(text: widget.title ?? 'Book');
     descriptionController = TextEditingController(
@@ -98,6 +103,14 @@ class _BookLayoutState extends State<BookLayout> {
     // emojiNotifier.addListener(onEmojiChanged);
     // emojiNotifier.addListener(onDataChanged);
     // emojiController.text = emojiNotifier.emoji.toString();
+  }
+
+  // check if the book entry is locked or not in sharedpreferences
+  Future<void> checkSharedPreferencesIfLocked() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isLocked = prefs.getBool(widget.bookId!) ?? false;
+    });
   }
 
   // Method to save the layout to firestore automatically after few seconds of opening it
@@ -146,7 +159,7 @@ class _BookLayoutState extends State<BookLayout> {
       'type': widget.type,
       'bookId': bookId,
       'hasChildren': false,
-      'bookTitle': widget.title,
+      'bookTitle': titleController.text.trim(),
       'bookDescription': descriptionController.text.trim(),
       'bookEmoji': widget.emoji,
       'isCustomized': widget.isTemplate,
@@ -210,7 +223,7 @@ class _BookLayoutState extends State<BookLayout> {
   }
 
   // Load the default entry child JSON for Templates
-  loadDefaultTemplateChild() async {
+  Future<void> loadDefaultTemplateChild() async {
     if (widget.title!.toLowerCase() == 'journal') {
       templateChildContent = await DefaultAssetBundle.of(context)
           .loadString('lib/required_data/defaultjournalentry.json');
@@ -242,7 +255,7 @@ class _BookLayoutState extends State<BookLayout> {
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(4),
-                color: Theme.of(context).primaryColorLight,
+                color: Theme.of(context).colorScheme.surfaceContainer,
               ),
               child: isSynced
                   ? Tooltip(
@@ -281,85 +294,208 @@ class _BookLayoutState extends State<BookLayout> {
                     isScrollControlled: true,
                     showDragHandle: true,
                     useSafeArea: true,
-                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                    // constraints: BoxConstraints(
-                    //   minWidth: MediaQuery.of(context).size.width,
-                    //   minHeight: MediaQuery.of(context).size.height / 2,
-                    // ),
                     builder: (context) {
-                      return Container(
-                        padding: const EdgeInsets.all(8),
-                        alignment: Alignment.center,
-                        child: Column(
-                          children: [
-                            const SizedBox(
-                              height: 14,
+                      return Column(
+                        children: [
+                          const SizedBox(
+                            height: 14,
+                          ),
+                          // Option to lock the 'Book'
+                          if (widget.bookId != 'default')
+                            BloomModalListTile(
+                              title: isLocked == true
+                                  ? 'Unlock ${widget.title}'
+                                  : 'Lock ${widget.title}',
+                              leadingIcon: Icon(
+                                  isLocked == true
+                                      ? Icons.lock_open_rounded
+                                      : Icons.lock_rounded,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSecondaryContainer),
+                              onTap: () async {
+                                final LocalAuthentication auth =
+                                    LocalAuthentication();
+                                final bool canAuthenticateWithBiometrics =
+                                    await auth.canCheckBiometrics;
+                                final bool canAuthenticate =
+                                    canAuthenticateWithBiometrics ||
+                                        await auth.isDeviceSupported();
+                                final prefs =
+                                    await SharedPreferences.getInstance();
+                                if (canAuthenticate) {
+                                  try {
+                                    if (isLocked == true) {
+                                      // Try authenticating first
+                                      await auth.authenticate(
+                                          localizedReason:
+                                              'Confirm authentication of this object');
+                                      // Set false if its already locked
+                                      // Logic to unlock the entry
+                                      setState(() {
+                                        isLocked = false;
+                                      });
+                                      // if (widget.type == 'note') {
+                                      prefs.setBool(
+                                          widget.bookId!, isLocked ?? false);
+                                      await FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(user?.uid)
+                                          .collection('books')
+                                          .doc(widget.bookId!)
+                                          .update({
+                                        'isBookLocked': isLocked,
+                                      });
+                                      // }
+                                      // else if (widget.type == 'book') {
+                                      //   prefs.setBool(widget.bookId!,
+                                      //       isLocked ?? false);
+                                      //   await FirebaseFirestore.instance
+                                      //       .collection('users')
+                                      //       .doc(user?.uid)
+                                      //       .collection('books')
+                                      //       .doc(widget.mainId)
+                                      //       .collection('pages')
+                                      //       .doc(widget.entryId)
+                                      //       .update({
+                                      //     'isEntryLocked': isLocked,
+                                      //   });
+                                      // }
+                                      // Go back to entries screen
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(SnackBar(
+                                              margin: const EdgeInsets.all(6),
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                              showCloseIcon: true,
+                                              shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          12)),
+                                              content: Text('Book unlocked')));
+                                    } else {
+                                      // Try authenticating first
+                                      await auth.authenticate(
+                                        localizedReason:
+                                            'Confirm authentication of this object',
+                                      );
+                                      // Set true and lock if not locked
+                                      // Logic to lock the entry
+                                      setState(() {
+                                        isLocked = true;
+                                      });
+                                      // if (widget.type == 'note') {
+                                      prefs.setBool(
+                                          widget.bookId!, isLocked ?? true);
+                                      await FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(user?.uid)
+                                          .collection('books')
+                                          .doc(widget.bookId!)
+                                          .update({
+                                        'isBookLocked': isLocked,
+                                      });
+                                      // }
+                                      // else if (widget.type == 'book') {
+                                      //   prefs.setBool(
+                                      //       widget.bookId!, isLocked ?? true);
+                                      //   await FirebaseFirestore.instance
+                                      //       .collection('users')
+                                      //       .doc(user?.uid)
+                                      //       .collection('books')
+                                      //       .doc(widget.mainId)
+                                      //       .collection('pages')
+                                      //       .doc(widget.entryId)
+                                      //       .update({
+                                      //     'isEntryLocked': isLocked,
+                                      //   });
+                                      // }
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(SnackBar(
+                                              margin: const EdgeInsets.all(6),
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                              showCloseIcon: true,
+                                              shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          12)),
+                                              content: Text('Book locked')));
+                                    }
+                                  } on LocalAuthException catch (e) {
+                                    //
+                                    if (e.code ==
+                                        LocalAuthExceptionCode
+                                            .noCredentialsSet) {
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(SnackBar(
+                                              margin: const EdgeInsets.all(6),
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                              showCloseIcon: true,
+                                              shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          12)),
+                                              content: Text(
+                                                  'Set a screen lock to the device to use this feature.')));
+                                    } else {
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(SnackBar(
+                                              margin: const EdgeInsets.all(6),
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                              showCloseIcon: true,
+                                              shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          12)),
+                                              content: Text(
+                                                  'Failed to lock book: ${e.code}')));
+                                    }
+                                  }
+                                }
+                              },
                             ),
-                            // Delete entry option shown only if there is entryId
-                            if (widget.bookId != 'default')
-                              ExtraOptionsButton(
-                                icon: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      color:
-                                          Theme.of(context).primaryColorLight,
-                                    ),
-                                    child: const Icon(
-                                      Icons.delete_rounded,
-                                      color: Colors.red,
-                                    )),
-                                label: 'Delete ${widget.title}',
-                                iconLabelSpace: 8,
-                                useSpacer: true,
-                                labelStyle: const TextStyle(
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 16,
-                                    overflow: TextOverflow.ellipsis,
-                                    color: Colors.red),
-                                innerPadding: const EdgeInsets.all(12),
-                                onTap: () async {
-                                  await FirebaseFirestore.instance
-                                      .collection('users')
-                                      .doc(user?.uid)
-                                      .collection('books')
-                                      .doc(widget.bookId)
-                                      .delete();
+                          // Delete entry option shown only if there is entryId
+                          if (widget.bookId != 'default')
+                            BloomModalListTile(
+                              leadingIcon: Icon(Icons.delete_rounded,
+                                  color: Theme.of(context).colorScheme.error),
+                              title: 'Delete ${widget.title}',
+                              titleStyle: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 18,
+                                  overflow: TextOverflow.ellipsis,
+                                  color: Theme.of(context).colorScheme.error),
+                              onTap: () async {
+                                await FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(user?.uid)
+                                    .collection('books')
+                                    .doc(widget.bookId)
+                                    .delete();
 
-                                  Navigator.pop(context);
-                                  Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      margin: const EdgeInsets.all(6),
-                                      behavior: SnackBarBehavior.floating,
-                                      showCloseIcon: true,
-                                      closeIconColor: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.color,
-                                      backgroundColor:
-                                          Theme.of(context).primaryColor,
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12)),
-                                      content: Text(
-                                        'Succesfully deleted book',
-                                        style: TextStyle(
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.color),
-                                      ),
-                                    ),
-                                  );
-                                },
-                                endIcon: const Icon(
-                                  Icons.keyboard_arrow_right_rounded,
-                                  color: Colors.red,
-                                ),
-                              ),
-                          ],
-                        ),
+                                Navigator.pop(context);
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    margin: const EdgeInsets.all(6),
+                                    behavior: SnackBarBehavior.floating,
+                                    showCloseIcon: true,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                    content: Text('Succesfully deleted book'),
+                                  ),
+                                );
+                              },
+                            ),
+                        ],
                       );
                     });
               }
@@ -429,28 +565,20 @@ class _BookLayoutState extends State<BookLayout> {
                           ? MyTextfieldNobackground(
                               controller: titleController,
                               focusNode: titleFocusNode,
+                              autoFocus: false,
+                              minLines: 1,
+                              maxLines: 3,
                               readOnly:
                                   bookLayoutMethod == BookLayoutMethod.display
                                       ? true
                                       : false,
                               hintText: 'Title',
-                              style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.color),
+                              style: TextStyle(fontSize: 22),
                             )
                           : Text(
                               titleController.text,
                               style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.color),
+                                  fontSize: 22, fontWeight: FontWeight.bold),
                             ),
                     ),
                   ],
@@ -464,20 +592,12 @@ class _BookLayoutState extends State<BookLayout> {
                         controller: descriptionController,
                         focusNode: descriptionFocusNode,
                         hintText: 'Short description',
+                        autoFocus: false,
                         readOnly: bookLayoutMethod == BookLayoutMethod.display
                             ? true
-                            : false,
-                        style: TextStyle(
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color),
-                      )
-                    : Text(
-                        descriptionController.text,
-                        style: TextStyle(
-                            fontSize: 16,
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color),
-                      ),
+                            : false)
+                    : Text(descriptionController.text,
+                        style: TextStyle(fontSize: 16)),
               ),
               const SizedBox(
                 height: 14,
@@ -503,10 +623,11 @@ class _BookLayoutState extends State<BookLayout> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(100),
+                                  borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
                                       color: Theme.of(context)
-                                          .primaryColorDark
+                                          .colorScheme
+                                          .secondary
                                           .withAlpha(80))),
                               child: const Row(
                                 children: [
@@ -528,12 +649,7 @@ class _BookLayoutState extends State<BookLayout> {
                               focusNode: searchFocusNode,
                               readOnly: false,
                               maxLines: 1,
-                              style: TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.color,
-                              ),
+                              autoFocus: true,
                               suffixIcon: IconButton(
                                 onPressed: () {
                                   searchFocusNode.unfocus();
@@ -546,15 +662,14 @@ class _BookLayoutState extends State<BookLayout> {
                                   Icons.close_rounded,
                                 ),
                               ),
-                              suffixIconColor:
-                                  Theme.of(context).textTheme.bodyMedium?.color,
                             ),
                           ),
                     if (!isSearchToggled) const Spacer(),
-                    // TO:DO Sorting the Book pages below option
+                    // TODO: Sorting the Book pages below option
 
                     // Button to add a new entry into the Book
                     InkWell(
+                      borderRadius: BorderRadius.circular(8),
                       onTap: () async {
                         if (bookLayoutMethod != BookLayoutMethod.display) {
                           await saveBookLayout();
@@ -626,22 +741,22 @@ class _BookLayoutState extends State<BookLayout> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Image(
-                              height: 200,
-                              width: 200,
+                              height: 260,
+                              width: 260,
                               image: AssetImage(
-                                  'assets/images/allCompletedBackground.png'),
+                                  'assets/images/entriesEmptyBackground.png'),
                             ),
                             Text(
-                              'Make a new ${titleController.text} entry',
+                              'No pages yet',
                               style: const TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.w500),
+                                  fontSize: 24, fontWeight: FontWeight.w500),
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(
                               height: 4,
                             ),
                             Text(
-                              'Click on the + icon to make a new page in your ${titleController.text}',
+                              'Click on the + icon to make a new page',
                               style: const TextStyle(
                                   fontWeight: FontWeight.w500,
                                   color: Colors.grey),
@@ -696,6 +811,7 @@ class _BookLayoutState extends State<BookLayout> {
                                   'This is the first page of the Book. This is the area for writing anything and everything you want.',
                               dateTime: widget.dateTime,
                               tags: const ['Personal', 'Daily'],
+                              isBookLocked: false,
                             );
                           },
                         ),
@@ -782,6 +898,7 @@ class _BookLayoutState extends State<BookLayout> {
                                   addedOn: addedOn,
                                   dateTime: dateTime,
                                   title: entryTitle,
+                                  isTemplate: widget.isTemplate,
                                   isEntryLocked: isEntryLocked ?? false);
                             },
                           ),
@@ -795,35 +912,21 @@ class _BookLayoutState extends State<BookLayout> {
       ),
       floatingActionButton: bookLayoutMethod == BookLayoutMethod.display
           ? FloatingActionButton.extended(
-                  backgroundColor: Theme.of(context).primaryColor,
-                  onPressed: () async {
-                    setState(() {
-                      if (bookLayoutMethod == BookLayoutMethod.display) {
-                        // User wants to use this template save it to their database and continue to edit mode.
-                        bookLayoutMethod = BookLayoutMethod.edit;
-                        saveBookLayout();
-                      } else {
-                        bookLayoutMethod = BookLayoutMethod.display;
-                      }
-                    });
-                  },
-                  icon: Icon(
-                    Icons.edit_outlined,
-                    size: 24,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                  ),
-                  label: Text(
-                    'Use template',
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Theme.of(context).textTheme.bodyMedium?.color),
-                  )).animate().scaleXY(
-                curve: Curves.easeInOutBack,
-                delay: const Duration(
-                  milliseconds: 1000,
-                ),
-              )
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              onPressed: () async {
+                setState(() {
+                  if (bookLayoutMethod == BookLayoutMethod.display) {
+                    // User wants to use this template save it to their database and continue to edit mode.
+                    bookLayoutMethod = BookLayoutMethod.edit;
+                    saveBookLayout();
+                  } else {
+                    bookLayoutMethod = BookLayoutMethod.display;
+                  }
+                });
+              },
+              icon: Icon(Icons.edit_outlined),
+              label: Text('Use template'))
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );

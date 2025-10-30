@@ -1,11 +1,13 @@
-// import 'package:bloom/authentication_screens/change_email_screen.dart';
 import 'package:bloom/authentication_screens/signup_screen.dart';
+import 'package:bloom/components/bloom_buttons.dart';
 import 'package:bloom/components/mytextfield.dart';
 import 'package:bloom/components/overview_data.dart';
 import 'package:bloom/components/profile_pic.dart';
+// import 'package:bloom/screens/privacy_password_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ProfileScreen extends StatefulWidget {
   final bool? isImageNetwork;
@@ -41,24 +43,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? selectedProfilePicture;
   int? numberOfCompletedTasks;
   int? numberOfUncompletedTasks;
-  int? numberOfEntriesInYear;
-  int? completedTasksInYear;
-  int? attendedEventsInYear;
-  String? subscriptionPlan;
+  int? numberOfEntries;
+  int? completedTasks;
+  int? attendedEvents;
+  String? privacyPassword = '';
+  bool? isNotificationEnabled = false;
+  String? profilePicture;
 
   // Method to initialize the required variables and methods
   @override
   void initState() {
     super.initState();
+    checkPrivacyPassword();
     userNameController = TextEditingController(text: widget.userName);
     emailController = TextEditingController(text: widget.email);
     mode = widget.mode;
+    profilePicture = widget.profilePicture;
     dataOverviewCheck();
-    checkSubscription();
+    isNotificationEnabledCheck();
   }
 
-  // Check the subscription plan of the user
-  void checkSubscription() async {
+  // Check the Privacy Password of the user
+  void checkPrivacyPassword() async {
     try {
       final docSnapshot = await FirebaseFirestore.instance
           .collection('users')
@@ -67,15 +73,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (docSnapshot.exists) {
         final data = docSnapshot.data();
-        final plan = data?['subscriptionPlan'];
+        final plan = data?['privacyPassword'];
 
         setState(() {
-          if (plan == null || plan == 'free') {
-            subscriptionPlan = 'free';
-          } else if (plan == 'pro') {
-            subscriptionPlan = 'pro';
+          if (plan != null) {
+            privacyPassword = data?['privacyPassword'];
           } else {
-            subscriptionPlan = 'ultra';
+            privacyPassword = '';
           }
         });
       }
@@ -84,7 +88,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  // Method to save the changes to firebase after editing
+  /// Method to save the changes to firebase after editing
   void saveEditChanges() {
     final userRef =
         FirebaseFirestore.instance.collection('users').doc(user?.uid);
@@ -95,86 +99,85 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  void dataOverviewCheck() {
+  /// Check if the notification permission is granted or not
+  void isNotificationEnabledCheck() async {
+    final granted = await Permission.notification.isGranted;
+    if (granted == true) {
+      setState(() {
+        isNotificationEnabled = true;
+      });
+    } else {
+      setState(() {
+        isNotificationEnabled = false;
+      });
+    }
+  }
+
+  /// Check the data of the user for all the created objects
+  void dataOverviewCheck() async {
     try {
-      FirebaseFirestore.instance
+      // 1. Get the count of Notes and Books simultaneously
+      final notesFuture = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user?.uid)
+          .collection('entries')
+          .count()
+          .get();
+
+      final booksFuture = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user?.uid)
+          .collection('books')
+          .count()
+          .get();
+
+      // Use await to wait for both futures to complete
+      final notesSnapshot = await notesFuture;
+      final booksSnapshot = await booksFuture;
+
+      // Use setState only once after all data is ready
+      setState(() {
+        final numberOfNotes = notesSnapshot.count;
+        final numberOfBooks = booksSnapshot.count;
+
+        // Now the values are guaranteed to be set
+        numberOfEntries = numberOfNotes! + numberOfBooks!;
+      });
+
+      // 2. Fetch other counts (can also be done with await)
+      final completedTasksSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(user?.uid)
           .collection('tasks')
           .where('isCompleted', isEqualTo: true)
           .count()
-          .get()
-          .then((value) {
-        setState(() {
-          numberOfCompletedTasks = value.count;
-        });
-      });
-      FirebaseFirestore.instance
+          .get();
+
+      final uncompletedTasksSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(user?.uid)
           .collection('tasks')
           .where('isCompleted', isEqualTo: false)
           .count()
-          .get()
-          .then((value) {
-        setState(() {
-          numberOfUncompletedTasks = value.count;
-        });
-      });
-      // Get the current year
-      DateTime now = DateTime.now();
-      DateTime startOfYear = DateTime(now.year, 1, 1); // Start of the year
-      DateTime endOfYear = DateTime(now.year + 1, 1, 1)
-          .subtract(const Duration(seconds: 1)); // End of the year
+          .get();
 
-      // Query the entries within the current year
-      FirebaseFirestore.instance
-          .collection('users')
-          .doc(user?.uid)
-          .collection('entries')
-          .where('dateTime', isGreaterThanOrEqualTo: startOfYear)
-          .where('dateTime', isLessThanOrEqualTo: endOfYear)
-          .count()
-          .get()
-          .then((value) {
-        setState(() {
-          numberOfEntriesInYear = value.count;
-        });
-      });
-
-      // Query the completed tasks within current year
-      FirebaseFirestore.instance
-          .collection('users')
-          .doc(user?.uid)
-          .collection('tasks')
-          .where('taskDateTime', isGreaterThanOrEqualTo: startOfYear)
-          .where('taskDateTime', isLessThanOrEqualTo: endOfYear)
-          .where('isCompleted', isEqualTo: true)
-          .count()
-          .get()
-          .then((value) {
-        setState(() {
-          completedTasksInYear = value.count;
-        });
-      });
-
-      // Query the events attended within current year
-      FirebaseFirestore.instance
+      final attendedEventsSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(user?.uid)
           .collection('events')
-          .where('eventStartDateTime', isGreaterThanOrEqualTo: startOfYear)
-          .where('eventEndDateTime', isLessThanOrEqualTo: endOfYear)
           .where('isAttended', isEqualTo: true)
           .count()
-          .get()
-          .then((value) {
-        setState(() {
-          attendedEventsInYear = value.count;
-        });
+          .get();
+
+      // Update all state variables together for better performance
+      setState(() {
+        numberOfCompletedTasks = completedTasksSnapshot.count;
+        numberOfUncompletedTasks = uncompletedTasksSnapshot.count;
+        completedTasks = completedTasksSnapshot.count;
+        attendedEvents = attendedEventsSnapshot.count;
       });
     } catch (e) {
-      //
+      // Handle error (e.g., print(e), show a message to the user)
     }
   }
 
@@ -192,94 +195,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: mode == ProfileMode.display
             ? const Text('Profile')
             : const Text('Edit profile'),
-        actions: [
-          mode == ProfileMode.display
-              ? IconButton(
-                  onPressed: () async {
-                    //Logout process
-                    try {
-                      showAdaptiveDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog.adaptive(
-                              backgroundColor:
-                                  Theme.of(context).scaffoldBackgroundColor,
-                              icon: const Icon(Icons.logout),
-                              iconColor:
-                                  Theme.of(context).textTheme.bodyMedium?.color,
-                              title: Text('Logout?'),
-                              titleTextStyle: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              content: const Text(
-                                  "Are you sure that you want to logout of your account?"),
-                              contentTextStyle: TextStyle(
-                                  fontSize: 14, fontWeight: FontWeight.w400),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    // Cancel and close the dialog
-                                    Navigator.pop(context);
-                                  },
-                                  child: Text('Cancel'),
-                                ),
-                                TextButton(
-                                  style: ButtonStyle(
-                                      foregroundColor:
-                                          WidgetStatePropertyAll(Colors.red)),
-                                  onPressed: () async {
-                                    // Logout of the app account
-                                    await FirebaseAuth.instance.signOut();
-                                    Navigator.of(context).pushReplacement(
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const SignupScreen(),
-                                      ),
-                                    );
-                                  },
-                                  child: Text('Logout'),
-                                ),
-                              ],
-                              actionsPadding: const EdgeInsets.all(10),
-                              actionsAlignment: MainAxisAlignment.end,
-                            );
-                          });
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          margin: const EdgeInsets.all(6),
-                          behavior: SnackBarBehavior.floating,
-                          showCloseIcon: true,
-                          backgroundColor: Theme.of(context).primaryColor,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          content: Text(
-                            'Encountered an error while logging out. Error code: ${e.toString()}',
-                            style: TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.color),
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.logout),
-                )
-              : IconButton(
-                  onPressed: () async {
-                    setState(() {
-                      mode = ProfileMode.display;
-                    });
-                  },
-                  icon: const Text(
-                    'Cancel',
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                ),
-        ],
       ),
       body: mode == ProfileMode.display
           ? SafeArea(
@@ -297,25 +212,93 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           widget.isImageNetwork == true &&
                                   widget.isImageNetwork != null
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(15),
-                                  child: Hero(
-                                    tag: 'network_image_hero',
-                                    child: Image.network(
-                                      widget.profilePicture ??
-                                          'assets/profile_pictures/Profile_Picture_Male_1.png',
-                                      scale: 7,
+                              ? Hero(
+                                  tag: 'network_image_hero',
+                                  child: Container(
+                                    decoration: BoxDecoration(boxShadow: [
+                                      BoxShadow(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant
+                                              .withAlpha(50),
+                                          blurRadius: 12,
+                                          spreadRadius: 1,
+                                          offset: Offset(0, 6))
+                                    ], borderRadius: BorderRadius.circular(16)),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: Image.network(
+                                        widget.profilePicture ??
+                                            'assets/profile_pictures/Profile_Picture_Male_1.png',
+                                        frameBuilder: (context, child, frame,
+                                            wasSynchronouslyLoaded) {
+                                          if (frame == null) {
+                                            return child;
+                                          }
+                                          return child;
+                                        },
+                                        loadingBuilder:
+                                            (context, child, loadingProgress) {
+                                          if (loadingProgress == null) {
+                                            return child;
+                                          }
+                                          return Container(
+                                            padding: EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .surfaceContainer),
+                                            child: CircularProgressIndicator(
+                                              year2023: false,
+                                              value: loadingProgress
+                                                          .expectedTotalBytes !=
+                                                      null
+                                                  ? loadingProgress
+                                                          .cumulativeBytesLoaded /
+                                                      loadingProgress
+                                                          .expectedTotalBytes!
+                                                  : null,
+                                              backgroundColor: Theme.of(context)
+                                                  .colorScheme
+                                                  .surfaceContainer,
+                                            ),
+                                          );
+                                        },
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return Center(
+                                            child: Text(
+                                              '😿',
+                                              style: TextStyle(fontSize: 42),
+                                            ),
+                                          );
+                                        },
+                                      ),
                                     ),
                                   ),
                                 )
-                              : ClipRRect(
-                                  borderRadius: BorderRadius.circular(15),
-                                  child: Hero(
-                                    tag: 'asset_image_hero',
-                                    child: Image.asset(
-                                      widget.profilePicture ??
-                                          'assets/profile_pictures/Profile_Picture_Male_1.png',
-                                      scale: 12,
+                              : Hero(
+                                  tag: 'asset_image_hero',
+                                  child: Container(
+                                    decoration: BoxDecoration(boxShadow: [
+                                      BoxShadow(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant
+                                              .withAlpha(50),
+                                          blurRadius: 12,
+                                          spreadRadius: 1,
+                                          offset: Offset(0, 6))
+                                    ], borderRadius: BorderRadius.circular(16)),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: Image.asset(
+                                        widget.profilePicture ??
+                                            'assets/profile_pictures/Profile_Picture_Male_1.png',
+                                        scale: 12,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -348,104 +331,257 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           if (widget.email != null || widget.email != '')
                             SelectableText(
                               widget.email ?? user!.email!,
-                              style: TextStyle(
-                                  fontSize: 16,
-                                  color: Theme.of(context).primaryColorDark),
+                              style: TextStyle(fontSize: 16),
                             ),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          // Button to edit the account/profile
-                          SizedBox(
-                            width: 80,
-                            child: FilledButton(
-                              onPressed: () {
-                                setState(() {
-                                  mode = ProfileMode.edit;
-                                });
-                              },
-                              style: ButtonStyle(
-                                  backgroundColor: WidgetStatePropertyAll(
-                                      Theme.of(context).primaryColor)),
-                              child: Text(
-                                'Edit',
-                                style: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.color),
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ),
-                    const SizedBox(
-                      height: 20,
-                    ),
+                    const SizedBox(height: 24),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                      child: IntrinsicHeight(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Container(
+                        padding: EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color:
+                                Theme.of(context).colorScheme.surfaceContainer),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Yearly stats are displayed here
-                            const Text(
-                              'Yearly stats',
-                              style: TextStyle(fontSize: 16),
-                              textAlign: TextAlign.left,
+                            Expanded(
+                              child: NumberOfEntries(
+                                numberOfEntries: numberOfEntries ?? 0,
+                              ),
                             ),
-                            const SizedBox(
-                              height: 15,
+                            Expanded(
+                              child: NumberOfTasks(
+                                completedTasks: completedTasks ?? 0,
+                              ),
                             ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Expanded(
-                                  child: NumberOfEntriesInYear(
-                                    numberOfEntriesInYear:
-                                        numberOfEntriesInYear ?? 0,
-                                  ),
-                                ),
-                                const VerticalDivider(),
-                                Expanded(
-                                  child: NumberOfTasksInYear(
-                                    completedTasksInYear:
-                                        completedTasksInYear ?? 0,
-                                  ),
-                                ),
-                                const VerticalDivider(),
-                                Expanded(
-                                  child: NumberOfEventsInYear(
-                                    attendedEventsInYear:
-                                        attendedEventsInYear ?? 0,
-                                  ),
-                                )
-                              ],
-                            ),
+                            Expanded(
+                              child: NumberOfEvents(
+                                attendedEvents: attendedEvents ?? 0,
+                              ),
+                            )
                           ],
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      height: 10,
+                    const SizedBox(height: 24),
+                    // Other Options Block
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                      child: Column(
+                        children: [
+                          // Edit Profile Button
+                          BloomMaterialListTile(
+                            borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(24),
+                                topRight: Radius.circular(24),
+                                bottomLeft: Radius.circular(4),
+                                bottomRight: Radius.circular(4)),
+                            icon: Icon(Icons.person,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSecondaryContainer),
+                            color:
+                                Theme.of(context).colorScheme.surfaceContainer,
+                            label: 'Edit Profile',
+                            subLabel: 'Change your profile details',
+                            iconLabelSpace: 8,
+                            labelStyle: const TextStyle(
+                                fontWeight: FontWeight.w500, fontSize: 18),
+                            innerPadding: const EdgeInsets.all(16),
+                            outerPadding: EdgeInsets.symmetric(vertical: 1),
+                            onTap: () {
+                              setState(() {
+                                mode = ProfileMode.edit;
+                              });
+                            },
+                            endIcon:
+                                const Icon(Icons.keyboard_arrow_right_rounded),
+                          ),
+                          // Notifications Toggle Button
+                          BloomMaterialListTile(
+                            icon: Icon(Icons.notifications_active,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSecondaryContainer),
+                            label: 'Notifications',
+                            subLabel:
+                                'Reminders, updates and other notifications',
+                            iconLabelSpace: 8,
+                            labelStyle: const TextStyle(
+                                fontWeight: FontWeight.w500, fontSize: 18),
+                            innerPadding: const EdgeInsets.all(16),
+                            outerPadding: EdgeInsets.symmetric(vertical: 1),
+                            endIcon: Switch(
+                                value: isNotificationEnabled!,
+                                onChanged: (value) async {
+                                  if (isNotificationEnabled == false) {
+                                    await Permission.notification.request();
+                                  } else {
+                                    // Confirmation dialog to turn off notifications for reminders
+                                    showAdaptiveDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return AlertDialog.adaptive(
+                                            icon: Icon(
+                                                Icons.warning_amber_rounded),
+                                            iconColor: Colors.red,
+                                            title: Text(
+                                              'Disable notifications?',
+                                            ),
+                                            content: Text(
+                                              "Do you want to disable all notifications? You won't be able to receive any reminders, updates and more",
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  // Cancel and close the dialog
+                                                  Navigator.pop(context);
+                                                },
+                                                child: Text(
+                                                  'Cancel',
+                                                ),
+                                              ),
+                                              TextButton(
+                                                style: ButtonStyle(
+                                                    foregroundColor:
+                                                        WidgetStatePropertyAll(
+                                                            Theme.of(context)
+                                                                .colorScheme
+                                                                .error)),
+                                                onPressed: () async {
+                                                  // Go to settings
+                                                  await openAppSettings();
+                                                  Navigator.pop(context);
+                                                },
+                                                child: Text('Turn off'),
+                                              ),
+                                            ],
+                                          );
+                                        });
+                                  }
+                                }),
+                          ),
+                          // Privacy Password Setup/Modify Button
+                          // BloomMaterialListTile(
+                          //   icon: Icon(Icons.password,
+                          //       color: Theme.of(context)
+                          //           .colorScheme
+                          //           .onSecondaryContainer),
+                          //   label: privacyPassword != ''
+                          //       ? 'Manage Privacy Password'
+                          //       : 'Setup Privacy Password',
+                          //   subLabel: 'Password for locking/unlocking objects',
+                          //   iconLabelSpace: 8,
+                          //   labelStyle: const TextStyle(
+                          //       fontWeight: FontWeight.w500, fontSize: 18),
+                          //   innerPadding: const EdgeInsets.all(16),
+                          //   outerPadding: EdgeInsets.symmetric(vertical: 1),
+                          //   onTap: () {
+                          //     // TODO: PERFORM THE NEEDED OPERATIONS FOR CREATING A PASSWORD
+                          //     // CURRENTLY ONLY GOES TO THE SCREEN
+                          //     Navigator.of(context).push(MaterialPageRoute(
+                          //         builder: (context) =>
+                          //             PrivacyPasswordScreen()));
+                          //   },
+                          //   endIcon:
+                          //       const Icon(Icons.keyboard_arrow_right_rounded),
+                          // ),
+                          // Logout Button
+                          BloomMaterialListTile(
+                            borderRadius: BorderRadius.only(
+                                bottomLeft: Radius.circular(24),
+                                bottomRight: Radius.circular(24),
+                                topLeft: Radius.circular(4),
+                                topRight: Radius.circular(4)),
+                            icon: Icon(Icons.logout,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSecondaryContainer),
+                            color:
+                                Theme.of(context).colorScheme.surfaceContainer,
+                            label: 'Logout',
+                            subLabel: 'Sign out from your account',
+                            iconLabelSpace: 8,
+                            labelStyle: const TextStyle(
+                                fontWeight: FontWeight.w500, fontSize: 18),
+                            innerPadding: const EdgeInsets.all(16),
+                            outerPadding: EdgeInsets.symmetric(vertical: 1),
+                            onTap: () {
+                              // Log the user out of the current session.
+                              //Logout process
+                              try {
+                                showAdaptiveDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog.adaptive(
+                                        icon: const Icon(Icons.logout),
+                                        iconColor:
+                                            Theme.of(context).colorScheme.error,
+                                        title: Text('Logout?'),
+                                        content: const Text(
+                                            "Are you sure that you want to logout of your account?"),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              // Cancel and close the dialog
+                                              Navigator.pop(context);
+                                            },
+                                            child: Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            style: ButtonStyle(
+                                                foregroundColor:
+                                                    WidgetStatePropertyAll(
+                                                        Theme.of(context)
+                                                            .colorScheme
+                                                            .error)),
+                                            onPressed: () async {
+                                              Navigator.of(context).pop();
+                                              // Logout of the app account
+                                              await FirebaseAuth.instance
+                                                  .signOut();
+                                              Navigator.of(context)
+                                                  .pushReplacement(
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      const SignupScreen(),
+                                                ),
+                                              );
+                                            },
+                                            child: Text('Logout'),
+                                          ),
+                                        ],
+                                        actionsPadding:
+                                            const EdgeInsets.all(10),
+                                        actionsAlignment: MainAxisAlignment.end,
+                                      );
+                                    });
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    margin: const EdgeInsets.all(6),
+                                    behavior: SnackBarBehavior.floating,
+                                    showCloseIcon: true,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                    content: Text(
+                                        'Encountered an error while logging out. Error code: ${e.toString()}'),
+                                  ),
+                                );
+                              }
+                            },
+                            endIcon:
+                                const Icon(Icons.keyboard_arrow_right_rounded),
+                          ),
+                        ],
+                      ),
                     ),
-                    // Divider(),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    // // Heading for the content section
-                    // const Padding(
-                    //   padding: EdgeInsets.symmetric(horizontal: 12.0),
-                    //   child: Text(
-                    //     'Content',
-                    //     style: TextStyle(fontSize: 16),
-                    //     textAlign: TextAlign.left,
-                    //   ),
-                    // ),
-                    // const SizedBox(
-                    //   height: 5,
-                    // ),
                   ],
                 ),
               ),
@@ -473,17 +609,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ? Stack(
                             alignment: Alignment.bottomCenter,
                             children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(100),
-                                child: Image.asset(
-                                  selectedProfilePicture!,
-                                  scale: 14,
+                              Container(
+                                decoration: BoxDecoration(
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant
+                                          .withAlpha(50),
+                                      blurRadius: 12,
+                                      spreadRadius: 1,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Image.asset(
+                                    selectedProfilePicture!,
+                                    scale: 10,
+                                  ),
                                 ),
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(4.0),
-                                child: Icon(Icons.edit,
-                                    color: Theme.of(context).primaryColorLight),
+                                child: Icon(Icons.edit),
                               ),
                             ],
                           )
@@ -492,26 +643,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             children: [
                               widget.isImageNetwork == true &&
                                       widget.isImageNetwork != null
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(100),
-                                      child: Image.network(
-                                        widget.profilePicture ??
-                                            'assets/profile_pictures/Profile_Picture_Male_1.png',
-                                        scale: 5,
+                                  ? Container(
+                                      decoration: BoxDecoration(
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurfaceVariant
+                                                .withAlpha(50),
+                                            blurRadius: 12,
+                                            spreadRadius: 1,
+                                            offset: const Offset(0, 6),
+                                          ),
+                                        ],
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(16),
+                                        child: Image.network(
+                                          widget.profilePicture ??
+                                              'assets/profile_pictures/Profile_Picture_Male_1.png',
+                                          scale: 1,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                            return Center(
+                                              child: Text(
+                                                '😿',
+                                                style: TextStyle(fontSize: 42),
+                                              ),
+                                            );
+                                          },
+                                        ),
                                       ),
                                     )
-                                  : ClipRRect(
-                                      borderRadius: BorderRadius.circular(100),
-                                      child: Image.asset(
-                                        widget.profilePicture ??
-                                            'assets/profile_pictures/Profile_Picture_Male_1.png',
-                                        scale: 10,
+                                  : Container(
+                                      decoration: BoxDecoration(
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurfaceVariant
+                                                .withAlpha(50),
+                                            blurRadius: 12,
+                                            spreadRadius: 1,
+                                            offset: const Offset(0, 6),
+                                          ),
+                                        ],
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(16),
+                                        child: Image.asset(
+                                          widget.profilePicture ??
+                                              'assets/profile_pictures/Profile_Picture_Male_1.png',
+                                          scale: 10,
+                                        ),
                                       ),
                                     ),
                               Padding(
                                 padding: const EdgeInsets.all(4.0),
-                                child: Icon(Icons.edit,
-                                    color: Theme.of(context).primaryColorLight),
+                                child: Icon(Icons.edit),
                               ),
                             ],
                           ),
@@ -585,8 +776,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(
                     height: 50,
                   ),
+                  if (userNameController.text != widget.userName ||
+                      profilePicture != selectedProfilePicture)
+                    // Confirm changes to account and save
+                    InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        try {
+                          // TODO: ADD A DIALOG TO ASK FOR CONFIRM IF ANYTHING IS CHANGED
+                          setState(() {
+                            mode = ProfileMode.display;
+                          });
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              margin: const EdgeInsets.all(6),
+                              behavior: SnackBarBehavior.floating,
+                              showCloseIcon: true,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              content: Text(
+                                  'Failed to discard changes. Error code: ${e.toString()}'),
+                            ),
+                          );
+                        }
+                      },
+                      child: Container(
+                        alignment: Alignment.center,
+                        width: double.maxFinite,
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 2),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          'Discard Changes',
+                          style: TextStyle(fontSize: 18),
+                        ),
+                      ),
+                    ),
+                  if (userNameController.text != widget.userName ||
+                      profilePicture != selectedProfilePicture)
+                    const SizedBox(height: 24),
                   // Confirm changes to account and save
                   InkWell(
+                    borderRadius: BorderRadius.circular(16),
                     onTap: () {
                       try {
                         if ((userNameController.text.trim() !=
@@ -598,17 +834,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               margin: const EdgeInsets.all(6),
                               behavior: SnackBarBehavior.floating,
                               showCloseIcon: true,
-                              backgroundColor: Theme.of(context).primaryColor,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12)),
-                              content: Text(
-                                'Changes saved succesfully.',
-                                style: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.color),
-                              ),
+                              content: Text('Changes saved succesfully.'),
                             ),
                           );
                           setState(() {
@@ -621,34 +849,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             margin: const EdgeInsets.all(6),
                             behavior: SnackBarBehavior.floating,
                             showCloseIcon: true,
-                            backgroundColor: Theme.of(context).primaryColor,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
                             content: Text(
-                              'Saving changes failed. Error code: ${e.toString()}',
-                              style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.color),
-                            ),
+                                'Saving changes failed. Error code: ${e.toString()}'),
                           ),
                         );
                       }
                     },
                     child: Container(
-                      padding: const EdgeInsets.all(16),
                       alignment: Alignment.center,
+                      width: double.maxFinite,
+                      padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor,
-                        borderRadius: BorderRadius.circular(100),
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(
                         'Save Changes',
                         style: TextStyle(
-                            fontSize: 16,
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color),
+                            fontSize: 18,
+                            color: Theme.of(context).colorScheme.onPrimary),
                       ),
                     ),
                   )

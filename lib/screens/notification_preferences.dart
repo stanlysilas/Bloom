@@ -1,4 +1,4 @@
-import 'package:bloom/components/mybuttons.dart';
+import 'package:bloom/components/bloom_buttons.dart';
 import 'package:bloom/responsive/dimensions.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -52,7 +52,7 @@ class _NotificationPreferencesState extends State<NotificationPreferences> {
               height: 15,
             ),
             // Local reminder notifications
-            ExtraOptionsButton(
+            BloomMaterialListTile(
               icon: notificationEnabled == true
                   ? Icon(Icons.notifications_active_rounded)
                   : Icon(Icons.notifications_off_rounded),
@@ -67,76 +67,15 @@ class _NotificationPreferencesState extends State<NotificationPreferences> {
                 notificationEnabled == true ? 'Enabled' : 'Disabled',
                 style: TextStyle(
                     color: notificationEnabled == true
-                        ? Theme.of(context).primaryColor
+                        ? Theme.of(context).colorScheme.primary
                         : Colors.red),
               ),
-              onTap: () async {
-                if (notificationEnabled == false) {
-                  await Permission.notification.request();
-                } else {
-                  // Confirmation dialog to turn off notifications for reminders
-                  showAdaptiveDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog.adaptive(
-                          backgroundColor:
-                              Theme.of(context).scaffoldBackgroundColor,
-                          icon: Icon(notificationEnabled == true
-                              ? Icons.warning_amber_rounded
-                              : Icons.notifications_active_outlined),
-                          iconColor: notificationEnabled == true
-                              ? Colors.red
-                              : Theme.of(context).primaryColor,
-                          title: Text(
-                            notificationEnabled == true
-                                ? 'Disable notifications?'
-                                : "Enable notifications?",
-                          ),
-                          titleTextStyle: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w400,
-                          ),
-                          content: Text(
-                            "Do you want to ${notificationEnabled == true ? 'disable' : 'enable'} all notifications? ${notificationEnabled == true ? "You won't be able to receive any reminders, updates and more" : ''}",
-                          ),
-                          contentTextStyle: TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.w400),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                // Cancel and close the dialog
-                                Navigator.pop(context);
-                              },
-                              child: Text(
-                                'Cancel',
-                              ),
-                            ),
-                            TextButton(
-                              style: ButtonStyle(
-                                  foregroundColor: WidgetStatePropertyAll(
-                                      notificationEnabled == false
-                                          ? Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium
-                                              ?.color
-                                          : Colors.red)),
-                              onPressed: () async {
-                                // Go to settings
-                                await openAppSettings();
-                                Navigator.pop(context);
-                              },
-                              child: Text('Turn off'),
-                            ),
-                          ],
-                        );
-                      });
-                }
-              },
+              onTap: () async {},
             ),
             // Email notifications including promotional
             // const Padding(
             //   padding: EdgeInsets.symmetric(horizontal: 14),
-            //   child: ExtraOptionsButton(
+            //   child: BloomMaterialListTile(
             //     icon: SizedBox(),
             //     label: 'Email notifications',
             //     iconLabelSpace: 8,

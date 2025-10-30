@@ -2,12 +2,10 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:bloom/components/custom_textediting_toolbar.dart';
 import 'package:bloom/components/more_entry_options.dart';
 import 'package:bloom/components/textfield_nobackground.dart';
-// import 'package:bloom/models/bloom_ai.dart';
 import 'package:bloom/responsive/dimensions.dart';
 import 'package:bloom/screens/entries_background_images.dart';
 import 'package:bloom/screens/entries_icon_picker.dart';
@@ -18,7 +16,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class NoteLayout extends StatefulWidget {
   final bool hasChildren;
@@ -74,8 +71,6 @@ class _NoteLayoutState extends State<NoteLayout> {
   // Required variables
   bool isEditing = false;
   bool isSynced = false;
-  bool? isTitle;
-  bool isDarkTheme = false;
   bool hasChildren = false;
   late bool? isFavorite;
   final userId = FirebaseAuth.instance.currentUser?.uid;
@@ -86,29 +81,6 @@ class _NoteLayoutState extends State<NoteLayout> {
   late String documentId;
   final List childNotes = [];
   final List attachments = [];
-  List<String> docIds = [];
-  List<String> backgroundImageUrlsList = [
-    'assets/background_images/obsidian_essence.jpg',
-    'assets/background_images/cozy_autumn_rain.gif',
-    'assets/background_images/foggy_peak_1.jpg',
-    'assets/background_images/foggy_peak_2.jpg',
-    'assets/background_images/mountain_peak_dark.jpg',
-    'assets/background_images/roman_pillars.jpg',
-    'assets/background_images/sand_dunes.jpg',
-    'assets/background_images/sunset_in_the_mountains.jpg',
-    'assets/background_images/white_globe.jpg',
-  ];
-  List<String> backgroundImageUrlsNamesList = [
-    'Obsidian Essence',
-    'Cozy Autumn Rain',
-    'Foggy Peak 1',
-    'Foggy Peak 2',
-    'Mountain Peak - Dark',
-    'Roman Pillars',
-    'Sand Dunes',
-    'Sunset in the Mountains',
-    'White Globe',
-  ];
   late TextEditingController searchEmojisController;
   late TextEditingController titleController;
   late QuillController descriptionController;
@@ -118,14 +90,7 @@ class _NoteLayoutState extends State<NoteLayout> {
   late BackgroundImageNotifier backgroundImageNotifier;
   late EmojiNotifier emojiNotifier;
   bool textFormatEnabled = false;
-  bool bloomAIEnabled = false;
-//   CharacterShortcutEvent openToolbar = CharacterShortcutEvent(
-//     key: 'Show the toolbar for desktop when / is typed',
-//     character: '/',
-//     handler: (controller) {
-//       return true;
-//     },
-//   );
+  // bool bloomAIEnabled = false;
 
   // Method to initialise the required variables and methods
   @override
@@ -134,16 +99,11 @@ class _NoteLayoutState extends State<NoteLayout> {
     searchEmojisController = TextEditingController(text: widget.emoji ?? '');
     titleController = TextEditingController(text: widget.title);
     isFavorite = widget.isFavorite ?? false;
-    if (widget.mode == NoteMode.create) {
-    } else {}
-
     final description = getDocumentFromDescription(widget.description);
-
     descriptionController = QuillController(
       document: description,
       selection: const TextSelection.collapsed(offset: 0),
     );
-
     // Add listeners to the QuillController and titleController
     descriptionController.addListener(onDataChanged);
     titleController.addListener(onDataChanged);
@@ -156,7 +116,6 @@ class _NoteLayoutState extends State<NoteLayout> {
             .collection('entries')
             .doc()
             .id;
-
     // Listen to background image changes and initialize the image
     backgroundImageNotifier =
         Provider.of<BackgroundImageNotifier>(context, listen: false);
@@ -165,16 +124,12 @@ class _NoteLayoutState extends State<NoteLayout> {
     backgroundImageUrl = widget.backgroundImageUrl ?? '';
     backgroundImageNotifier._backgroundImageUrl =
         widget.backgroundImageUrl ?? '';
-
     // Listen to emoji changes and initialize the emoji
     emojiNotifier = Provider.of<EmojiNotifier>(context, listen: false);
     emojiNotifier.addListener(onEmojiChanged);
     emojiNotifier.addListener(onDataChanged);
     emoji = widget.emoji ?? '';
     emojiNotifier._emoji = widget.emoji ?? '';
-
-    // Check if dark theme is enabled
-    isDarkThemeEnabled();
   }
 
   // Method to dispose off the initialised variables and others
@@ -249,7 +204,7 @@ class _NoteLayoutState extends State<NoteLayout> {
     _saveTimer = Timer(const Duration(milliseconds: 1500), saveNoteData);
   }
 
-  // Method to save all the data of the note into the database
+  /// Method to save all the data of the note into the database
   Future saveNoteData() async {
     if (widget.type == 'note') {
       final firestore = FirebaseFirestore.instance
@@ -265,6 +220,7 @@ class _NoteLayoutState extends State<NoteLayout> {
         await firestore.doc(documentId).set({
           'mainEntryId': documentId,
           'mainEntryTitle': titleController.text,
+          'mainEntryTitle_lower': titleController.text.toLowerCase(),
           'mainEntryDescription': description,
           'addedOn': DateTime.now(),
           'dateTime': Timestamp.now(),
@@ -300,6 +256,7 @@ class _NoteLayoutState extends State<NoteLayout> {
           'bookId': widget.mainId,
           'pageId': documentId,
           'pageTitle': titleController.text,
+          'pageTitle_lower': titleController.text.toLowerCase(),
           'pageDescription': description,
           'addedOn': DateTime.now(),
           'dateTime': Timestamp.now(),
@@ -321,19 +278,13 @@ class _NoteLayoutState extends State<NoteLayout> {
   }
 
   int wordNum = 0;
+
+  /// Function to count the words in the Note.
   void countWords() {
     int wordscount = descriptionController.document.toPlainText().length +
         titleController.text.length;
     setState(() {
       wordNum = wordscount - 1;
-    });
-  }
-
-  // Method to check if darkTheme is enabled
-  Future<void> isDarkThemeEnabled() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      isDarkTheme = prefs.getBool('isDarkTheme') ?? false;
     });
   }
 
@@ -369,7 +320,7 @@ class _NoteLayoutState extends State<NoteLayout> {
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(4),
-                color: Theme.of(context).primaryColorLight,
+                color: Theme.of(context).colorScheme.surfaceContainer,
               ),
               child: isSynced
                   ? Tooltip(
@@ -405,16 +356,11 @@ class _NoteLayoutState extends State<NoteLayout> {
             child: IconButton(
               tooltip: 'Menu',
               onPressed: () async {
-                countWords();
+                countWords(); // Perform the count only when tapped.
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
                   useSafeArea: true,
-                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                  // constraints: BoxConstraints(
-                  //   maxWidth: MediaQuery.of(context).size.width,
-                  //   maxHeight: MediaQuery.of(context).size.height,
-                  // ),
                   builder: (BuildContext context) {
                     return MoreEntryOptions(
                       entryId: widget.noteId ?? '',
@@ -465,11 +411,19 @@ class _NoteLayoutState extends State<NoteLayout> {
                                     .backgroundImageUrl ==
                                 ''
                             ? 100
-                            : Platform.isAndroid
-                                ? MediaQuery.of(context).size.height * 0.22
-                                : Platform.isWindows
-                                    ? MediaQuery.of(context).size.height * 0.3
-                                    : MediaQuery.of(context).size.height * 0.22,
+                            :
+                            // : defaultTargetPlatform == TargetPlatform.android
+                            // ?
+                            MediaQuery.of(context).size.height * 0.22,
+                        // : defaultTargetPlatform ==
+                        //             TargetPlatform.windows ||
+                        //         kIsWeb ||
+                        //         defaultTargetPlatform ==
+                        //             TargetPlatform.macOS ||
+                        //         defaultTargetPlatform ==
+                        //             TargetPlatform.linux
+                        //     ? MediaQuery.of(context).size.height * 0.3
+                        //     : MediaQuery.of(context).size.height * 0.22,
                         child: Provider.of<BackgroundImageNotifier>(context)
                                     .backgroundImageUrl ==
                                 ''
@@ -545,12 +499,16 @@ class _NoteLayoutState extends State<NoteLayout> {
                                 padding: const EdgeInsets.all(4),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(4),
-                                  color: Theme.of(context).primaryColorLight,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainer,
                                 ),
-                                child: const Text(
+                                child: Text(
                                   'Add icon',
                                   style: TextStyle(
-                                      fontSize: 12, color: Colors.grey),
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant),
                                 )),
                           ),
                         )
@@ -568,6 +526,7 @@ class _NoteLayoutState extends State<NoteLayout> {
                 controller: titleController,
                 focusNode: titleFocusNode,
                 maxLines: 1,
+                autoFocus: false,
                 hintText: 'Title',
                 style: TextStyle(
                     fontSize: 22,
@@ -579,7 +538,9 @@ class _NoteLayoutState extends State<NoteLayout> {
               height: 10,
             ),
             // Description of the note should be displayed here
-            Padding(
+            Container(
+              height: MediaQuery.of(context).size.height * 0.8,
+              width: MediaQuery.of(context).size.width,
               padding: MediaQuery.of(context).size.width < mobileWidth
                   ? const EdgeInsets.all(0)
                   : const EdgeInsets.symmetric(horizontal: 250),
@@ -588,109 +549,111 @@ class _NoteLayoutState extends State<NoteLayout> {
                 scrollController: ScrollController(),
                 controller: descriptionController,
                 config: QuillEditorConfig(
-                  padding: const EdgeInsets.only(left: 8, right: 8, bottom: 10),
+                  padding:
+                      const EdgeInsets.only(left: 12, right: 12, bottom: 10),
                   scrollable: true,
                   scrollBottomInset: 300,
+                  expands: true,
                   requestKeyboardFocusOnCheckListChanged: true,
                   placeholder: 'Start typing here',
                   enableScribble: true,
                   onTapOutsideEnabled: true,
-                  customStyles: DefaultStyles(
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                    leading: DefaultListBlockStyle(
-                        TextStyle(
-                          foreground: Paint()
-                            ..color =
-                                Theme.of(context).textTheme.bodyMedium!.color ??
-                                    Colors.black,
-                        ),
-                        const HorizontalSpacing(0, 0),
-                        const VerticalSpacing(0, 0),
-                        const VerticalSpacing(0, 0),
-                        null,
-                        null),
-                    paragraph: DefaultTextBlockStyle(
-                        TextStyle(
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color,
-                            fontSize: 16,
-                            fontFamily: 'Nunito'),
-                        const HorizontalSpacing(0, 0),
-                        const VerticalSpacing(0, 0),
-                        const VerticalSpacing(0, 0),
-                        null),
-                    bold: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
-                        fontWeight: FontWeight.bold),
-                    italic: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
-                        fontStyle: FontStyle.italic),
-                    underline:
-                        const TextStyle(decoration: TextDecoration.underline),
-                    small: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color),
-                    sizeHuge: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
-                        fontSize: 22),
-                    sizeLarge: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
-                        fontSize: 18),
-                    sizeSmall: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
-                        fontSize: 16),
-                    code: DefaultTextBlockStyle(
-                      TextStyle(
-                          foreground: Paint()
-                            ..color =
-                                Theme.of(context).textTheme.bodyMedium!.color ??
-                                    Colors.black),
-                      const HorizontalSpacing(0, 0),
-                      const VerticalSpacing(0, 0),
-                      const VerticalSpacing(0, 0),
-                      BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          color: Theme.of(context).primaryColorLight),
-                    ),
-                    inlineCode: InlineCodeStyle(
-                        radius: const Radius.circular(8),
-                        backgroundColor: Colors.transparent,
-                        style: TextStyle(
-                            background: Paint()
-                              ..color = Theme.of(context).primaryColorDark,
-                            foreground: Paint()
-                              ..color = Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium!
-                                      .color ??
-                                  Colors.black)),
-                    quote: DefaultTextBlockStyle(
-                        TextStyle(
-                          foreground: Paint()
-                            ..color =
-                                Theme.of(context).textTheme.bodyMedium!.color ??
-                                    Colors.black,
-                        ),
-                        const HorizontalSpacing(0, 0),
-                        const VerticalSpacing(0, 0),
-                        const VerticalSpacing(0, 0),
-                        BoxDecoration(
-                            border: Border(
-                                left: BorderSide(
-                                    color: Theme.of(context).primaryColorDark,
-                                    width: 4)))),
-                    lists: DefaultListBlockStyle(
-                        TextStyle(
-                          foreground: Paint()
-                            ..color =
-                                Theme.of(context).textTheme.bodyMedium!.color ??
-                                    Colors.black,
-                        ),
-                        const HorizontalSpacing(0, 0),
-                        const VerticalSpacing(0, 0),
-                        const VerticalSpacing(0, 0),
-                        const BoxDecoration(),
-                        null),
-                  ),
+                  // customStyles: DefaultStyles(
+                  //   color: Theme.of(context).textTheme.bodyMedium?.color,
+                  //   leading: DefaultListBlockStyle(
+                  //       TextStyle(
+                  //         foreground: Paint()
+                  //           ..color =
+                  //               Theme.of(context).textTheme.bodyMedium!.color ??
+                  //                   Colors.black,
+                  //       ),
+                  //       const HorizontalSpacing(0, 0),
+                  //       const VerticalSpacing(0, 0),
+                  //       const VerticalSpacing(0, 0),
+                  //       null,
+                  //       null),
+                  //   paragraph: DefaultTextBlockStyle(
+                  //       TextStyle(
+                  //           color:
+                  //               Theme.of(context).textTheme.bodyMedium?.color,
+                  //           fontSize: 16,
+                  //           fontFamily: 'Nunito'),
+                  //       const HorizontalSpacing(0, 0),
+                  //       const VerticalSpacing(0, 0),
+                  //       const VerticalSpacing(0, 0),
+                  //       null),
+                  //   bold: TextStyle(
+                  //       color: Theme.of(context).textTheme.bodyMedium?.color,
+                  //       fontWeight: FontWeight.bold),
+                  //   italic: TextStyle(
+                  //       color: Theme.of(context).textTheme.bodyMedium?.color,
+                  //       fontStyle: FontStyle.italic),
+                  //   underline:
+                  //       const TextStyle(decoration: TextDecoration.underline),
+                  //   small: TextStyle(
+                  //       color: Theme.of(context).textTheme.bodyMedium?.color),
+                  //   sizeHuge: TextStyle(
+                  //       color: Theme.of(context).textTheme.bodyMedium?.color,
+                  //       fontSize: 22),
+                  //   sizeLarge: TextStyle(
+                  //       color: Theme.of(context).textTheme.bodyMedium?.color,
+                  //       fontSize: 18),
+                  //   sizeSmall: TextStyle(
+                  //       color: Theme.of(context).textTheme.bodyMedium?.color,
+                  //       fontSize: 16),
+                  //   code: DefaultTextBlockStyle(
+                  //     TextStyle(
+                  //         foreground: Paint()
+                  //           ..color =
+                  //               Theme.of(context).textTheme.bodyMedium!.color ??
+                  //                   Colors.black),
+                  //     const HorizontalSpacing(0, 0),
+                  //     const VerticalSpacing(0, 0),
+                  //     const VerticalSpacing(0, 0),
+                  //     BoxDecoration(
+                  //         borderRadius: BorderRadius.circular(8),
+                  //         color: Theme.of(context).primaryColorLight),
+                  //   ),
+                  //   inlineCode: InlineCodeStyle(
+                  //       radius: const Radius.circular(8),
+                  //       backgroundColor: Colors.transparent,
+                  //       style: TextStyle(
+                  //           background: Paint()
+                  //             ..color = Theme.of(context).primaryColorDark,
+                  //           foreground: Paint()
+                  //             ..color = Theme.of(context)
+                  //                     .textTheme
+                  //                     .bodyMedium!
+                  //                     .color ??
+                  //                 Colors.black)),
+                  //   quote: DefaultTextBlockStyle(
+                  //       TextStyle(
+                  //         foreground: Paint()
+                  //           ..color =
+                  //               Theme.of(context).textTheme.bodyMedium!.color ??
+                  //                   Colors.black,
+                  //       ),
+                  //       const HorizontalSpacing(0, 0),
+                  //       const VerticalSpacing(0, 0),
+                  //       const VerticalSpacing(0, 0),
+                  //       BoxDecoration(
+                  //           border: Border(
+                  //               left: BorderSide(
+                  //                   color: Theme.of(context).primaryColorDark,
+                  //                   width: 4)))),
+                  //   lists: DefaultListBlockStyle(
+                  //       TextStyle(
+                  //         foreground: Paint()
+                  //           ..color =
+                  //               Theme.of(context).textTheme.bodyMedium!.color ??
+                  //                   Colors.black,
+                  //       ),
+                  //       const HorizontalSpacing(0, 0),
+                  //       const VerticalSpacing(0, 0),
+                  //       const VerticalSpacing(0, 0),
+                  //       const BoxDecoration(),
+                  //       null),
+                  // ),
                   onTapOutside: (event, focusNode) {
                     focusNode.unfocus();
                   },
@@ -712,76 +675,70 @@ class _NoteLayoutState extends State<NoteLayout> {
           ],
         ),
       ),
-      bottomSheet: isEditing
-          ? Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  decoration:
-                      BoxDecoration(color: Theme.of(context).primaryColorLight),
-                  child: Row(
-                    children: [
-                      // Bloom AI button
-                      // IconButton(
-                      //   onPressed: () {
-                      //     setState(() {
-                      //       focusProvider.unfocusEditor();
-                      //       textFormatEnabled = false;
-                      //       bloomAIEnabled = !bloomAIEnabled;
-                      //     });
-                      //     // Show a bottomSheet with the TextField for Google Gemini
-                      //     showBloomAI(context);
-                      //   },
-                      //   icon: Icon(Icons.g_mobiledata_rounded),
-                      // ),
-                      // Text formatting options button
+      bottomSheet: isEditing == true || focusProvider.editorFocusNode.hasFocus
+          ? SafeArea(
+              child: Container(
+                padding:
+                    const EdgeInsets.only(left: 8.0, right: 8.0, bottom: 16.0),
+                decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainer),
+                child: Row(
+                  children: [
+                    // Bloom AI button
+                    // IconButton(
+                    //   onPressed: () {
+                    //     setState(() {
+                    //       focusProvider.unfocusEditor();
+                    //       textFormatEnabled = false;
+                    //       bloomAIEnabled = !bloomAIEnabled;
+                    //     });
+                    //     // Show a bottomSheet with the TextField for Google Gemini
+                    //     showBloomAI(context);
+                    //   },
+                    //   icon: Icon(Icons.g_mobiledata_rounded),
+                    // ),
+                    // Text formatting options button
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          textFormatEnabled = !textFormatEnabled;
+                          // bloomAIEnabled = false;
+                          focusProvider.editorFocusNode.requestFocus();
+                        });
+                      },
+                      icon: Icon(textFormatEnabled
+                          ? Icons.close_rounded
+                          : Icons.format_size_rounded),
+                    ),
+                    if (textFormatEnabled)
+                      Expanded(
+                        child: CustomHorizontalTextEditingToolbar(
+                          controller: descriptionController,
+                          focusNode: focusProvider.editorFocusNode,
+                        ),
+                      ),
+                    const SizedBox(
+                      height: 28,
+                      child: VerticalDivider(
+                        width: 2,
+                      ),
+                    ),
+                    if (focusProvider.editorFocusNode.hasFocus || isEditing)
                       IconButton(
                         onPressed: () {
                           setState(() {
-                            textFormatEnabled = !textFormatEnabled;
-                            bloomAIEnabled = false;
-                            focusProvider.editorFocusNode.requestFocus();
+                            isEditing = false;
+                            focusProvider.unfocusEditor();
+                            titleFocusNode.unfocus();
                           });
                         },
-                        icon: Icon(textFormatEnabled
-                            ? Icons.close_rounded
-                            : Icons.format_size_rounded),
+                        icon: const Icon(Icons.keyboard_arrow_down_rounded),
                       ),
-                      if (textFormatEnabled)
-                        Expanded(
-                          child: CustomHorizontalTextEditingToolbar(
-                            controller: descriptionController,
-                            focusNode: focusProvider.editorFocusNode,
-                          ),
-                        ),
-                      const SizedBox(
-                        height: 28,
-                        child: VerticalDivider(
-                          width: 2,
-                        ),
-                      ),
-                      if (focusProvider.editorFocusNode.hasFocus)
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              isEditing = false;
-                              focusProvider.unfocusEditor();
-                              titleFocusNode.unfocus();
-                            });
-                          },
-                          icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                        ),
-                    ],
-                  ).animate().fade(
-                      delay: const Duration(milliseconds: 600),
-                      curve: Curves.easeInOut),
-                ),
-                if (!focusProvider.editorFocusNode.hasFocus)
-                  const SizedBox(
-                    height: 24,
-                  )
-              ],
+                  ],
+                ).animate().fade(
+                    delay: const Duration(milliseconds: 600),
+                    curve: Curves.easeInOut),
+              ),
             )
           : const SizedBox(),
     );

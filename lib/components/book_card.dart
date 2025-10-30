@@ -1,3 +1,4 @@
+import 'package:bloom/authentication_screens/lock_object_method.dart';
 import 'package:bloom/models/book_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -17,6 +18,7 @@ class BookCard extends StatefulWidget {
   final Function()? onTap;
   final bool isTemplate;
   final EdgeInsetsGeometry? innerPadding;
+  final bool isBookLocked;
   const BookCard(
       {super.key,
       this.emoji,
@@ -32,7 +34,8 @@ class BookCard extends StatefulWidget {
       this.entryId,
       required this.isTemplate,
       this.innerPadding,
-      this.children});
+      this.children,
+      required this.isBookLocked});
 
   @override
   State<BookCard> createState() => _BookCardState();
@@ -41,36 +44,50 @@ class BookCard extends StatefulWidget {
 class _BookCardState extends State<BookCard> {
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
+    return Card(
+      color: Theme.of(context).colorScheme.surfaceContainer,
       child: InkWell(
         onTap: widget.onTap ??
-            () {
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => BookLayout(
-                      type: widget.type ?? 'book',
-                      bookId: widget.bookId,
-                      emoji: widget.emoji,
-                      dateTime: widget.dateTime,
-                      title: widget.title,
-                      description: widget.description,
-                      bookLayoutMethod: BookLayoutMethod.edit,
-                      children: widget.children ?? [],
-                      hasChildren: widget.hasChildren ?? false,
-                      isFirstTime: false,
-                      isTemplate: widget.isTemplate,
-                      isFavorite: false)));
+            () async {
+              if (widget.isBookLocked) {
+                final bool isAuthenticated = await checkForBiometrics(
+                    'Please authenticate to open this entry', context);
+                if (isAuthenticated) {
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => BookLayout(
+                          type: widget.type ?? 'book',
+                          bookId: widget.bookId,
+                          emoji: widget.emoji,
+                          dateTime: widget.dateTime,
+                          title: widget.title,
+                          description: widget.description,
+                          bookLayoutMethod: BookLayoutMethod.edit,
+                          children: widget.children ?? [],
+                          hasChildren: widget.hasChildren ?? false,
+                          isFirstTime: false,
+                          isTemplate: widget.isTemplate,
+                          isFavorite: false)));
+                }
+              } else {
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => BookLayout(
+                        type: widget.type ?? 'book',
+                        bookId: widget.bookId,
+                        emoji: widget.emoji,
+                        dateTime: widget.dateTime,
+                        title: widget.title,
+                        description: widget.description,
+                        bookLayoutMethod: BookLayoutMethod.edit,
+                        children: widget.children ?? [],
+                        hasChildren: widget.hasChildren ?? false,
+                        isFirstTime: false,
+                        isTemplate: widget.isTemplate,
+                        isFavorite: false)));
+              }
             },
-        borderRadius: BorderRadius.circular(15),
-        child: Container(
-          height: 120,
-          width: 120,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
           padding: widget.innerPadding ?? const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-              color: Theme.of(context).primaryColorLight.withAlpha(80),
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(
-                  color: Theme.of(context).primaryColorDark.withAlpha(80))),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.start,

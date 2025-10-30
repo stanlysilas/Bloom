@@ -14,6 +14,7 @@ class EventDetailsScreen extends StatefulWidget {
   final Color? eventColorCode;
   final DateTime? eventEndDateTime;
   final int eventUniqueId;
+  final bool isAttended;
   const EventDetailsScreen(
       {super.key,
       required this.eventName,
@@ -22,7 +23,8 @@ class EventDetailsScreen extends StatefulWidget {
       required this.eventStartDateTime,
       this.eventColorCode,
       this.eventEndDateTime,
-      required this.eventUniqueId});
+      required this.eventUniqueId,
+      required this.isAttended});
 
   @override
   State<EventDetailsScreen> createState() => _EventDetailsScreenState();
@@ -52,18 +54,50 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
               player.setVolume(1);
               player.play(AssetSource('audio/task_completed.mp3'));
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Marked as attended!'),
+                SnackBar(
+                  margin: const EdgeInsets.all(6),
+                  behavior: SnackBarBehavior.floating,
+                  showCloseIcon: true,
+                  backgroundColor: Theme.of(context).primaryColor,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  content: Text(
+                    'Marked as attended!',
+                    style: TextStyle(
+                        color: Theme.of(context).textTheme.bodyMedium?.color),
+                  ),
                 ),
               );
+              if (widget.isAttended) {
+                // Generate a date from the task date
+                final eventCompletedDate = DateTime(
+                    widget.eventStartDateTime.year,
+                    widget.eventStartDateTime.month,
+                    widget.eventStartDateTime.day,
+                    0,
+                    0,
+                    0);
+                // Save the reference to only the date of this task in a streaks collections in users collection
+                await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(userId)
+                    .collection('streaks')
+                    .doc('streaks')
+                    .set({
+                  'eventsCompletedDates':
+                      FieldValue.arrayUnion([eventCompletedDate]),
+                }, SetOptions(merge: true));
+              }
               Navigator.pop(context);
             },
-            icon: const Icon(Icons.event_available_rounded),
+            icon: Icon(
+              Icons.event_available_rounded,
+              color: Theme.of(context).colorScheme.onSecondaryContainer,
+            ),
             tooltip: 'Mark as attended',
           ),
           // Button for more options like edit, delete etc
           PopupMenuButton(
-            color: Theme.of(context).primaryColorLight,
             popUpAnimationStyle:
                 AnimationStyle(duration: const Duration(milliseconds: 500)),
             itemBuilder: (context) => [
