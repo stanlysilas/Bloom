@@ -51,11 +51,20 @@ app.*.map.json
 .history
 
 # Don't commit the macOS, windows, linux, web and iOS files yet
-/macos/
-/windows/
-/linux/
-/web/
-/ios/
+-f /macos/
+-f /windows/
+-f /linux/
+-f /web/
+-f /ios/
+
+# Firebase and VSCode related
+.firebase
+.firebaserc
+/firebase.json
+/web_entrypoint.dart
+/analysis_options.yaml
+/devtools_options.yaml
+.vscode
 
 # Flutter repo-specific
 /bin/cache/
