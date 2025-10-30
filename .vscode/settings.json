@@ -1,4 +1,10 @@
 {
     "C_Cpp.errorSquiggles": "disabled",
-    "cmake.ignoreCMakeListsMissing": true
+    "cmake.ignoreCMakeListsMissing": true,
+    "workbench.colorCustomizations": {
+        "[Quietude]": {
+            "editor.background": "#1a1a1f",
+            "editor.foreground": "#bab39c"
+        }
+    }
 }
