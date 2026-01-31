@@ -1,12 +1,15 @@
 import 'package:bloom/models/book_layout.dart';
+import 'package:bloom/theme/theme_provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class CustomTemplatesCard extends StatefulWidget {
   final String templateId;
   final String templateType;
   final String templateThumbnail;
+  final String templateThumbnailDark;
   final String templateIcon;
   final String templateTitle;
   final String templateDescription;
@@ -23,7 +26,8 @@ class CustomTemplatesCard extends StatefulWidget {
       required this.dateOfCreation,
       required this.createdBy,
       required this.templateChildren,
-      required this.templateThumbnail});
+      required this.templateThumbnail,
+      required this.templateThumbnailDark});
 
   @override
   State<CustomTemplatesCard> createState() => _CustomTemplatesCardState();
@@ -32,8 +36,7 @@ class CustomTemplatesCard extends StatefulWidget {
 class _CustomTemplatesCardState extends State<CustomTemplatesCard> {
   @override
   Widget build(BuildContext context) {
-    // Try to Cache the TemplateThumbnail before building the Card
-    final String templateThumbnail = widget.templateThumbnail;
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
       child: Material(
@@ -66,10 +69,13 @@ class _CustomTemplatesCardState extends State<CustomTemplatesCard> {
                 // Image of the template
                 ClipRRect(
                     borderRadius: BorderRadius.circular(16),
-                    child: Image.network(
-                      templateThumbnail,
+                    child: CachedNetworkImage(
+                      imageUrl:
+                          themeProvider.themeData.brightness == Brightness.dark
+                              ? widget.templateThumbnailDark
+                              : widget.templateThumbnail,
                       fit: BoxFit.fitWidth,
-                    ).animate().fade(delay: const Duration(milliseconds: 500))),
+                    )),
                 const SizedBox(
                   height: 5,
                 ),

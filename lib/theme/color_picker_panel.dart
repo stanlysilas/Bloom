@@ -43,12 +43,68 @@ class ColorPickerPanel extends StatelessWidget {
               ],
         'name': 'Nature Green',
       },
+      {
+        'colors': isLight
+            ? [
+                amberLightColorScheme.primary,
+                amberLightColorScheme.secondary,
+                amberLightColorScheme.tertiary,
+              ]
+            : [
+                amberDarkColorScheme.primary,
+                amberDarkColorScheme.secondary,
+                amberDarkColorScheme.tertiary,
+              ],
+        'name': 'Momentum Amber',
+      },
+      {
+        'colors': isLight
+            ? [
+                crimsonLightColorScheme.primary,
+                crimsonLightColorScheme.secondary,
+                crimsonLightColorScheme.tertiary,
+              ]
+            : [
+                crimsonDarkColorScheme.primary,
+                crimsonDarkColorScheme.secondary,
+                crimsonDarkColorScheme.tertiary,
+              ],
+        'name': 'Crimson Serenity',
+      },
+      {
+        'colors': isLight
+            ? [
+                obsidianLightColorScheme.primary,
+                obsidianLightColorScheme.secondary,
+                obsidianLightColorScheme.tertiary,
+              ]
+            : [
+                obsidianDarkColorScheme.primary,
+                obsidianDarkColorScheme.secondary,
+                obsidianDarkColorScheme.tertiary,
+              ],
+        'name': 'Obsidian Focus',
+      },
+      {
+        'colors': isLight
+            ? [
+                purpleLightColorScheme.primary,
+                purpleLightColorScheme.secondary,
+                purpleLightColorScheme.tertiary,
+              ]
+            : [
+                purpleDarkColorScheme.primary,
+                purpleDarkColorScheme.secondary,
+                purpleDarkColorScheme.tertiary,
+              ],
+        'name': 'Lavender Muse',
+      },
     ];
 
     return Wrap(
       spacing: 16,
       runSpacing: 12,
-      alignment: WrapAlignment.center,
+      alignment: WrapAlignment.spaceEvenly,
       children: List.generate(colorFamilies.length, (index) {
         final family = colorFamilies[index];
         final colors = family['colors'] as List<Color>;
@@ -66,14 +122,20 @@ class ColorPickerPanel extends StatelessWidget {
               },
             ),
             const SizedBox(height: 6),
-            Text(
-              name,
-              style: TextStyle(
-                fontSize: colorProvider.selectedSchemeIndex == index ? 14 : 13,
-                fontWeight: colorProvider.selectedSchemeIndex == index
-                    ? FontWeight.bold
-                    : null,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+            SizedBox(
+              width: 100,
+              child: Text(
+                name,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  overflow: TextOverflow.clip,
+                  fontSize:
+                      colorProvider.selectedSchemeIndex == index ? 14 : 13,
+                  fontWeight: colorProvider.selectedSchemeIndex == index
+                      ? FontWeight.bold
+                      : null,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
           ],

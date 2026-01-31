@@ -28,8 +28,10 @@ class _SettingsPageState extends State<SettingsPage> {
   final user = FirebaseAuth.instance.currentUser;
   final Uri privacyPolicyUri =
       Uri.parse('https://bloomproductive.framer.website/privacy-policy');
-  final Uri reportAnIssueUri =
+  final Uri featureRequestUri =
       Uri.parse('https://bloomproductive.framer.website/#contact');
+  final Uri reportAnIssueUri =
+      Uri.parse('https://github.com/stanlysilas/Bloom/issues');
 
   @override
   void initState() {
@@ -126,6 +128,13 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  Future<void> launchFeatureRequestUrl() async {
+    if (!await launchUrl(featureRequestUri,
+        mode: LaunchMode.externalApplication)) {
+      throw Exception('Could not launch $featureRequestUri');
+    }
+  }
+
   Future<void> launchReportAnIssueUrl() async {
     if (!await launchUrl(reportAnIssueUri,
         mode: LaunchMode.externalApplication)) {
@@ -137,7 +146,15 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        leading: IconButton(
+            style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.surfaceContainer)),
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Icon(Icons.arrow_back, color: Colors.grey)),
+        title: const Text('Settings',
+            style: TextStyle(
+                fontFamily: 'ClashGrotesk', fontWeight: FontWeight.w500)),
       ),
       body: Padding(
         padding: MediaQuery.of(context).size.width < mobileWidth
@@ -214,6 +231,22 @@ class _SettingsPageState extends State<SettingsPage> {
                 },
                 endIcon: Icon(Icons.keyboard_arrow_right_rounded),
               ),
+              // Bloom Help & Tutorials Button
+              // BloomMaterialListTile(
+              //   icon: Icon(Icons.help,
+              //       color: Theme.of(context).colorScheme.onSecondaryContainer),
+              //   iconLabelSpace: 8,
+              //   label: 'Help',
+              //   subLabel: 'Learn, grow, and master Bloom',
+              //   labelStyle:
+              //       const TextStyle(fontWeight: FontWeight.w500, fontSize: 18),
+              //   innerPadding: const EdgeInsets.all(16),
+              //   outerPadding: EdgeInsets.symmetric(vertical: 1, horizontal: 14),
+              //   onTap: () async {
+              //     // TODO: Navigate to Help Screen
+              //   },
+              //   endIcon: Icon(Icons.keyboard_arrow_right_rounded),
+              // ),
               // Bloom Privacy Policy Button
               BloomMaterialListTile(
                 icon: Icon(Icons.privacy_tip,
@@ -237,6 +270,22 @@ class _SettingsPageState extends State<SettingsPage> {
                 iconLabelSpace: 8,
                 label: 'Feature Request',
                 subLabel: 'Suggest ideas for Bloom',
+                labelStyle:
+                    const TextStyle(fontWeight: FontWeight.w500, fontSize: 18),
+                innerPadding: const EdgeInsets.all(16),
+                outerPadding: EdgeInsets.symmetric(vertical: 1, horizontal: 14),
+                onTap: () async {
+                  await launchFeatureRequestUrl();
+                },
+                endIcon: Icon(Icons.open_in_browser),
+              ),
+              // Report an Issue Button
+              BloomMaterialListTile(
+                icon: Icon(Icons.bug_report,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer),
+                iconLabelSpace: 8,
+                label: 'Report an Issue',
+                subLabel: 'Report any bugs with Bloom',
                 labelStyle:
                     const TextStyle(fontWeight: FontWeight.w500, fontSize: 18),
                 innerPadding: const EdgeInsets.all(16),
@@ -274,6 +323,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 },
                 endIcon: Icon(Icons.keyboard_arrow_right_rounded),
               ),
+              const SizedBox(height: 52)
             ],
           ),
         ),

@@ -213,7 +213,9 @@ class _MoreOptionsScreenState extends State<MoreOptionsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('More'),
+        title: const Text('More',
+            style: TextStyle(
+                fontFamily: 'ClashGrotesk', fontWeight: FontWeight.w500)),
       ),
       body: SafeArea(
         child: SingleChildScrollView(

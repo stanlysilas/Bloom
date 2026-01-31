@@ -110,6 +110,7 @@ class AddSubTaskModalState extends State<AddSubTaskModal> {
       'subTaskId': subTaskId,
       'subTaskUniqueId': uniqueId,
       'subTaskName': taskNameController.text,
+      'subTaskName_lower': taskNameController.text.toLowerCase(),
       'subTaskNotes': taskNotesController.text,
       'isCompleted': isCompleted,
       'subTaskDateTime': combinedDateTime,
@@ -221,8 +222,15 @@ class AddSubTaskModalState extends State<AddSubTaskModal> {
                       // Date picker
                       Flexible(
                         child: BloomMaterialListTile(
-                          color: Theme.of(context).scaffoldBackgroundColor,
-                          borderRadius: BorderRadius.circular(8),
+                          outerPadding: const EdgeInsets.all(0),
+                          innerPadding: EdgeInsets.all(6),
+                          icon: SizedBox(),
+                          iconLabelSpace: 0,
+                          useSpacer: false,
+                          color:
+                              Theme.of(context).colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(16),
+                          labelStyle: TextStyle(fontSize: 16),
                           label: DateFormat('dd-MM-yyyy').format(subTaskDate!),
                           textAlign: TextAlign.center,
                           onTap: selectDate,
@@ -241,8 +249,15 @@ class AddSubTaskModalState extends State<AddSubTaskModal> {
                       // Time picker
                       Flexible(
                         child: BloomMaterialListTile(
-                          color: Theme.of(context).scaffoldBackgroundColor,
-                          borderRadius: BorderRadius.circular(8),
+                          outerPadding: const EdgeInsets.all(0),
+                          innerPadding: EdgeInsets.all(6),
+                          icon: SizedBox(),
+                          iconLabelSpace: 0,
+                          useSpacer: false,
+                          color:
+                              Theme.of(context).colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(16),
+                          labelStyle: TextStyle(fontSize: 16),
                           label: _subTaskTime!.format(context),
                           textAlign: TextAlign.center,
                           onTap: selectTime,
@@ -263,29 +278,19 @@ class AddSubTaskModalState extends State<AddSubTaskModal> {
                           padding: const EdgeInsets.all(4),
                           width: double.maxFinite,
                           decoration: BoxDecoration(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              borderRadius: BorderRadius.circular(8)),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .secondaryContainer,
+                              borderRadius: BorderRadius.circular(16)),
                           child: PopupMenuButton(
-                            color: Theme.of(context).scaffoldBackgroundColor,
                             itemBuilder: (context) => [
                               PopupMenuItem(
                                 value: 'None',
                                 child: Row(
                                   children: [
-                                    const Icon(
-                                      Icons.flag_rounded,
-                                    ),
-                                    const SizedBox(
-                                      width: 4,
-                                    ),
-                                    Text(
-                                      'None',
-                                      style: TextStyle(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium
-                                              ?.color),
-                                    ),
+                                    const Icon(Icons.flag_rounded),
+                                    const SizedBox(width: 4),
+                                    Text('None'),
                                   ],
                                 ),
                                 onTap: () => setState(() {
@@ -299,17 +304,10 @@ class AddSubTaskModalState extends State<AddSubTaskModal> {
                                 value: 'High',
                                 child: const Row(
                                   children: [
-                                    Icon(
-                                      Icons.flag_rounded,
-                                      color: Colors.red,
-                                    ),
-                                    SizedBox(
-                                      width: 4,
-                                    ),
-                                    Text(
-                                      'High',
-                                      style: TextStyle(color: Colors.red),
-                                    ),
+                                    Icon(Icons.flag_rounded, color: Colors.red),
+                                    SizedBox(width: 4),
+                                    Text('High',
+                                        style: TextStyle(color: Colors.red)),
                                   ],
                                 ),
                                 onTap: () => setState(() {
@@ -415,7 +413,7 @@ class AddSubTaskModalState extends State<AddSubTaskModal> {
             padding:
                 const EdgeInsets.only(left: 15.0, right: 15.0, bottom: 8.0),
             child: InkWell(
-              borderRadius: BorderRadius.circular(100),
+              borderRadius: BorderRadius.circular(16),
               onTap: () async {
                 // Combine the subTaskDate and _subTaskTime variables and create one single date
                 DateTime? subTaskDateTime = subTaskDate;
@@ -446,16 +444,9 @@ class AddSubTaskModalState extends State<AddSubTaskModal> {
                     margin: const EdgeInsets.all(6),
                     behavior: SnackBarBehavior.floating,
                     showCloseIcon: true,
-                    closeIconColor:
-                        Theme.of(context).textTheme.bodyMedium?.color,
-                    backgroundColor: Theme.of(context).primaryColor,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
-                    content: Text(
-                      'Task succesfully created!',
-                      style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyMedium?.color),
-                    ),
+                    content: Text('Task succesfully created!'),
                   ),
                 );
               },
@@ -469,7 +460,9 @@ class AddSubTaskModalState extends State<AddSubTaskModal> {
                 child: Center(
                   child: Text(
                     'Create new subtask',
-                    style: TextStyle(fontSize: 18),
+                    style: TextStyle(
+                        fontSize: 18,
+                        color: Theme.of(context).colorScheme.onPrimary),
                   ),
                 ),
               ),

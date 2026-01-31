@@ -28,8 +28,9 @@ class _ProfilePictureDialogState extends State<ProfilePictureDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog.adaptive(
-      title: const Text('Choose a profile picture'),
+    return AlertDialog(
+      title: const Text('Choose a profile picture',
+          style: TextStyle(fontFamily: 'ClashGrotesk')),
       content: Container(
         height: 250,
         width: MediaQuery.of(context).size.width / 2,

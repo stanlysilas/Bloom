@@ -1,4 +1,6 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:bloom/audio_services/audio_manager.dart';
+import 'package:bloom/components/delete_confirmation_dialog.dart';
 import 'package:bloom/notifications/notification.dart';
 import 'package:bloom/screens/event_details_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -66,8 +68,8 @@ class _EventsTileState extends State<EventsTile> {
                   // Cancel the scheduled notification
                   await NotificationService.cancelNotification(
                       widget.eventUniqueId);
-                  player.setVolume(1);
-                  player.play(AssetSource('audio/task_completed.mp3'));
+                  // Play completion Audio
+                  AudioManager().playTaskCompleted();
                   if (widget.isAttended) {
                     // Generate a date from the task date
                     final eventCompletedDate = DateTime(
@@ -111,45 +113,56 @@ class _EventsTileState extends State<EventsTile> {
           ),
           Expanded(
             child: InkWell(
-              onTap: () async {
-                // Delete from firebase
-                final user = FirebaseAuth.instance.currentUser;
-                await FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(user?.uid)
-                    .collection('events')
-                    .doc(widget.eventId)
-                    .delete();
-                // Cancel the scheduled notification
-                await NotificationService.cancelNotification(
-                    widget.eventUniqueId);
-                // Show deleted confirmation
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    margin: const EdgeInsets.all(6),
-                    behavior: SnackBarBehavior.floating,
-                    showCloseIcon: true,
-                    backgroundColor: Theme.of(context).primaryColor,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    content: Wrap(
-                      children: [
-                        const Text('Deleted: '),
-                        Text(
-                          widget.eventName,
-                          style: const TextStyle(fontWeight: FontWeight.w500),
-                          overflow: TextOverflow.ellipsis,
-                        )
-                      ],
-                    ),
-                  ),
-                );
+              onTap: () {
+                showDialog(
+                    context: context,
+                    builder: (context) {
+                      return DeleteConfirmationDialog(
+                          onPressed: () async {
+                            // Delete from firebase
+                            final user = FirebaseAuth.instance.currentUser;
+                            await FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(user?.uid)
+                                .collection('events')
+                                .doc(widget.eventId)
+                                .delete();
+                            // Cancel the scheduled notification
+                            await NotificationService.cancelNotification(
+                                widget.eventUniqueId);
+                            // Show deleted confirmation
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                margin: const EdgeInsets.all(6),
+                                behavior: SnackBarBehavior.floating,
+                                showCloseIcon: true,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                content: Wrap(
+                                  children: [
+                                    const Text('Deleted: '),
+                                    Text(
+                                      widget.eventName,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.w500),
+                                      overflow: TextOverflow.ellipsis,
+                                    )
+                                  ],
+                                ),
+                              ),
+                            );
+                            Navigator.of(context).pop();
+                          },
+                          objectName: widget.eventName);
+                    });
               },
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                    color: Colors.red, borderRadius: BorderRadius.circular(8)),
-                child: Icon(Icons.delete_rounded),
+                    color: Theme.of(context).colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(8)),
+                child: Icon(Icons.delete_rounded,
+                    color: Theme.of(context).colorScheme.onErrorContainer),
               ),
             ),
           ),

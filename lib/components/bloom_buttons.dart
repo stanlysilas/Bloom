@@ -59,8 +59,8 @@ class _TypesOfObjectsState extends State<TypesOfObjects> {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
+      shrinkWrap: true,
       itemCount: typesOfEntries.length,
-      physics: NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         return BloomModalListTile(
           onTap: () {
@@ -196,14 +196,18 @@ class BloomModalListTile extends StatefulWidget {
   final String title;
   final String? subTitle;
   final Widget? leadingIcon;
+  final BoxDecoration? leadingDecoration;
   final TextStyle? titleStyle;
+  final BorderRadius? borderRadius;
   const BloomModalListTile(
       {super.key,
       required this.onTap,
       required this.title,
       this.subTitle,
       this.leadingIcon,
-      this.titleStyle});
+      this.titleStyle,
+      this.leadingDecoration,
+      this.borderRadius});
 
   @override
   State<BloomModalListTile> createState() => _BloomModalListTileState();
@@ -214,15 +218,18 @@ class _BloomModalListTileState extends State<BloomModalListTile> {
   Widget build(BuildContext context) {
     return ListTile(
       onTap: widget.onTap,
+      shape: RoundedRectangleBorder(
+          borderRadius: widget.borderRadius ?? BorderRadius.zero),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       dense: true,
       minVerticalPadding: 0,
       leading: Container(
         padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          color: Theme.of(context).colorScheme.secondaryContainer,
-        ),
+        decoration: widget.leadingDecoration ??
+            BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              color: Theme.of(context).colorScheme.secondaryContainer,
+            ),
         child: widget.leadingIcon ??
             Icon(
               Icons.android,
@@ -459,6 +466,8 @@ class _SmallIconButtonState extends State<SmallIconButton> {
   }
 }
 
+/// Display a [showModalBottomSheet] with all the objects.
+/// Recommended for devices below 600px in width.
 void showObjectsModalBottomSheet(BuildContext context) {
   showModalBottomSheet(
     context: context,
@@ -469,10 +478,24 @@ void showObjectsModalBottomSheet(BuildContext context) {
     constraints: BoxConstraints(
         minHeight: MediaQuery.of(context).size.height * 0.5,
         maxHeight: double.infinity),
-    builder: (context) {
-      return SafeArea(child: TypesOfObjects());
-    },
+    builder: (context) => TypesOfObjects(),
   );
+}
+
+/// Display a [Dialog] with all the objects.
+/// Recommended for devices above 600px in width.
+void showObjectsDialog(BuildContext context) {
+  showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          constraints: const BoxConstraints(maxWidth: 450),
+          child: Container(
+            padding: EdgeInsets.all(8),
+            child: const TypesOfObjects(),
+          ),
+        );
+      });
 }
 
 /// Show the Streak [Dialog] for displaying the streak details.
@@ -551,7 +574,7 @@ void showStreakDialogBox(BuildContext context, String fieldReference,
                 : Text(
                     "Good job on completing your tasks! Take a break and relax a bit."),
             Text(
-              "'${selectedQuote}'",
+              "'$selectedQuote'",
               textAlign: TextAlign.center,
             )
           ],

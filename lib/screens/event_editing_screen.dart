@@ -153,7 +153,15 @@ class _EventEditingScreenState extends State<EventEditingScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: const Text('Editing event'),
+        leading: IconButton(
+            style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.surfaceContainer)),
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Icon(Icons.arrow_back, color: Colors.grey)),
+        title: const Text('Editing event',
+            style: TextStyle(
+                fontFamily: 'ClashGrotesk', fontWeight: FontWeight.w500)),
       ),
       body: SafeArea(
         child: SizedBox(
@@ -245,10 +253,16 @@ class _EventEditingScreenState extends State<EventEditingScreen> {
                             // Start Event date selection field
                             Flexible(
                               child: BloomMaterialListTile(
-                                outerPadding: const EdgeInsets.only(left: 14),
-                                color:
-                                    Theme.of(context).scaffoldBackgroundColor,
-                                borderRadius: BorderRadius.circular(8),
+                                outerPadding: const EdgeInsets.all(0),
+                                innerPadding: EdgeInsets.all(6),
+                                icon: SizedBox(),
+                                iconLabelSpace: 0,
+                                useSpacer: false,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .secondaryContainer,
+                                borderRadius: BorderRadius.circular(16),
+                                labelStyle: TextStyle(fontSize: 16),
                                 label: DateFormat('dd-MM-yy').format(startDate),
                                 textAlign: TextAlign.center,
                                 onTap: () {
@@ -256,13 +270,20 @@ class _EventEditingScreenState extends State<EventEditingScreen> {
                                 },
                               ),
                             ),
+                            const SizedBox(width: 4),
                             // Start Event time selection field
                             Flexible(
                               child: BloomMaterialListTile(
-                                outerPadding: const EdgeInsets.only(left: 14),
-                                color:
-                                    Theme.of(context).scaffoldBackgroundColor,
-                                borderRadius: BorderRadius.circular(8),
+                                outerPadding: const EdgeInsets.all(0),
+                                innerPadding: EdgeInsets.all(6),
+                                icon: SizedBox(),
+                                iconLabelSpace: 0,
+                                useSpacer: false,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .secondaryContainer,
+                                borderRadius: BorderRadius.circular(16),
+                                labelStyle: TextStyle(fontSize: 16),
                                 label: startTime.format(context),
                                 textAlign: TextAlign.center,
                                 onTap: () {
@@ -288,10 +309,16 @@ class _EventEditingScreenState extends State<EventEditingScreen> {
                             // End Event date selection field
                             Flexible(
                               child: BloomMaterialListTile(
-                                outerPadding: const EdgeInsets.only(left: 14),
-                                color:
-                                    Theme.of(context).scaffoldBackgroundColor,
-                                borderRadius: BorderRadius.circular(8),
+                                outerPadding: const EdgeInsets.all(0),
+                                innerPadding: EdgeInsets.all(6),
+                                icon: SizedBox(),
+                                iconLabelSpace: 0,
+                                useSpacer: false,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .secondaryContainer,
+                                borderRadius: BorderRadius.circular(16),
+                                labelStyle: TextStyle(fontSize: 16),
                                 label: DateFormat('dd-MM-yy').format(endDate),
                                 onTap: () {
                                   selectDate(false);
@@ -299,13 +326,20 @@ class _EventEditingScreenState extends State<EventEditingScreen> {
                                 textAlign: TextAlign.center,
                               ),
                             ),
+                            const SizedBox(width: 4),
                             // End Event time selection field
                             Flexible(
                               child: BloomMaterialListTile(
-                                outerPadding: const EdgeInsets.only(left: 14),
-                                color:
-                                    Theme.of(context).scaffoldBackgroundColor,
-                                borderRadius: BorderRadius.circular(8),
+                                outerPadding: const EdgeInsets.all(0),
+                                innerPadding: EdgeInsets.all(6),
+                                icon: SizedBox(),
+                                iconLabelSpace: 0,
+                                useSpacer: false,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .secondaryContainer,
+                                borderRadius: BorderRadius.circular(16),
+                                labelStyle: TextStyle(fontSize: 16),
                                 label: endTime.format(context),
                                 textAlign: TextAlign.center,
                                 onTap: () {
@@ -337,17 +371,8 @@ class _EventEditingScreenState extends State<EventEditingScreen> {
                                 showDialog(
                                   context: context,
                                   builder: (context) {
-                                    return AlertDialog(
-                                      backgroundColor: Theme.of(context)
-                                          .scaffoldBackgroundColor,
+                                    return AlertDialog.adaptive(
                                       title: const Text('Select color'),
-                                      titleTextStyle: TextStyle(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium
-                                              ?.color,
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.w400),
                                       content: SingleChildScrollView(
                                         child: MaterialPicker(
                                           pickerColor: colorCode!,
@@ -355,24 +380,11 @@ class _EventEditingScreenState extends State<EventEditingScreen> {
                                         ),
                                       ),
                                       actions: <Widget>[
-                                        ElevatedButton(
+                                        TextButton(
                                           onPressed: () {
                                             Navigator.of(context).pop();
                                           },
-                                          style: ButtonStyle(
-                                              backgroundColor:
-                                                  WidgetStatePropertyAll(
-                                                      Theme.of(context)
-                                                          .primaryColor)),
-                                          child: Text(
-                                            'Select',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.w500,
-                                                color: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyMedium
-                                                    ?.color),
-                                          ),
+                                          child: Text('Select'),
                                         ),
                                       ],
                                     );
@@ -380,8 +392,8 @@ class _EventEditingScreenState extends State<EventEditingScreen> {
                                 );
                               },
                               child: Container(
-                                width: 20,
-                                height: 20,
+                                width: 24,
+                                height: 24,
                                 decoration: BoxDecoration(
                                     color: colorCode,
                                     borderRadius: BorderRadius.circular(1000)),
@@ -405,7 +417,7 @@ class _EventEditingScreenState extends State<EventEditingScreen> {
                 padding:
                     const EdgeInsets.only(left: 15.0, right: 15.0, top: 8.0),
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(15),
+                  borderRadius: BorderRadius.circular(16),
                   onTap: () async {
                     // Create and merge the start date, time into one variable
                     DateTime startDateTime = DateTime(
@@ -449,19 +461,9 @@ class _EventEditingScreenState extends State<EventEditingScreen> {
                         margin: const EdgeInsets.all(6),
                         behavior: SnackBarBehavior.floating,
                         showCloseIcon: true,
-                        closeIconColor:
-                            Theme.of(context).textTheme.bodyMedium?.color,
-                        backgroundColor: Theme.of(context).primaryColor,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
-                        content: Text(
-                          'Event succesfully updated!',
-                          style: TextStyle(
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.color),
-                        ),
+                        content: Text('Event succesfully updated!'),
                       ),
                     );
                   },
@@ -475,7 +477,9 @@ class _EventEditingScreenState extends State<EventEditingScreen> {
                     child: Center(
                       child: Text(
                         'Update event',
-                        style: TextStyle(fontSize: 18),
+                        style: TextStyle(
+                            fontSize: 18,
+                            color: Theme.of(context).colorScheme.onPrimary),
                       ),
                     ),
                   ),

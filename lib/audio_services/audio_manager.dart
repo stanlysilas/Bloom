@@ -23,7 +23,7 @@ class AudioManager {
     try {
       await _player.resume();
     } catch (e) {
-      print("Audio playback error: $e");
+      // print("Audio playback error: $e");
     }
   }
 }

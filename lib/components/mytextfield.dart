@@ -11,6 +11,7 @@ class MyTextfield extends StatelessWidget {
   final TextInputType textInputType;
   final Icon? prefixIcon;
   final FocusNode focusNode;
+  final int? maxLength;
   const MyTextfield({
     super.key,
     required this.controller,
@@ -23,6 +24,7 @@ class MyTextfield extends StatelessWidget {
     this.maxLines,
     this.prefixIcon,
     required this.focusNode,
+    this.maxLength,
   });
 
   @override
@@ -31,6 +33,7 @@ class MyTextfield extends StatelessWidget {
       focusNode: focusNode,
       minLines: minLines,
       maxLines: maxLines,
+      maxLength: maxLength,
       onTapOutside: (event) {
         focusNode.unfocus();
       },

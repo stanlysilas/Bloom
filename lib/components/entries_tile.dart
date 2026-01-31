@@ -1,6 +1,7 @@
 import 'dart:convert';
 
-import 'package:bloom/authentication_screens/lock_object_method.dart';
+import 'package:bloom/authentication_screens/authenticate_object.dart';
+import 'package:bloom/components/delete_confirmation_dialog.dart';
 import 'package:bloom/models/note_layout.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -159,47 +160,80 @@ class EntriesTile extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () async {
-                      final user = FirebaseAuth.instance.currentUser;
-                      if (type == 'note') {
-                        FirebaseFirestore.instance
-                            .collection('users')
-                            .doc(user?.uid)
-                            .collection('entries')
-                            .doc(id)
-                            .delete();
-                      } else if (type == 'book') {
-                        FirebaseFirestore.instance
-                            .collection('users')
-                            .doc(user?.uid)
-                            .collection('books')
-                            .doc(mainId)
-                            .collection('pages')
-                            .doc(id)
-                            .delete();
-                      }
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          margin: const EdgeInsets.all(6),
-                          behavior: SnackBarBehavior.floating,
-                          showCloseIcon: true,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          content: Wrap(
-                            children: [
-                              Text('Deleted: '),
-                              quillDeltaToRichText(context, TextStyle())
-                            ],
+                      if (isEntryLocked == true) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            margin: const EdgeInsets.all(6),
+                            behavior: SnackBarBehavior.floating,
+                            showCloseIcon: true,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                            content: Text('Unlock the entry to delete it.'),
                           ),
-                        ),
-                      );
+                        );
+                      } else {
+                        showAdaptiveDialog(
+                            context: context,
+                            builder: (context) {
+                              return DeleteConfirmationDialog(
+                                  onPressed: () {
+                                    final user =
+                                        FirebaseAuth.instance.currentUser;
+                                    if (type == 'note') {
+                                      FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(user?.uid)
+                                          .collection('entries')
+                                          .doc(id)
+                                          .delete();
+                                    } else if (type == 'book') {
+                                      FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(user?.uid)
+                                          .collection('books')
+                                          .doc(mainId)
+                                          .collection('pages')
+                                          .doc(id)
+                                          .delete();
+                                    }
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        margin: const EdgeInsets.all(6),
+                                        behavior: SnackBarBehavior.floating,
+                                        showCloseIcon: true,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12)),
+                                        content: Wrap(
+                                          children: [
+                                            Text('Deleted: '),
+                                            quillDeltaToRichText(
+                                                context,
+                                                TextStyle(
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .surface))
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                    Navigator.of(context).pop();
+                                  },
+                                  objectName: title);
+                            });
+                      }
                     },
                     child: Container(
+                      width: 50,
+                      height: 50,
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
-                        color: Colors.red,
+                        color: Theme.of(context).colorScheme.errorContainer,
                       ),
-                      child: Icon(Icons.delete_rounded),
+                      child: Icon(Icons.delete_rounded,
+                          color:
+                              Theme.of(context).colorScheme.onErrorContainer),
                     ),
                   ),
                 ),
@@ -219,7 +253,7 @@ class EntriesTile extends StatelessWidget {
               if (isTemplate == false || isTemplate == null) {
                 // Check if the entry is locked or not and proceed to display if its not
                 if (isEntryLocked) {
-                  final bool isAuthenticated = await checkForBiometrics(
+                  final bool isAuthenticated = await authenticate(
                       'Please authenticate to open this entry', context);
                   if (isAuthenticated) {
                     Navigator.of(context).push(
@@ -311,7 +345,7 @@ class EntriesTile extends StatelessWidget {
                               )
                             : Text(
                                 emoji,
-                                style: TextStyle(fontSize: 20),
+                                style: TextStyle(fontSize: 18),
                               ))
                     : Container(
                         padding: const EdgeInsets.all(10.0),
@@ -320,12 +354,19 @@ class EntriesTile extends StatelessWidget {
                             color: Theme.of(context)
                                 .colorScheme
                                 .secondaryContainer),
-                        child: Icon(
-                          Icons.note_add_rounded,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSecondaryContainer,
-                        )),
+                        child: isEntryLocked
+                            ? Icon(
+                                Icons.lock_rounded,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSecondaryContainer,
+                              )
+                            : Icon(
+                                Icons.note_add_rounded,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSecondaryContainer,
+                              )),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Column(

@@ -1,4 +1,5 @@
 import 'package:bloom/components/add_sub_task.dart';
+import 'package:bloom/components/delete_confirmation_dialog.dart';
 import 'package:bloom/components/subtask_tile.dart';
 import 'package:bloom/screens/task_editing_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -24,6 +25,7 @@ class ShowTaskDetailsScreen extends StatefulWidget {
   final String priorityLevelString;
   final String taskMode;
   final String? subtaskId;
+  IconData? appBarLeading;
   ShowTaskDetailsScreen({
     super.key,
     required this.isCompleted,
@@ -39,6 +41,7 @@ class ShowTaskDetailsScreen extends StatefulWidget {
     required this.priorityLevelString,
     required this.taskMode,
     this.subtaskId,
+    this.appBarLeading,
   });
 
   @override
@@ -93,7 +96,16 @@ class _ShowTaskDetailsScreenState extends State<ShowTaskDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Details'),
+        leading: IconButton(
+            style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.surfaceContainer)),
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Icon(widget.appBarLeading ?? Icons.arrow_back,
+                color: Colors.grey)),
+        title: const Text('Details',
+            style: TextStyle(
+                fontFamily: 'ClashGrotesk', fontWeight: FontWeight.w500)),
         actions: [
           // Checkbox to mark the mainTask as completed
           Checkbox(
@@ -108,7 +120,6 @@ class _ShowTaskDetailsScreenState extends State<ShowTaskDetailsScreen> {
                 updateTask(documentReference,
                     updateData['isCompleted']!); // Assert non-nullness (risky)
               });
-              Navigator.pop(context);
             },
             side: BorderSide(
                 color: widget.priorityLevel == 0
@@ -125,37 +136,51 @@ class _ShowTaskDetailsScreenState extends State<ShowTaskDetailsScreen> {
                     : widget.priorityLevel == 2
                         ? Colors.amber
                         : Colors.blue,
-            checkColor: Theme.of(context).scaffoldBackgroundColor,
           ),
           // Button to add subtasks
           IconButton(
+            style: ButtonStyle(
+                // shape: WidgetStatePropertyAll(RoundedRectangleBorder(
+                //     borderRadius: BorderRadiusGeometry.only(
+                //         topRight: Radius.circular(4),
+                //         topLeft: Radius.circular(100),
+                //         bottomRight: Radius.circular(4),
+                //         bottomLeft: Radius.circular(100)))),
+                backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.surfaceContainer)),
             onPressed: () {
               // Show add subtask modal sheet
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
                 useSafeArea: true,
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width,
-                  maxHeight: MediaQuery.of(context).size.height,
-                ),
                 builder: (BuildContext context) {
-                  return Scaffold(
-                    body: AddSubTaskModal(
-                      mainTaskId: widget.taskId,
-                      currentDateTime: DateTime.now(),
-                    ),
+                  return AddSubTaskModal(
+                    mainTaskId: widget.taskId,
+                    currentDateTime: DateTime.now(),
                   );
                 },
                 showDragHandle: true,
               );
             },
-            icon: const Icon(Icons.add_rounded),
+            icon: Icon(
+              Icons.add_rounded,
+              color: Theme.of(context).colorScheme.onSecondaryContainer,
+            ),
             tooltip: 'Add subtask',
           ),
           // Button for more options like edit, delete etc
           PopupMenuButton(
+            iconColor: Colors.grey,
+            style: ButtonStyle(
+                // shape: WidgetStatePropertyAll(RoundedRectangleBorder(
+                //     borderRadius: BorderRadiusGeometry.only(
+                //         topLeft: Radius.circular(4),
+                //         topRight: Radius.circular(100),
+                //         bottomLeft: Radius.circular(4),
+                //         bottomRight: Radius.circular(100)))),
+                backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.surfaceContainer)),
             popUpAnimationStyle:
                 AnimationStyle(duration: const Duration(milliseconds: 500)),
             itemBuilder: (context) => [
@@ -175,11 +200,7 @@ class _ShowTaskDetailsScreenState extends State<ShowTaskDetailsScreen> {
                           priorityLevelString: widget.priorityLevelString,
                           subTaskId: widget.taskId,
                         ))),
-                child: Text(
-                  'Edit',
-                  style: TextStyle(
-                      color: Theme.of(context).textTheme.bodyMedium?.color),
-                ),
+                child: Text('Edit'),
               ),
               PopupMenuItem(
                 value: 'Delete',
@@ -188,33 +209,36 @@ class _ShowTaskDetailsScreenState extends State<ShowTaskDetailsScreen> {
                   style: TextStyle(color: Colors.red),
                 ),
                 onTap: () async {
-                  // Delete the task from database
-                  await FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(userId)
-                      .collection('tasks')
-                      .doc(widget.taskId)
-                      .delete();
-                  // Show confirmation that task is deleted
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      margin: const EdgeInsets.all(6),
-                      behavior: SnackBarBehavior.floating,
-                      showCloseIcon: true,
-                      closeIconColor:
-                          Theme.of(context).textTheme.bodyMedium?.color,
-                      backgroundColor: Theme.of(context).primaryColor,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      content: Text(
-                        'Task deleted succesfully',
-                        style: TextStyle(
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color),
-                      ),
-                    ),
-                  );
-                  Navigator.pop(context);
+                  showAdaptiveDialog(
+                      context: context,
+                      builder: (context) {
+                        return DeleteConfirmationDialog(
+                          objectName: widget.taskTitle,
+                          onPressed: () async {
+                            // Delete the task from database
+                            await FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(userId)
+                                .collection('tasks')
+                                .doc(widget.taskId)
+                                .delete();
+                            // Show confirmation that task is deleted
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                margin: const EdgeInsets.all(6),
+                                behavior: SnackBarBehavior.floating,
+                                showCloseIcon: true,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                content: Text('Task deleted succesfully'),
+                              ),
+                            );
+                            Navigator.pop(context); // Close the dialog.
+                            Navigator.pop(
+                                context); // Close the deleted task details screen.
+                          },
+                        );
+                      });
                 },
               ),
             ],

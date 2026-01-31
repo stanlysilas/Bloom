@@ -46,7 +46,15 @@ class _ThemeAndColorsScreenState extends State<ThemeAndColorsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Theme & Colors'),
+        leading: IconButton(
+            style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.surfaceContainer)),
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Icon(Icons.arrow_back, color: Colors.grey)),
+        title: Text('Theme & Colors',
+            style: TextStyle(
+                fontFamily: 'ClashGrotesk', fontWeight: FontWeight.w500)),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

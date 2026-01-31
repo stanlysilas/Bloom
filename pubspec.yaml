@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.2.3+19
+version: 1.0.0+23
 
 environment:
   sdk: '>=3.4.1 <4.0.0'
@@ -37,9 +37,11 @@ dependencies:
   app_installer: ^1.3.1
   audioplayers: ^6.1.0
   bitsdojo_window: ^0.1.6
+  cached_network_image: ^3.4.1
   calendar_view: ^1.2.0
   cloud_firestore: ^6.0.3
   contextual_menu: ^0.1.2
+  cryptography: ^2.9.0
   cupertino_icons: ^1.0.6
   desktop_context_menu: ^0.1.1
   device_info_plus: ^12.1.0
@@ -269,18 +271,17 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/images/
+    - assets/audio/
     - assets/auth_images/
+    - assets/background_images/
+    - assets/custom_icons/
+    - assets/garden/
+    - assets/icons/
+    - assets/images/
+    - assets/pomodoro_backgrounds/
     - assets/profile_pictures/
     - assets/splash_screen/
-    - assets/background_images/
-    - assets/icons/
-    - assets/pomodoro_backgrounds/
     - assets/welcome_screen_assets/
-    - assets/audio/
-    - assets/garden/
-    - lib/required_data/
-    - assets/custom_icons/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
@@ -312,15 +313,6 @@ flutter:
         - asset: assets/fonts/Clash_Grotesk/ClashGrotesk-Regular.otf
         - asset: assets/fonts/Clash_Grotesk/ClashGrotesk-Semibold.otf
         - asset: assets/fonts/Clash_Grotesk/ClashGrotesk-Variable.ttf
-    - family: Helvetica
-      fonts:
-        - asset: assets/fonts/helvetica-255/Helvetica.ttf
-        - asset: assets/fonts/helvetica-255/Helvetica-Bold.ttf
-        - asset: assets/fonts/helvetica-255/Helvetica-BoldOblique.ttf
-        - asset: assets/fonts/helvetica-255/helvetica-compressed-5871d14b6903a.otf
-        - asset: assets/fonts/helvetica-255/helvetica-light-587ebe5a59211.ttf
-        - asset: assets/fonts/helvetica-255/Helvetica-Oblique.ttf
-        - asset: assets/fonts/helvetica-255/helvetica-rounded-bold-5871d05ead8de.otf
     - family: Nunito
       fonts:
         - asset: assets/fonts/Nunito/Nunito-Black.ttf

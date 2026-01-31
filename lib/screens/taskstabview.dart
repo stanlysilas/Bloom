@@ -117,13 +117,14 @@ class _TaskstabviewState extends State<Taskstabview> {
                             Theme.of(context).colorScheme.onSecondaryContainer),
                     onPressed: () {
                       // Functionality to show the filter and other options as a modal bottom sheet
-                      showAdaptiveDialog(
+                      showDialog(
                           context: context,
                           builder: (context) {
-                            return AlertDialog.adaptive(
-                              backgroundColor:
-                                  Theme.of(context).scaffoldBackgroundColor,
-                              title: const Text('Filters'),
+                            return AlertDialog(
+                              title: const Text(
+                                'Filters',
+                                style: TextStyle(fontFamily: 'ClashGrotesk'),
+                              ),
                               contentPadding: EdgeInsets.symmetric(
                                   horizontal: 0, vertical: 8),
                               content: StatefulBuilder(builder:
@@ -143,7 +144,7 @@ class _TaskstabviewState extends State<Taskstabview> {
                                           minVerticalPadding: 0,
                                           contentPadding: EdgeInsets.symmetric(
                                               horizontal: 4),
-                                          leading: Radio.adaptive(
+                                          leading: Radio(
                                               value: 'Today',
                                               groupValue: sortValue,
                                               onChanged: (String? sortvalue) {
@@ -159,12 +160,6 @@ class _TaskstabviewState extends State<Taskstabview> {
                                           ),
                                           subtitle: Text(
                                               'Show only the tasks for today'),
-                                          titleTextStyle: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.color),
                                           subtitleTextStyle:
                                               TextStyle(color: Colors.grey),
                                           onTap: () {
@@ -180,7 +175,7 @@ class _TaskstabviewState extends State<Taskstabview> {
                                           minVerticalPadding: 0,
                                           contentPadding: EdgeInsets.symmetric(
                                               horizontal: 4),
-                                          leading: Radio.adaptive(
+                                          leading: Radio(
                                               value: 'Recent tasks',
                                               groupValue: sortValue,
                                               onChanged: (String? sortvalue) {
@@ -196,12 +191,6 @@ class _TaskstabviewState extends State<Taskstabview> {
                                           ),
                                           subtitle: Text(
                                               'Sort the tasks from recent to oldest'),
-                                          titleTextStyle: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.color),
                                           subtitleTextStyle:
                                               TextStyle(color: Colors.grey),
                                           onTap: () {
@@ -217,7 +206,7 @@ class _TaskstabviewState extends State<Taskstabview> {
                                           minVerticalPadding: 0,
                                           contentPadding: EdgeInsets.symmetric(
                                               horizontal: 4),
-                                          leading: Radio.adaptive(
+                                          leading: Radio(
                                               value: 'oldest',
                                               groupValue: sortValue,
                                               onChanged: (String? sortvalue) {
@@ -233,12 +222,6 @@ class _TaskstabviewState extends State<Taskstabview> {
                                           ),
                                           subtitle: Text(
                                               'Sort the tasks from oldest to recent'),
-                                          titleTextStyle: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.color),
                                           subtitleTextStyle:
                                               TextStyle(color: Colors.grey),
                                           onTap: () {
@@ -258,7 +241,7 @@ class _TaskstabviewState extends State<Taskstabview> {
                                           minVerticalPadding: 0,
                                           contentPadding: EdgeInsets.symmetric(
                                               horizontal: 4),
-                                          leading: Radio.adaptive(
+                                          leading: Radio(
                                               value: 'Incomplete',
                                               groupValue: completedSortValue,
                                               onChanged: (String? sortvalue) {
@@ -275,12 +258,6 @@ class _TaskstabviewState extends State<Taskstabview> {
                                           ),
                                           subtitle: Text(
                                               'Show only incomplete tasks'),
-                                          titleTextStyle: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.color),
                                           subtitleTextStyle:
                                               TextStyle(color: Colors.grey),
                                           onTap: () {
@@ -296,7 +273,7 @@ class _TaskstabviewState extends State<Taskstabview> {
                                           minVerticalPadding: 0,
                                           contentPadding: EdgeInsets.symmetric(
                                               horizontal: 4),
-                                          leading: Radio.adaptive(
+                                          leading: Radio(
                                               value: 'Completed',
                                               groupValue: completedSortValue,
                                               onChanged: (String? sortvalue) {
@@ -313,12 +290,6 @@ class _TaskstabviewState extends State<Taskstabview> {
                                           ),
                                           subtitle:
                                               Text('Show only completed tasks'),
-                                          titleTextStyle: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.color),
                                           subtitleTextStyle:
                                               TextStyle(color: Colors.grey),
                                           onTap: () {
@@ -338,7 +309,7 @@ class _TaskstabviewState extends State<Taskstabview> {
                                           minVerticalPadding: 0,
                                           contentPadding: EdgeInsets.symmetric(
                                               horizontal: 4),
-                                          leading: Radio.adaptive(
+                                          leading: Radio(
                                               value: 'High to Low',
                                               groupValue: priorityLevel,
                                               onChanged: (String? sortvalue) {
@@ -354,12 +325,6 @@ class _TaskstabviewState extends State<Taskstabview> {
                                           ),
                                           subtitle: Text(
                                               'Show tasks with high priority first'),
-                                          titleTextStyle: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.color),
                                           subtitleTextStyle:
                                               TextStyle(color: Colors.grey),
                                           onTap: () {
@@ -375,7 +340,7 @@ class _TaskstabviewState extends State<Taskstabview> {
                                           minVerticalPadding: 0,
                                           contentPadding: EdgeInsets.symmetric(
                                               horizontal: 4),
-                                          leading: Radio.adaptive(
+                                          leading: Radio(
                                               value: 'Low to High',
                                               groupValue: priorityLevel,
                                               onChanged: (String? sortvalue) {
@@ -391,12 +356,6 @@ class _TaskstabviewState extends State<Taskstabview> {
                                           ),
                                           subtitle: Text(
                                               'Show tasks with low priority first'),
-                                          titleTextStyle: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.color),
                                           subtitleTextStyle:
                                               TextStyle(color: Colors.grey),
                                           onTap: () {
@@ -471,11 +430,13 @@ class _TaskstabviewState extends State<Taskstabview> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Image(
-                              height: 250,
-                              width: 250,
-                              image: AssetImage(
-                                  'assets/images/allCompletedBackground.png'),
+                            Expanded(
+                              child: Image(
+                                height: 250,
+                                width: 250,
+                                image: AssetImage(
+                                    'assets/images/allCompletedBackground.png'),
+                              ),
                             ),
                             Text(
                               'Hooray! Completed all your tasks',

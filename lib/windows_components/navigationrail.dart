@@ -1,4 +1,5 @@
 import 'package:bloom/components/bloom_buttons.dart';
+import 'package:bloom/responsive/dimensions.dart';
 import 'package:bloom/screens/custom_templates_screen.dart';
 import 'package:bloom/screens/dashboard_screen.dart';
 import 'package:bloom/screens/entries_screen.dart';
@@ -10,7 +11,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
 class Navigationrail extends StatefulWidget {
   const Navigationrail({super.key});
@@ -22,7 +22,7 @@ class Navigationrail extends StatefulWidget {
 class _NavigationrailState extends State<Navigationrail> {
   final user = FirebaseAuth.instance.currentUser;
   int currentPageIndex = 0;
-  bool _extended = false;
+  bool? _extended = false;
   final screens = [
     DashboardScreen(
         isAndroid:
@@ -43,6 +43,7 @@ class _NavigationrailState extends State<Navigationrail> {
   void initState() {
     super.initState();
     fetchAccountData();
+    // _extended = true;
   }
 
   // Fetch accountData
@@ -83,155 +84,159 @@ class _NavigationrailState extends State<Navigationrail> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: Row(
         // mainAxisAlignment: MainAxisAlignment.center,
         children: [
           NavigationRail(
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
             scrollable: true,
-            labelType: _extended
+            labelType: _extended!
                 ? NavigationRailLabelType.none
                 : NavigationRailLabelType.selected,
-            extended: _extended,
+            extended: _extended!,
             minWidth: 72,
             minExtendedWidth: 255,
-            leading: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                if (_extended)
-                  // Display the logo/icon of the app here
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 6,
-                      children: [
-                        Image.asset(
-                          'assets/icons/default_app_icon.png',
-                          scale: 20,
-                        ),
-                        Text(
-                          'Bloom',
-                          style: TextStyle(
-                              fontFamily: 'ClashGrotesk', fontSize: 16),
-                        )
-                      ],
-                    ),
-                  ),
-                SizedBox(
-                  width: _extended ? 255 : 72,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+            leading: MediaQuery.of(context).size.width > mobileWidth
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      IconButton(
-                          icon: Icon(_extended
-                              ? Icons.close_rounded
-                              : Icons.menu_open_rounded),
-                          onPressed: () {
-                            setState(() {
-                              _extended = !_extended;
-                            });
-                          }),
-                    ],
-                  ),
-                ),
-                if (_extended)
-                  Padding(
-                    padding:
-                        EdgeInsets.only(left: 8.0, right: 8.0, bottom: 8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Logged in as',
-                          style: TextStyle(fontWeight: FontWeight.w500),
+                      // Display the logo/icon of the app here
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          spacing: 6,
+                          children: [
+                            if (_extended! &&
+                                defaultTargetPlatform != TargetPlatform.android)
+                              Image.asset(
+                                'assets/icons/default_app_icon_png.png',
+                                scale: 20,
+                              ),
+                            if (_extended! &&
+                                defaultTargetPlatform != TargetPlatform.android)
+                              Text(
+                                'Bloom',
+                                style: TextStyle(
+                                    fontFamily: 'ClashGrotesk',
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                            IconButton(
+                                tooltip:
+                                    _extended! ? 'Close menu' : 'Open menu',
+                                icon: Icon(_extended!
+                                    ? Icons.close_fullscreen
+                                    : Icons.menu_open),
+                                onPressed: () {
+                                  setState(() {
+                                    _extended = !_extended!;
+                                  });
+                                }),
+                          ],
                         ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        InkWell(
-                          borderRadius: BorderRadius.circular(100),
-                          onTap: () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => ProfileScreen(
-                                    isImageNetwork: isImageNetwork,
-                                    profilePicture: profilePicture,
-                                    userName: userName == '' || userName == null
-                                        ? user!.email!.substring(0, 8)
-                                        : userName,
-                                    uid: user!.uid,
-                                    email: email,
-                                    mode: ProfileMode.display)));
-                          },
-                          child: Container(
-                            padding: EdgeInsets.all(8),
-                            width: _extended ? 255 : 72,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainer,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Row(
-                              children: [
-                                (profilePicture != null || profilePicture != '')
-                                    ? isImageNetwork == true
-                                        ? ClipRRect(
-                                            borderRadius:
-                                                BorderRadiusGeometry.circular(
-                                                    10),
-                                            child: Image.network(
-                                              profilePicture!,
-                                              scale: 3,
-                                              errorBuilder:
-                                                  (context, error, stackTrace) {
-                                                return Center(
-                                                  child: Text(
-                                                    '😿',
-                                                    style:
-                                                        TextStyle(fontSize: 22),
+                      ),
+                      if (_extended! &&
+                          defaultTargetPlatform != TargetPlatform.android)
+                        Padding(
+                          padding: EdgeInsets.only(
+                              left: 8.0, right: 8.0, bottom: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Logged in as',
+                                style: TextStyle(fontWeight: FontWeight.w500),
+                              ),
+                              const SizedBox(
+                                height: 12,
+                              ),
+                              InkWell(
+                                borderRadius: BorderRadius.circular(100),
+                                onTap: () {
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => ProfileScreen(
+                                          isImageNetwork: isImageNetwork,
+                                          profilePicture: profilePicture,
+                                          userName:
+                                              userName == '' || userName == null
+                                                  ? user!.email!.substring(0, 8)
+                                                  : userName,
+                                          uid: user!.uid,
+                                          email: email,
+                                          mode: ProfileMode.display)));
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.all(8),
+                                  width: _extended! ? 255 : 72,
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .secondaryContainer,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      (profilePicture != null ||
+                                              profilePicture != '')
+                                          ? isImageNetwork == true
+                                              ? ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadiusGeometry
+                                                          .circular(10),
+                                                  child: Image.network(
+                                                    profilePicture!,
+                                                    scale: 3,
+                                                    errorBuilder: (context,
+                                                        error, stackTrace) {
+                                                      return Center(
+                                                        child: Text(
+                                                          '😿',
+                                                          style: TextStyle(
+                                                              fontSize: 22),
+                                                        ),
+                                                      );
+                                                    },
                                                   ),
-                                                );
-                                              },
-                                            ),
-                                          )
-                                        : ClipRRect(
-                                            borderRadius:
-                                                BorderRadiusGeometry.circular(
-                                                    16),
-                                            child: Image.asset(
-                                              profilePicture!,
-                                              scale: 32,
-                                            ),
-                                          )
-                                    : Icon(Icons.account_circle_rounded),
-                                const SizedBox(
-                                  width: 8,
+                                                )
+                                              : ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadiusGeometry
+                                                          .circular(16),
+                                                  child: Image.asset(
+                                                    profilePicture!,
+                                                    scale: 32,
+                                                  ),
+                                                )
+                                          : Icon(Icons.account_circle_rounded),
+                                      const SizedBox(
+                                        width: 8,
+                                      ),
+                                      userName == null || userName == ''
+                                          ? Text(user!.email!.substring(0, 8))
+                                          : Text(userName!),
+                                      Spacer(),
+                                      Icon(Icons.more_horiz_rounded)
+                                    ],
+                                  ),
                                 ),
-                                userName == null || userName == ''
-                                    ? Text(user!.email!.substring(0, 8))
-                                    : Text(userName!),
-                                Spacer(),
-                                Icon(Icons.more_horiz_rounded)
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                if (_extended)
-                  const Padding(
-                    padding: EdgeInsets.only(left: 8.0, right: 8.0),
-                    child: Text(
-                      'Navigate to',
-                      style: TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                  ),
-              ],
-            ),
+                      if (_extended!)
+                        const Padding(
+                          padding: EdgeInsets.only(left: 8.0, right: 8.0),
+                          child: Text(
+                            'Navigate to',
+                            style: TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                    ],
+                  )
+                : null,
             destinations: [
               NavigationRailDestination(
                 icon: Icon(Icons.home_rounded),
@@ -265,29 +270,30 @@ class _NavigationrailState extends State<Navigationrail> {
             trailing: Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
               child: FloatingActionButton.extended(
-                  elevation: 0,
-                  isExtended: _extended,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  isExtended: _extended!,
                   tooltip: 'Create new object',
                   onPressed: () {
                     if (currentPageIndex == 0) {
                       // All objects adding sheet
-                      showObjectsModalBottomSheet(context);
+                      showModalBottomSheet(
+                          context: context,
+                          showDragHandle: true,
+                          useSafeArea: true,
+                          builder: (context) => TypesOfObjects());
                     } else if (currentPageIndex == 1) {
                       // Add new goal process
                       showModalBottomSheet(
                           context: context,
                           showDragHandle: true,
                           useSafeArea: true,
-                          backgroundColor:
-                              Theme.of(context).scaffoldBackgroundColor,
                           builder: (context) => GoalObjectsModalSheet());
                     } else if (currentPageIndex == 2) {
                       showModalBottomSheet(
                         context: context,
                         showDragHandle: true,
                         enableDrag: true,
-                        backgroundColor:
-                            Theme.of(context).scaffoldBackgroundColor,
                         builder: (context) {
                           return SafeArea(
                             child: Column(
@@ -406,7 +412,11 @@ class _NavigationrailState extends State<Navigationrail> {
                       );
                     } else if (currentPageIndex == 3) {
                       // All objects adding sheet
-                      showObjectsModalBottomSheet(context);
+                      showModalBottomSheet(
+                          context: context,
+                          showDragHandle: true,
+                          useSafeArea: true,
+                          builder: (context) => TypesOfObjects());
                     }
                   },
                   icon: Icon(Icons.add),
@@ -624,10 +634,12 @@ class _NavigationrailState extends State<Navigationrail> {
             padding:
                 // Platform.isWindows
                 // ?
-                const EdgeInsets.symmetric(horizontal: 120.0),
+                _extended!
+                    ? EdgeInsetsGeometry.symmetric(horizontal: 120)
+                    : const EdgeInsets.symmetric(horizontal: 220.0),
             // : const EdgeInsets.all(0.0),
             child: screens[currentPageIndex],
-          )).animate().fade()
+          ))
           // :
           // // When the sideBar is disabled or shortened
           // Expanded(

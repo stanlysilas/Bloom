@@ -30,12 +30,9 @@ class _HabitstabviewState extends State<Habitstabview> {
     // Apply completion filter (if not empty or null)
     if (sortValue == 'all') {
       query = query;
-    }
-    // else if (sortValue == 'recent') {
-    //   query = query
-    //       .orderBy('habitDateTime', descending: true);
-    // }
-    else if (sortValue == 'oldest') {
+    } else if (sortValue == 'recent') {
+      query = query.orderBy('habitDateTime', descending: true);
+    } else if (sortValue == 'oldest') {
       query = query.orderBy('habitDateTime', descending: false);
     } else if (sortValue == 'today') {
       query = query
@@ -43,7 +40,7 @@ class _HabitstabviewState extends State<Habitstabview> {
           .where('habitDateTime', isLessThanOrEqualTo: dayEnd);
     }
 
-    return query.orderBy('habitDateTime', descending: true).snapshots();
+    return query.snapshots();
   }
 
   void stateUpdate() {
@@ -64,7 +61,7 @@ class _HabitstabviewState extends State<Habitstabview> {
                   // Default sorting button
                   RawChip(
                     backgroundColor: sortValue != 'recent'
-                        ? Theme.of(context).colorScheme.surfaceVariant
+                        ? Theme.of(context).colorScheme.surfaceContainer
                         : Theme.of(context).colorScheme.secondaryContainer,
                     side: BorderSide.none,
                     labelStyle: TextStyle(
@@ -89,7 +86,7 @@ class _HabitstabviewState extends State<Habitstabview> {
                   RawChip(
                     backgroundColor: sortValue != 'recent'
                         ? Theme.of(context).colorScheme.secondaryContainer
-                        : Theme.of(context).colorScheme.surfaceVariant,
+                        : Theme.of(context).colorScheme.surfaceContainer,
                     side: BorderSide.none,
                     labelStyle: TextStyle(
                         color:
@@ -101,13 +98,14 @@ class _HabitstabviewState extends State<Habitstabview> {
                             Theme.of(context).colorScheme.onSecondaryContainer),
                     onPressed: () {
                       // Functionality to show the filter and other options as a modal bottom sheet
-                      showAdaptiveDialog(
+                      showDialog(
                           context: context,
                           builder: (context) {
-                            return AlertDialog.adaptive(
-                              backgroundColor:
-                                  Theme.of(context).scaffoldBackgroundColor,
-                              title: const Text('Filters'),
+                            return AlertDialog(
+                              title: const Text(
+                                'Filters',
+                                style: TextStyle(fontFamily: 'ClashGrotesk'),
+                              ),
                               contentPadding: EdgeInsets.symmetric(
                                   horizontal: 0, vertical: 8),
                               content: StatefulBuilder(builder:
@@ -126,7 +124,7 @@ class _HabitstabviewState extends State<Habitstabview> {
                                           minVerticalPadding: 0,
                                           contentPadding: EdgeInsets.symmetric(
                                               horizontal: 4),
-                                          leading: Radio.adaptive(
+                                          leading: Radio(
                                               value: 'all',
                                               groupValue: sortValue,
                                               onChanged: (String? sortvalue) {
@@ -142,12 +140,6 @@ class _HabitstabviewState extends State<Habitstabview> {
                                           ),
                                           subtitle:
                                               Text('Show all your habits'),
-                                          titleTextStyle: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.color),
                                           subtitleTextStyle:
                                               TextStyle(color: Colors.grey),
                                           onTap: () {
@@ -163,7 +155,7 @@ class _HabitstabviewState extends State<Habitstabview> {
                                           minVerticalPadding: 0,
                                           contentPadding: EdgeInsets.symmetric(
                                               horizontal: 4),
-                                          leading: Radio.adaptive(
+                                          leading: Radio(
                                               value: 'today',
                                               groupValue: sortValue,
                                               onChanged: (String? sortvalue) {
@@ -179,12 +171,6 @@ class _HabitstabviewState extends State<Habitstabview> {
                                           ),
                                           subtitle: Text(
                                               'Show only the habits for today'),
-                                          titleTextStyle: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.color),
                                           subtitleTextStyle:
                                               TextStyle(color: Colors.grey),
                                           onTap: () {
@@ -200,7 +186,7 @@ class _HabitstabviewState extends State<Habitstabview> {
                                           minVerticalPadding: 0,
                                           contentPadding: EdgeInsets.symmetric(
                                               horizontal: 4),
-                                          leading: Radio.adaptive(
+                                          leading: Radio(
                                               value: 'recent',
                                               groupValue: sortValue,
                                               onChanged: (String? sortvalue) {
@@ -216,12 +202,6 @@ class _HabitstabviewState extends State<Habitstabview> {
                                           ),
                                           subtitle: Text(
                                               'Sort the habits from recent to oldest'),
-                                          titleTextStyle: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.color),
                                           subtitleTextStyle:
                                               TextStyle(color: Colors.grey),
                                           onTap: () {
@@ -237,7 +217,7 @@ class _HabitstabviewState extends State<Habitstabview> {
                                           minVerticalPadding: 0,
                                           contentPadding: EdgeInsets.symmetric(
                                               horizontal: 4),
-                                          leading: Radio.adaptive(
+                                          leading: Radio(
                                               value: 'oldest',
                                               groupValue: sortValue,
                                               onChanged: (String? sortvalue) {
@@ -253,12 +233,6 @@ class _HabitstabviewState extends State<Habitstabview> {
                                           ),
                                           subtitle: Text(
                                               'Sort the habits from oldest to recent'),
-                                          titleTextStyle: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.color),
                                           subtitleTextStyle:
                                               TextStyle(color: Colors.grey),
                                           onTap: () {
@@ -291,19 +265,19 @@ class _HabitstabviewState extends State<Habitstabview> {
                         : Icons.filter_list_rounded),
                     label: Text('Filter'),
                   ),
-                  Spacer(),
-                  // Topbar for displaying the day of the week name parallel to the buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      ...List.generate(daysOfWeek.length, (index) {
-                        return Padding(
-                            padding:
-                                EdgeInsetsGeometry.symmetric(horizontal: 5.5),
-                            child: Text(daysOfWeek[index]));
-                      }),
-                    ],
-                  ),
+                  // Spacer(),
+                  // // Topbar for displaying the day of the week name parallel to the buttons
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.end,
+                  //   children: [
+                  //     ...List.generate(daysOfWeek.length, (index) {
+                  //       return Padding(
+                  //           padding:
+                  //               EdgeInsetsGeometry.symmetric(horizontal: 5.5),
+                  //           child: Text(daysOfWeek[index]));
+                  //     }),
+                  //   ],
+                  // ),
                 ],
               ),
             ),
@@ -385,6 +359,7 @@ class _HabitstabviewState extends State<Habitstabview> {
                   return ListView.builder(
                     scrollDirection: Axis.vertical,
                     shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
                     itemCount: tasksList.length,
                     itemBuilder: (context, index) {
                       DocumentSnapshot document = tasksList[index];
@@ -402,10 +377,14 @@ class _HabitstabviewState extends State<Habitstabview> {
                       DateTime habitDateTime = timestamp.toDate();
                       List habitGroups = data['habitGroups'];
                       Timestamp timeStamp = data['addedOn'];
+                      int bestStreak = data['bestStreak'] ?? 0;
+                      int currentStreak = data['currentStreak'] ?? 0;
                       DateTime addedOn = timeStamp.toDate();
                       return HabitTile(
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         innerPadding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 8),
+                            horizontal: 12, vertical: 12),
                         habitId: habitId,
                         habitName: habitName,
                         habitNotes: habitNotes,
@@ -416,6 +395,8 @@ class _HabitstabviewState extends State<Habitstabview> {
                         addedOn: addedOn,
                         habitUniqueId: habitUniqueId,
                         completedDates: completedDates,
+                        bestStreak: bestStreak,
+                        currentStreak: currentStreak,
                       );
                     },
                   );

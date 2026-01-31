@@ -11,6 +11,8 @@ class MobileBody extends StatefulWidget {
 class _MobileBodyState extends State<MobileBody> {
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(bottomNavigationBar: Navigationbar());
+    return const Scaffold(
+        backgroundColor: Colors.transparent,
+        bottomNavigationBar: Navigationbar());
   }
 }

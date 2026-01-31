@@ -1,11 +1,15 @@
+import 'package:bloom/authentication_screens/password_entry_screen.dart';
 import 'package:bloom/authentication_screens/signup_screen.dart';
 import 'package:bloom/components/bloom_buttons.dart';
 import 'package:bloom/components/mytextfield.dart';
 import 'package:bloom/components/overview_data.dart';
 import 'package:bloom/components/profile_pic.dart';
+import 'package:bloom/responsive/dimensions.dart';
+import 'package:bloom/screens/manage_privacy_pin_screen.dart';
 // import 'package:bloom/screens/privacy_password_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -46,7 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int? numberOfEntries;
   int? completedTasks;
   int? attendedEvents;
-  String? privacyPassword = '';
+  bool? isPrivacyPasswordSet;
   bool? isNotificationEnabled = false;
   String? profilePicture;
 
@@ -69,17 +73,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final docSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(user?.uid)
+          .collection('security')
+          .doc('bloomPin')
           .get();
 
       if (docSnapshot.exists) {
         final data = docSnapshot.data();
-        final plan = data?['privacyPassword'];
+        final enabled = data?['enabled'];
 
         setState(() {
-          if (plan != null) {
-            privacyPassword = data?['privacyPassword'];
+          if (enabled != null && enabled == true) {
+            isPrivacyPasswordSet = true;
           } else {
-            privacyPassword = '';
+            isPrivacyPasswordSet = false;
           }
         });
       }
@@ -192,402 +198,577 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+            style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.surfaceContainer)),
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Icon(Icons.arrow_back, color: Colors.grey)),
         title: mode == ProfileMode.display
-            ? const Text('Profile')
-            : const Text('Edit profile'),
+            ? const Text('Profile',
+                style: TextStyle(
+                    fontFamily: 'ClashGrotesk', fontWeight: FontWeight.w500))
+            : const Text('Edit profile',
+                style: TextStyle(
+                    fontFamily: 'ClashGrotesk', fontWeight: FontWeight.w500)),
       ),
       body: mode == ProfileMode.display
           ? SafeArea(
               child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(
-                      height: 8,
-                    ),
-                    SizedBox(
-                      width: double.maxFinite,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          widget.isImageNetwork == true &&
-                                  widget.isImageNetwork != null
-                              ? Hero(
-                                  tag: 'network_image_hero',
-                                  child: Container(
-                                    decoration: BoxDecoration(boxShadow: [
-                                      BoxShadow(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurfaceVariant
-                                              .withAlpha(50),
-                                          blurRadius: 12,
-                                          spreadRadius: 1,
-                                          offset: Offset(0, 6))
-                                    ], borderRadius: BorderRadius.circular(16)),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(16),
-                                      child: Image.network(
-                                        widget.profilePicture ??
-                                            'assets/profile_pictures/Profile_Picture_Male_1.png',
-                                        frameBuilder: (context, child, frame,
-                                            wasSynchronouslyLoaded) {
-                                          if (frame == null) {
-                                            return child;
-                                          }
-                                          return child;
-                                        },
-                                        loadingBuilder:
-                                            (context, child, loadingProgress) {
-                                          if (loadingProgress == null) {
-                                            return child;
-                                          }
-                                          return Container(
-                                            padding: EdgeInsets.all(8),
-                                            decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(16),
+                child: Padding(
+                  padding: MediaQuery.of(context).size.width < mobileWidth
+                      ? const EdgeInsets.all(0)
+                      : const EdgeInsets.symmetric(horizontal: 250),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(
+                        height: 8,
+                      ),
+                      SizedBox(
+                        width: double.maxFinite,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Hero(
+                              tag: 'network_image_hero',
+                              child: widget.isImageNetwork == true &&
+                                      widget.isImageNetwork != null
+                                  ? Container(
+                                      decoration: BoxDecoration(
+                                          boxShadow: [
+                                            BoxShadow(
                                                 color: Theme.of(context)
                                                     .colorScheme
-                                                    .surfaceContainer),
-                                            child: CircularProgressIndicator(
-                                              year2023: false,
-                                              value: loadingProgress
-                                                          .expectedTotalBytes !=
-                                                      null
-                                                  ? loadingProgress
-                                                          .cumulativeBytesLoaded /
-                                                      loadingProgress
-                                                          .expectedTotalBytes!
-                                                  : null,
-                                              backgroundColor: Theme.of(context)
-                                                  .colorScheme
-                                                  .surfaceContainer,
-                                            ),
-                                          );
-                                        },
-                                        errorBuilder:
-                                            (context, error, stackTrace) {
-                                          return Center(
-                                            child: Text(
-                                              '😿',
-                                              style: TextStyle(fontSize: 42),
-                                            ),
-                                          );
-                                        },
+                                                    .onSurfaceVariant
+                                                    .withAlpha(50),
+                                                blurRadius: 12,
+                                                spreadRadius: 1,
+                                                offset: Offset(0, 6))
+                                          ],
+                                          borderRadius:
+                                              BorderRadius.circular(16)),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(16),
+                                        child: Image.network(
+                                          widget.profilePicture ??
+                                              'assets/profile_pictures/Profile_Picture_Male_1.png',
+                                          frameBuilder: (context, child, frame,
+                                              wasSynchronouslyLoaded) {
+                                            if (frame == null) {
+                                              return child;
+                                            }
+                                            return child;
+                                          },
+                                          loadingBuilder: (context, child,
+                                              loadingProgress) {
+                                            if (loadingProgress == null) {
+                                              return child;
+                                            }
+                                            return Container(
+                                              padding: EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(16),
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .surfaceContainer),
+                                              child: CircularProgressIndicator(
+                                                year2023: false,
+                                                value: loadingProgress
+                                                            .expectedTotalBytes !=
+                                                        null
+                                                    ? loadingProgress
+                                                            .cumulativeBytesLoaded /
+                                                        loadingProgress
+                                                            .expectedTotalBytes!
+                                                    : null,
+                                                backgroundColor:
+                                                    Theme.of(context)
+                                                        .colorScheme
+                                                        .surfaceContainer,
+                                              ),
+                                            );
+                                          },
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                            return Center(
+                                              child: Text(
+                                                '😿',
+                                                style: TextStyle(fontSize: 42),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    )
+                                  : Container(
+                                      decoration: BoxDecoration(
+                                          boxShadow: [
+                                            BoxShadow(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurfaceVariant
+                                                    .withAlpha(50),
+                                                blurRadius: 12,
+                                                spreadRadius: 1,
+                                                offset: Offset(0, 6))
+                                          ],
+                                          borderRadius:
+                                              BorderRadius.circular(16)),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(16),
+                                        child: Image.asset(
+                                          widget.profilePicture ??
+                                              'assets/profile_pictures/Profile_Picture_Male_1.png',
+                                          scale: 12,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                )
-                              : Hero(
-                                  tag: 'asset_image_hero',
-                                  child: Container(
-                                    decoration: BoxDecoration(boxShadow: [
-                                      BoxShadow(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurfaceVariant
-                                              .withAlpha(50),
-                                          blurRadius: 12,
-                                          spreadRadius: 1,
-                                          offset: Offset(0, 6))
-                                    ], borderRadius: BorderRadius.circular(16)),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(16),
-                                      child: Image.asset(
-                                        widget.profilePicture ??
-                                            'assets/profile_pictures/Profile_Picture_Male_1.png',
-                                        scale: 12,
-                                      ),
+                            ),
+                            // : Hero(
+                            //     tag: 'asset_image_hero',
+                            //     child: ,
+                            //   ),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            // Username of the user
+                            if (widget.userName != null ||
+                                widget.userName != '')
+                              Hero(
+                                tag: 'userName_hero',
+                                transitionOnUserGestures: true,
+                                placeholderBuilder: (context, heroSize, child) {
+                                  return Text(
+                                    user!.email!.substring(0, 8),
+                                    style: const TextStyle(
+                                      fontFamily: 'ClashGrotesk',
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w500,
                                     ),
-                                  ),
-                                ),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          // Username of the user
-                          if (widget.userName != null || widget.userName != '')
-                            Hero(
-                              tag: 'userName_hero',
-                              transitionOnUserGestures: true,
-                              placeholderBuilder: (context, heroSize, child) {
-                                return Text(
-                                  user!.email!.substring(0, 8),
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                );
-                              },
-                              child: Text(
-                                  widget.userName ??
-                                      user!.email!.substring(0, 8),
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w500,
-                                  )),
-                            ),
-                          // Email of the user
-                          if (widget.email != null || widget.email != '')
-                            SelectableText(
-                              widget.email ?? user!.email!,
-                              style: TextStyle(fontSize: 16),
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                      child: Container(
-                        padding: EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color:
-                                Theme.of(context).colorScheme.surfaceContainer),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Expanded(
-                              child: NumberOfEntries(
-                                numberOfEntries: numberOfEntries ?? 0,
+                                  );
+                                },
+                                child: Text(
+                                    widget.userName ??
+                                        user!.email!.substring(0, 8),
+                                    style: const TextStyle(
+                                      fontFamily: 'ClashGrotesk',
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w500,
+                                    )),
                               ),
-                            ),
-                            Expanded(
-                              child: NumberOfTasks(
-                                completedTasks: completedTasks ?? 0,
+                            // Email of the user
+                            if (widget.email != null || widget.email != '')
+                              SelectableText(
+                                widget.email ?? user!.email!,
+                                style: TextStyle(fontSize: 16),
                               ),
-                            ),
-                            Expanded(
-                              child: NumberOfEvents(
-                                attendedEvents: attendedEvents ?? 0,
-                              ),
-                            )
                           ],
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    // Other Options Block
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                      child: Column(
-                        children: [
-                          // Edit Profile Button
-                          BloomMaterialListTile(
-                            borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(24),
-                                topRight: Radius.circular(24),
-                                bottomLeft: Radius.circular(4),
-                                bottomRight: Radius.circular(4)),
-                            icon: Icon(Icons.person,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSecondaryContainer),
-                            color:
-                                Theme.of(context).colorScheme.surfaceContainer,
-                            label: 'Edit Profile',
-                            subLabel: 'Change your profile details',
-                            iconLabelSpace: 8,
-                            labelStyle: const TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 18),
-                            innerPadding: const EdgeInsets.all(16),
-                            outerPadding: EdgeInsets.symmetric(vertical: 1),
-                            onTap: () {
-                              setState(() {
-                                mode = ProfileMode.edit;
-                              });
-                            },
-                            endIcon:
-                                const Icon(Icons.keyboard_arrow_right_rounded),
-                          ),
-                          // Notifications Toggle Button
-                          BloomMaterialListTile(
-                            icon: Icon(Icons.notifications_active,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSecondaryContainer),
-                            label: 'Notifications',
-                            subLabel:
-                                'Reminders, updates and other notifications',
-                            iconLabelSpace: 8,
-                            labelStyle: const TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 18),
-                            innerPadding: const EdgeInsets.all(16),
-                            outerPadding: EdgeInsets.symmetric(vertical: 1),
-                            endIcon: Switch(
-                                value: isNotificationEnabled!,
-                                onChanged: (value) async {
-                                  if (isNotificationEnabled == false) {
-                                    await Permission.notification.request();
-                                  } else {
-                                    // Confirmation dialog to turn off notifications for reminders
-                                    showAdaptiveDialog(
-                                        context: context,
-                                        builder: (context) {
-                                          return AlertDialog.adaptive(
-                                            icon: Icon(
-                                                Icons.warning_amber_rounded),
-                                            iconColor: Colors.red,
-                                            title: Text(
-                                              'Disable notifications?',
-                                            ),
-                                            content: Text(
-                                              "Do you want to disable all notifications? You won't be able to receive any reminders, updates and more",
-                                            ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () {
-                                                  // Cancel and close the dialog
-                                                  Navigator.pop(context);
-                                                },
-                                                child: Text(
-                                                  'Cancel',
-                                                ),
-                                              ),
-                                              TextButton(
-                                                style: ButtonStyle(
-                                                    foregroundColor:
-                                                        WidgetStatePropertyAll(
-                                                            Theme.of(context)
-                                                                .colorScheme
-                                                                .error)),
-                                                onPressed: () async {
-                                                  // Go to settings
-                                                  await openAppSettings();
-                                                  Navigator.pop(context);
-                                                },
-                                                child: Text('Turn off'),
-                                              ),
-                                            ],
-                                          );
-                                        });
-                                  }
-                                }),
-                          ),
-                          // Privacy Password Setup/Modify Button
-                          // BloomMaterialListTile(
-                          //   icon: Icon(Icons.password,
-                          //       color: Theme.of(context)
-                          //           .colorScheme
-                          //           .onSecondaryContainer),
-                          //   label: privacyPassword != ''
-                          //       ? 'Manage Privacy Password'
-                          //       : 'Setup Privacy Password',
-                          //   subLabel: 'Password for locking/unlocking objects',
-                          //   iconLabelSpace: 8,
-                          //   labelStyle: const TextStyle(
-                          //       fontWeight: FontWeight.w500, fontSize: 18),
-                          //   innerPadding: const EdgeInsets.all(16),
-                          //   outerPadding: EdgeInsets.symmetric(vertical: 1),
-                          //   onTap: () {
-                          //     // TODO: PERFORM THE NEEDED OPERATIONS FOR CREATING A PASSWORD
-                          //     // CURRENTLY ONLY GOES TO THE SCREEN
-                          //     Navigator.of(context).push(MaterialPageRoute(
-                          //         builder: (context) =>
-                          //             PrivacyPasswordScreen()));
-                          //   },
-                          //   endIcon:
-                          //       const Icon(Icons.keyboard_arrow_right_rounded),
-                          // ),
-                          // Logout Button
-                          BloomMaterialListTile(
-                            borderRadius: BorderRadius.only(
-                                bottomLeft: Radius.circular(24),
-                                bottomRight: Radius.circular(24),
-                                topLeft: Radius.circular(4),
-                                topRight: Radius.circular(4)),
-                            icon: Icon(Icons.logout,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSecondaryContainer),
-                            color:
-                                Theme.of(context).colorScheme.surfaceContainer,
-                            label: 'Logout',
-                            subLabel: 'Sign out from your account',
-                            iconLabelSpace: 8,
-                            labelStyle: const TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 18),
-                            innerPadding: const EdgeInsets.all(16),
-                            outerPadding: EdgeInsets.symmetric(vertical: 1),
-                            onTap: () {
-                              // Log the user out of the current session.
-                              //Logout process
-                              try {
-                                showAdaptiveDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      return AlertDialog.adaptive(
-                                        icon: const Icon(Icons.logout),
-                                        iconColor:
-                                            Theme.of(context).colorScheme.error,
-                                        title: Text('Logout?'),
-                                        content: const Text(
-                                            "Are you sure that you want to logout of your account?"),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () {
-                                              // Cancel and close the dialog
-                                              Navigator.pop(context);
-                                            },
-                                            child: Text('Cancel'),
-                                          ),
-                                          TextButton(
-                                            style: ButtonStyle(
-                                                foregroundColor:
-                                                    WidgetStatePropertyAll(
-                                                        Theme.of(context)
-                                                            .colorScheme
-                                                            .error)),
-                                            onPressed: () async {
-                                              Navigator.of(context).pop();
-                                              // Logout of the app account
-                                              await FirebaseAuth.instance
-                                                  .signOut();
-                                              Navigator.of(context)
-                                                  .pushReplacement(
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      const SignupScreen(),
-                                                ),
-                                              );
-                                            },
-                                            child: Text('Logout'),
-                                          ),
-                                        ],
-                                        actionsPadding:
-                                            const EdgeInsets.all(10),
-                                        actionsAlignment: MainAxisAlignment.end,
-                                      );
-                                    });
-                              } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    margin: const EdgeInsets.all(6),
-                                    behavior: SnackBarBehavior.floating,
-                                    showCloseIcon: true,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(12)),
-                                    content: Text(
-                                        'Encountered an error while logging out. Error code: ${e.toString()}'),
-                                  ),
-                                );
-                              }
-                            },
-                            endIcon:
-                                const Icon(Icons.keyboard_arrow_right_rounded),
-                          ),
-                        ],
+                      const SizedBox(height: 24),
+                      Padding(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+                        child: Text(
+                          'Total',
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary),
+                        ),
                       ),
-                    ),
-                  ],
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                        child: Container(
+                          padding: EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainer),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: NumberOfEntries(
+                                  numberOfEntries: numberOfEntries ?? 0,
+                                ),
+                              ),
+                              Expanded(
+                                child: NumberOfTasks(
+                                  completedTasks: completedTasks ?? 0,
+                                ),
+                              ),
+                              Expanded(
+                                child: NumberOfEvents(
+                                  attendedEvents: attendedEvents ?? 0,
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          'Other',
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      // Other Options Block
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                        child: Column(
+                          children: [
+                            // Edit Profile Button
+                            BloomMaterialListTile(
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(24),
+                                  topRight: Radius.circular(24),
+                                  bottomLeft: Radius.circular(4),
+                                  bottomRight: Radius.circular(4)),
+                              icon: Icon(Icons.person,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSecondaryContainer),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainer,
+                              label: 'Edit Profile',
+                              subLabel: 'Change your profile details',
+                              iconLabelSpace: 8,
+                              labelStyle: const TextStyle(
+                                  fontWeight: FontWeight.w500, fontSize: 18),
+                              innerPadding: const EdgeInsets.all(16),
+                              outerPadding: EdgeInsets.symmetric(vertical: 1),
+                              onTap: () {
+                                setState(() {
+                                  mode = ProfileMode.edit;
+                                });
+                              },
+                              endIcon: const Icon(
+                                  Icons.keyboard_arrow_right_rounded),
+                            ),
+                            // Notifications Toggle Button
+                            BloomMaterialListTile(
+                              icon: Icon(Icons.notifications_active,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSecondaryContainer),
+                              label: 'Notifications',
+                              subLabel:
+                                  'Reminders, updates and other notifications',
+                              iconLabelSpace: 8,
+                              labelStyle: const TextStyle(
+                                  fontWeight: FontWeight.w500, fontSize: 18),
+                              innerPadding: const EdgeInsets.all(16),
+                              outerPadding: EdgeInsets.symmetric(vertical: 1),
+                              endIcon: Switch(
+                                  value: isNotificationEnabled!,
+                                  onChanged: (value) async {
+                                    if (kIsWeb) {
+                                      // Confirmation dialog to turn off notifications for reminders
+                                      showDialog(
+                                          context: context,
+                                          builder: (context) {
+                                            return AlertDialog(
+                                              constraints:
+                                                  BoxConstraints(maxWidth: 450),
+                                              icon: Icon(
+                                                  Icons.warning_amber_rounded),
+                                              iconColor: Theme.of(context)
+                                                  .colorScheme
+                                                  .error,
+                                              title: Text(
+                                                'Notifications unavailable',
+                                                style: TextStyle(
+                                                  fontFamily: 'ClashGrotesk',
+                                                ),
+                                              ),
+                                              content: Text(
+                                                "We are sorry to inform you that notifications on Web platforms are unavailable as of now. We will be sure to fix this soon. Thank you for your patience.",
+                                              ),
+                                              actions: [
+                                                FilledButton(
+                                                  onPressed: () {
+                                                    // Cancel and close the dialog
+                                                    Navigator.pop(context);
+                                                  },
+                                                  child: Text(
+                                                    'Close',
+                                                  ),
+                                                ),
+                                              ],
+                                            );
+                                          });
+                                    } else {
+                                      if (isNotificationEnabled == false) {
+                                        final permission = await Permission
+                                                .notification
+                                                .isPermanentlyDenied ||
+                                            await Permission
+                                                .notification.isDenied;
+                                        if (permission) {
+                                          await openAppSettings();
+                                        } else {
+                                          await Permission.notification
+                                              .request();
+                                        }
+                                      } else {
+                                        // Confirmation dialog to turn off notifications for reminders
+                                        showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return AlertDialog(
+                                                icon: Icon(Icons
+                                                    .warning_amber_rounded),
+                                                iconColor: Theme.of(context)
+                                                    .colorScheme
+                                                    .error,
+                                                title: Text(
+                                                  'Disable notifications?',
+                                                  style: TextStyle(
+                                                    fontFamily: 'ClashGrotesk',
+                                                  ),
+                                                ),
+                                                content: Text(
+                                                  "Do you want to disable all notifications? You won't be able to receive any reminders, updates and more",
+                                                ),
+                                                actions: [
+                                                  FilledButton(
+                                                    onPressed: () {
+                                                      // Cancel and close the dialog
+                                                      Navigator.pop(context);
+                                                    },
+                                                    child: Text(
+                                                      'Cancel',
+                                                    ),
+                                                  ),
+                                                  TextButton(
+                                                    style: ButtonStyle(
+                                                        foregroundColor:
+                                                            WidgetStatePropertyAll(
+                                                                Theme.of(
+                                                                        context)
+                                                                    .colorScheme
+                                                                    .error)),
+                                                    onPressed: () async {
+                                                      // Go to settings
+                                                      await openAppSettings();
+                                                      Navigator.pop(context);
+                                                    },
+                                                    child: Text('Turn off'),
+                                                  ),
+                                                ],
+                                              );
+                                            });
+                                      }
+                                    }
+                                  }),
+                            ),
+                            // Privacy Password Setup/Modify Button
+                            StreamBuilder<
+                                DocumentSnapshot<Map<String, dynamic>>>(
+                              stream: FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(user!.uid)
+                                  .collection('security')
+                                  .doc('bloomPin')
+                                  .snapshots(),
+                              builder: (context, snapshot) {
+                                final bool isPrivacyPasswordSet =
+                                    snapshot.data?.data()?['enabled'] == true;
+
+                                return BloomMaterialListTile(
+                                  icon: Icon(
+                                    Icons.password,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSecondaryContainer,
+                                  ),
+                                  label: isPrivacyPasswordSet
+                                      ? 'Manage Privacy Password'
+                                      : 'Setup Privacy Password',
+                                  subLabel:
+                                      'Password for locking/unlocking objects',
+                                  iconLabelSpace: 8,
+                                  labelStyle: const TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 18,
+                                  ),
+                                  innerPadding: const EdgeInsets.all(16),
+                                  outerPadding:
+                                      const EdgeInsets.symmetric(vertical: 1),
+                                  onTap: () async {
+                                    if (isPrivacyPasswordSet) {
+                                      final authenticated =
+                                          await Navigator.push<bool>(
+                                        context,
+                                        MaterialPageRoute(
+                                          fullscreenDialog: true,
+                                          builder: (_) =>
+                                              const PasswordEntryScreen(
+                                            mode: PinMode.verify,
+                                            message:
+                                                'Verify your Privacy PIN to access',
+                                          ),
+                                        ),
+                                      );
+
+                                      if (authenticated == true) {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                ManagePrivacyPinScreen(),
+                                          ),
+                                        );
+                                      }
+                                    } else {
+                                      await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          fullscreenDialog: true,
+                                          builder: (_) =>
+                                              const PasswordEntryScreen(
+                                            mode: PinMode.set,
+                                            message:
+                                                'Set your Privacy PIN to authenticate with all objects',
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  endIcon: const Icon(
+                                      Icons.keyboard_arrow_right_rounded),
+                                );
+                              },
+                            ),
+
+                            // TODO: Trash Bin Button
+                            // BloomMaterialListTile(
+                            //   icon: Icon(Icons.delete,
+                            //       color: Theme.of(context)
+                            //           .colorScheme
+                            //           .onSecondaryContainer),
+                            //   label: 'Bin',
+                            //   subLabel: 'Your deleted objects stay here',
+                            //   iconLabelSpace: 8,
+                            //   labelStyle: const TextStyle(
+                            //       fontWeight: FontWeight.w500, fontSize: 18),
+                            //   innerPadding: const EdgeInsets.all(16),
+                            //   outerPadding: EdgeInsets.symmetric(vertical: 1),
+                            //   onTap: () {},
+                            //   endIcon:
+                            //       const Icon(Icons.keyboard_arrow_right_rounded),
+                            // ),
+                            // Logout Button
+                            BloomMaterialListTile(
+                              borderRadius: BorderRadius.only(
+                                  bottomLeft: Radius.circular(24),
+                                  bottomRight: Radius.circular(24),
+                                  topLeft: Radius.circular(4),
+                                  topRight: Radius.circular(4)),
+                              icon: Icon(Icons.logout,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSecondaryContainer),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainer,
+                              label: 'Logout',
+                              subLabel: 'Sign out from your account',
+                              iconLabelSpace: 8,
+                              labelStyle: const TextStyle(
+                                  fontWeight: FontWeight.w500, fontSize: 18),
+                              innerPadding: const EdgeInsets.all(16),
+                              outerPadding: EdgeInsets.symmetric(vertical: 1),
+                              onTap: () {
+                                // Log the user out of the current session.
+                                //Logout process
+                                try {
+                                  showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                          icon: const Icon(Icons.logout),
+                                          iconColor: Theme.of(context)
+                                              .colorScheme
+                                              .error,
+                                          title: Text('Logout?',
+                                              style: TextStyle(
+                                                fontFamily: 'ClashGrotesk',
+                                              )),
+                                          content: const Text(
+                                              "Are you sure that you want to logout of your account?"),
+                                          actions: [
+                                            FilledButton(
+                                              onPressed: () {
+                                                // Cancel and close the dialog
+                                                Navigator.pop(context);
+                                              },
+                                              child: Text('Cancel'),
+                                            ),
+                                            TextButton(
+                                              style: ButtonStyle(
+                                                  foregroundColor:
+                                                      WidgetStatePropertyAll(
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .error)),
+                                              onPressed: () async {
+                                                Navigator.of(context).pop();
+                                                // Logout of the app account
+                                                await FirebaseAuth.instance
+                                                    .signOut();
+                                                Navigator.of(context)
+                                                    .pushReplacement(
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        const SignupScreen(),
+                                                  ),
+                                                );
+                                              },
+                                              child: Text('Logout'),
+                                            ),
+                                          ],
+                                        );
+                                      });
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      margin: const EdgeInsets.all(6),
+                                      behavior: SnackBarBehavior.floating,
+                                      showCloseIcon: true,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12)),
+                                      content: Text(
+                                          'Encountered an error while logging out. Error code: ${e.toString()}'),
+                                    ),
+                                  );
+                                }
+                              },
+                              endIcon: const Icon(
+                                  Icons.keyboard_arrow_right_rounded),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 52)
+                    ],
+                  ),
                 ),
               ),
             )
           : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14.0),
+              padding: MediaQuery.of(context).size.width < mobileWidth
+                  ? const EdgeInsets.symmetric(horizontal: 14)
+                  : const EdgeInsets.symmetric(horizontal: 250),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [

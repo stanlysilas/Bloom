@@ -25,24 +25,23 @@ class DetailedAnalyticsScreen extends StatefulWidget {
 
 class _DetailedAnalyticsScreenState extends State<DetailedAnalyticsScreen> {
   late List<DateTime> weekDates;
-  String viewType = 'Heatmap';
+  String viewType = 'default';
 
   @override
   void initState() {
     super.initState();
-    weekDates = _getCurrentWeekDates();
   }
 
   // Get current week's dates (Monday - Sunday)
-  List<DateTime> _getCurrentWeekDates() {
-    DateTime now = DateTime.now();
-    int currentWeekday = now.weekday;
-    DateTime monday =
-        now.subtract(Duration(days: currentWeekday - 1)); // Get Monday
+  // List<DateTime> _getCurrentWeekDates() {
+  //   DateTime now = DateTime.now();
+  //   int currentWeekday = now.weekday;
+  //   DateTime monday =
+  //       now.subtract(Duration(days: currentWeekday - 1)); // Get Monday
 
-    return List.generate(
-        7, (index) => monday.add(Duration(days: index))); // Generate 7 days
-  }
+  //   return List.generate(
+  //       7, (index) => monday.add(Duration(days: index))); // Generate 7 days
+  // }
 
   // State update method
   void stateUpdate() {
@@ -51,9 +50,18 @@ class _DetailedAnalyticsScreenState extends State<DetailedAnalyticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // weekDates = _getCurrentWeekDates();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Analytics'),
+        leading: IconButton(
+            style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.surfaceContainer)),
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Icon(Icons.arrow_back, color: Colors.grey)),
+        title: const Text('Analytics',
+            style: TextStyle(
+                fontFamily: 'ClashGrotesk', fontWeight: FontWeight.w500)),
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14.0),
@@ -62,116 +70,154 @@ class _DetailedAnalyticsScreenState extends State<DetailedAnalyticsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                RawChip(
-                  backgroundColor:
-                      Theme.of(context).colorScheme.secondaryContainer,
-                  labelStyle: TextStyle(
-                      color: Theme.of(context).colorScheme.onSecondaryContainer,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500),
-                  side: BorderSide.none,
-                  avatar: Icon(Icons.filter_alt_rounded),
-                  iconTheme: IconThemeData(
-                      color:
-                          Theme.of(context).colorScheme.onSecondaryContainer),
-                  label: Text(viewType),
-                  onPressed: () {
-                    // Open a dialog to change the analytics view
-                    showAdaptiveDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog.adaptive(
-                            title: Text('Select a view'),
-                            contentPadding: EdgeInsets.symmetric(
-                                horizontal: 0, vertical: 8),
-                            content: SizedBox(
-                              height: 150,
-                              child: Column(
-                                children: [
-                                  // Display the RadioButtons to select a heatmap view
-                                  ListTile(
-                                    dense: true,
-                                    minVerticalPadding: 0,
-                                    contentPadding:
-                                        EdgeInsets.symmetric(horizontal: 4),
-                                    leading: Radio.adaptive(
-                                        value: 'Heatmap',
-                                        groupValue: viewType,
-                                        onChanged: (String? view) {
-                                          setState(() {
-                                            viewType = view!;
-                                          });
-                                          // stateUpdate();
-                                        }),
-                                    horizontalTitleGap: 0,
-                                    title: Text(
-                                      'Heatmap',
-                                      textAlign: TextAlign.start,
-                                    ),
-                                    subtitle: Text(
-                                        'Show a Heatmap of all your objects'),
-                                    subtitleTextStyle:
-                                        TextStyle(color: Colors.grey),
-                                    onTap: () {
-                                      setState(() {
-                                        viewType = 'Heatmap';
-                                      });
-                                      Navigator.of(context).pop();
-                                      stateUpdate();
-                                    },
-                                  ),
-                                  // Display the RadioButtons to select a graph view
-                                  // ListTile(
-                                  //   dense: true,
-                                  //   minVerticalPadding: 0,
-                                  //   contentPadding:
-                                  //       EdgeInsets.symmetric(horizontal: 4),
-                                  //   leading: Radio.adaptive(
-                                  //       value: 'Graph',
-                                  //       groupValue: viewType,
-                                  //       onChanged: (String? view) {
-                                  //         setState(() {
-                                  //           viewType = view!;
-                                  //         });
-                                  //         // stateUpdate();
-                                  //       }),
-                                  //   horizontalTitleGap: 0,
-                                  //   title: Text(
-                                  //     'Graph',
-                                  //     textAlign: TextAlign.start,
-                                  //   ),
-                                  //   subtitle: Text(
-                                  //       'Show a Graph of all your objects'),
-                                  //   titleTextStyle: TextStyle(
-                                  //       fontWeight: FontWeight.w500,
-                                  //       color: Theme.of(context)
-                                  //           .textTheme
-                                  //           .bodyMedium
-                                  //           ?.color),
-                                  //   subtitleTextStyle:
-                                  //       TextStyle(color: Colors.grey),
-                                  //   onTap: () {
-                                  //     setState(() {
-                                  //       viewType = 'Graph';
-                                  //     });
-                                  //     Navigator.of(context).pop();
-                                  //     stateUpdate();
-                                  //   },
-                                  // ),
-                                ],
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                    stateUpdate();
-                                  },
-                                  child: Text('Close'))
-                            ],
-                          );
+                Row(
+                  spacing: 8,
+                  children: [
+                    // Default RawChip button
+                    RawChip(
+                      backgroundColor: viewType == 'default'
+                          ? Theme.of(context).colorScheme.secondaryContainer
+                          : Theme.of(context).colorScheme.surfaceContainer,
+                      side: BorderSide.none,
+                      labelStyle: TextStyle(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSecondaryContainer,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500),
+                      iconTheme: IconThemeData(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSecondaryContainer),
+                      label: Text('Default'),
+                      avatar: Icon(viewType == 'default'
+                          ? Icons.check
+                          : Icons.filter_list_off),
+                      onPressed: () {
+                        setState(() {
+                          viewType = 'default';
                         });
-                  },
+                      },
+                    ),
+                    // RawChip button that displays other types of analytics options
+                    RawChip(
+                      backgroundColor: viewType != 'default'
+                          ? Theme.of(context).colorScheme.secondaryContainer
+                          : Theme.of(context).colorScheme.surfaceContainer,
+                      labelStyle: TextStyle(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSecondaryContainer,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500),
+                      side: BorderSide.none,
+                      avatar: Icon(viewType != 'default'
+                          ? Icons.check
+                          : Icons.filter_list_off),
+                      iconTheme: IconThemeData(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSecondaryContainer),
+                      label: Text('More'),
+                      onPressed: () {
+                        // Open a dialog to change the analytics view
+                        showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: Text('Select a view'),
+                                contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 0, vertical: 8),
+                                content: SizedBox(
+                                  height: 150,
+                                  child: Column(
+                                    children: [
+                                      // Display the RadioButtons to select a heatmap view
+                                      ListTile(
+                                        dense: true,
+                                        minVerticalPadding: 0,
+                                        contentPadding:
+                                            EdgeInsets.symmetric(horizontal: 4),
+                                        leading: Radio(
+                                            value: 'Heatmap',
+                                            groupValue: viewType,
+                                            onChanged: (String? view) {
+                                              setState(() {
+                                                viewType = view!;
+                                              });
+                                              // stateUpdate();
+                                            }),
+                                        horizontalTitleGap: 0,
+                                        title: Text(
+                                          'Heatmap',
+                                          textAlign: TextAlign.start,
+                                        ),
+                                        subtitle: Text(
+                                            'Show a Heatmap of all your objects'),
+                                        subtitleTextStyle:
+                                            TextStyle(color: Colors.grey),
+                                        onTap: () {
+                                          setState(() {
+                                            viewType = 'Heatmap';
+                                          });
+                                          Navigator.of(context).pop();
+                                          stateUpdate();
+                                        },
+                                      ),
+                                      // Display the RadioButtons to select a graph view
+                                      // ListTile(
+                                      //   dense: true,
+                                      //   minVerticalPadding: 0,
+                                      //   contentPadding:
+                                      //       EdgeInsets.symmetric(horizontal: 4),
+                                      //   leading: Radio.adaptive(
+                                      //       value: 'Graph',
+                                      //       groupValue: viewType,
+                                      //       onChanged: (String? view) {
+                                      //         setState(() {
+                                      //           viewType = view!;
+                                      //         });
+                                      //         // stateUpdate();
+                                      //       }),
+                                      //   horizontalTitleGap: 0,
+                                      //   title: Text(
+                                      //     'Graph',
+                                      //     textAlign: TextAlign.start,
+                                      //   ),
+                                      //   subtitle: Text(
+                                      //       'Show a Graph of all your objects'),
+                                      //   titleTextStyle: TextStyle(
+                                      //       fontWeight: FontWeight.w500,
+                                      //       color: Theme.of(context)
+                                      //           .textTheme
+                                      //           .bodyMedium
+                                      //           ?.color),
+                                      //   subtitleTextStyle:
+                                      //       TextStyle(color: Colors.grey),
+                                      //   onTap: () {
+                                      //     setState(() {
+                                      //       viewType = 'Graph';
+                                      //     });
+                                      //     Navigator.of(context).pop();
+                                      //     stateUpdate();
+                                      //   },
+                                      // ),
+                                    ],
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                        stateUpdate();
+                                      },
+                                      child: Text('Close'))
+                                ],
+                              );
+                            });
+                      },
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 10),
                 const Text(
@@ -179,7 +225,7 @@ class _DetailedAnalyticsScreenState extends State<DetailedAnalyticsScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 10),
-                if (viewType == 'Heatmap')
+                if (viewType == 'Heatmap' || viewType == 'default')
                   // Heatmap for task completions
                   HeatMap(
                     datasets: widget.allCompletedByDate,
@@ -225,7 +271,7 @@ class _DetailedAnalyticsScreenState extends State<DetailedAnalyticsScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 10),
-                if (viewType == 'Heatmap')
+                if (viewType == 'Heatmap' || viewType == 'default')
                   // Heatmap for task completions
                   HeatMap(
                     datasets: widget.completedTasksPerDay,
@@ -269,7 +315,7 @@ class _DetailedAnalyticsScreenState extends State<DetailedAnalyticsScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 10),
-                if (viewType == 'Heatmap')
+                if (viewType == 'Heatmap' || viewType == 'default')
                   // Heatmap for task completions
                   HeatMap(
                     datasets: widget.completedEventsByDate,
@@ -313,7 +359,7 @@ class _DetailedAnalyticsScreenState extends State<DetailedAnalyticsScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 10),
-                if (viewType == 'Heatmap')
+                if (viewType == 'Heatmap' || viewType == 'default')
                   // Heatmap for task completions
                   HeatMap(
                     datasets: widget.completedHabitsByDate,
@@ -357,7 +403,7 @@ class _DetailedAnalyticsScreenState extends State<DetailedAnalyticsScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 10),
-                if (viewType == 'Heatmap')
+                if (viewType == 'Heatmap' || viewType == 'default')
                   // Heatmap for task completions
                   HeatMap(
                     datasets: widget.completedEntriesByDate,

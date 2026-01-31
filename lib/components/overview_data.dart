@@ -13,16 +13,19 @@ class TaskData extends StatelessWidget {
       color: Theme.of(context).colorScheme.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(16),
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
+            fullscreenDialog: true,
+            barrierDismissible: true,
             builder: (context) => const GoalsScreen(
                   tabIndex: 0,
                 ))),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Wrap(
+            direction: Axis.vertical,
+            // mainAxisAlignment: MainAxisAlignment.center,
+            // crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 numberOfTasks == null ? "0" : "$numberOfTasks",
@@ -31,13 +34,11 @@ class TaskData extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
               ),
-              Text('Pending',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withOpacity(0.8),
-                      ))
+              Text('Tasks',
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelMedium
+                      ?.copyWith(color: Colors.grey))
             ],
           ),
         ),
@@ -56,16 +57,19 @@ class HabitData extends StatelessWidget {
       color: Theme.of(context).colorScheme.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(16),
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
+            fullscreenDialog: true,
+            barrierDismissible: true,
             builder: (context) => const GoalsScreen(
                   tabIndex: 1,
                 ))),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Wrap(
+            direction: Axis.vertical,
+            // mainAxisAlignment: MainAxisAlignment.center,
+            // crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 "$numberOfHabits",
@@ -75,12 +79,10 @@ class HabitData extends StatelessWidget {
                     ),
               ),
               Text('Habits',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withOpacity(0.8),
-                      ))
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelMedium
+                      ?.copyWith(color: Colors.grey))
             ],
           ),
         ),
@@ -100,16 +102,19 @@ class SchedulesData extends StatelessWidget {
       color: Theme.of(context).colorScheme.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(16),
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
+            fullscreenDialog: true,
+            barrierDismissible: true,
             builder: (context) => const GoalsScreen(
                   tabIndex: 2,
                 ))),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Wrap(
+            direction: Axis.vertical,
+            // mainAxisAlignment: MainAxisAlignment.center,
+            // crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 numberOfSchedules == null ? "0" : "$numberOfSchedules",
@@ -119,12 +124,10 @@ class SchedulesData extends StatelessWidget {
                     ),
               ),
               Text('Events',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withOpacity(0.8),
-                      ))
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelMedium
+                      ?.copyWith(color: Colors.grey))
             ],
           ),
         ),
@@ -143,14 +146,17 @@ class EntriesData extends StatelessWidget {
       color: Theme.of(context).colorScheme.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
-        borderRadius: BorderRadius.circular(15),
-        onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const EntriesScreen())),
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+            fullscreenDialog: true,
+            barrierDismissible: true,
+            builder: (context) => const EntriesScreen())),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Wrap(
+            direction: Axis.vertical,
+            // mainAxisAlignment: MainAxisAlignment.center,
+            // crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 "$numberOfEntries",
@@ -160,12 +166,11 @@ class EntriesData extends StatelessWidget {
                     ),
               ),
               Text('Entries',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withOpacity(0.8),
-                      ))
+                  overflow: TextOverflow.clip,
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelMedium
+                      ?.copyWith(color: Colors.grey))
             ],
           ),
         ),
@@ -230,7 +235,7 @@ class NumberOfTasks extends StatelessWidget {
                   ),
             ),
             Text(
-              "Tasks Checked",
+              "Tasks checked",
               style: TextStyle(color: Colors.grey),
             ),
           ],
@@ -263,7 +268,7 @@ class NumberOfEvents extends StatelessWidget {
                   ),
             ),
             Text(
-              "Events Attended",
+              "Events attended",
               style: TextStyle(color: Colors.grey),
             ),
           ],

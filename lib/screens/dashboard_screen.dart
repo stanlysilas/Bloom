@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloom/components/overview_data.dart';
 import 'package:bloom/models/dashboard_card_layout.dart';
 import 'package:bloom/screens/calendar_screen.dart';
@@ -8,6 +10,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -24,7 +28,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   var _focusedDay = DateTime.now();
   var _selectedDay = DateTime.now();
   CalendarFormat calendarFormat = CalendarFormat.week;
-  int? numberOfTasks;
+  int? pendingTasks;
   int? numberOfSchedules;
   int? numberOfEntries;
   int? numberOfEntriesInYear;
@@ -36,6 +40,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String? font;
   bool? isImageNetwork;
   bool? isFirstTime;
+  double dailyProgressValue = 0.0;
   late BannerAd bannerAd;
   bool isAdLoaded = false;
   List<DateTime> dates = [];
@@ -43,6 +48,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool isTaskEmpty = false;
   bool isEventEmpty = false;
   final ScrollController scrollController = ScrollController();
+  Timer? _timer;
+  bool displayNoInternet = false;
 
   @override
   void initState() {
@@ -50,6 +57,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     dataOverviewCheck(_focusedDay);
     // initBannerAd();
     fetchAccountData();
+    // Check every 5 seconds
+    _timer = Timer.periodic(Duration(seconds: 5), (timer) async {
+      bool connected = await hasInternet();
+      if (!connected) {
+        displayNoInternet = true;
+      } else {
+        displayNoInternet = false;
+      }
+    });
   }
 
   // Fetch accountData
@@ -74,53 +90,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void dataOverviewCheck(DateTime date) async {
     var dayStart = DateTime(date.year, date.month, date.day, 0, 0, 0);
     var dayEnd = DateTime(date.year, date.month, date.day, 23, 59, 59);
+    var dateString = DateFormat('yyyy-MM-dd').format(date);
     List<DateTime> taskDateTimes = [];
     int habitLength = 0;
     List<DateTime> eventDateTimes = [];
+
     try {
-      final taskQuery = FirebaseFirestore.instance
-          .collection('users')
-          .doc(user?.uid)
-          .collection('tasks')
-          .where('isCompleted', isEqualTo: false)
-          .get();
+      final baseRef =
+          FirebaseFirestore.instance.collection('users').doc(user?.uid);
 
-      final habitQuery = FirebaseFirestore.instance
-          .collection('users')
-          .doc(user?.uid)
-          .collection('habits')
-          .get();
-
-      final eventQuery = FirebaseFirestore.instance
-          .collection('users')
-          .doc(user?.uid)
-          .collection('events')
-          .where('isAttended', isEqualTo: false)
-          .get();
-
-      final entryQuery = FirebaseFirestore.instance
-          .collection('users')
-          .doc(user?.uid)
-          .collection('entries')
-          .where('dateTime', isGreaterThanOrEqualTo: dayStart)
-          .where('dateTime', isLessThanOrEqualTo: dayEnd)
-          .get();
-
-      final isTaskEmptyQuery = FirebaseFirestore.instance
-          .collection('users')
-          .doc(user?.uid)
+      final taskQuery = baseRef
           .collection('tasks')
           .where('isCompleted', isEqualTo: false)
           .where('taskDateTime', isGreaterThanOrEqualTo: dayStart)
           .where('taskDateTime', isLessThanOrEqualTo: dayEnd)
           .get();
 
-      final isEventEmptyQuery = FirebaseFirestore.instance
-          .collection('users')
-          .doc(user?.uid)
+      // Query the completed tasks for the day to calculate progress
+      final completedTaskTodayQuery = baseRef
+          .collection('tasks')
+          .where('isCompleted', isEqualTo: true)
+          .where('taskDateTime', isGreaterThanOrEqualTo: dayStart)
+          .where('taskDateTime', isLessThanOrEqualTo: dayEnd)
+          .count()
+          .get();
+
+      final habitQuery = baseRef
+          .collection('habits')
+          .where('habitDateTime', isGreaterThanOrEqualTo: dayStart)
+          .where('habitDateTime', isLessThanOrEqualTo: dayEnd)
+          .get();
+
+      final eventQuery = baseRef
           .collection('events')
-          .where('eventStartDateTime', isGreaterThanOrEqualTo: dayStart)
           .where('isAttended', isEqualTo: false)
+          .where('eventStartDateTime', isGreaterThanOrEqualTo: dayStart)
+          .where('eventEndDateTime', isLessThanOrEqualTo: dayEnd)
+          .get();
+
+      // Query the attended events for the day to calculate progress
+      final attendedEventTodayQuery = baseRef
+          .collection('events')
+          .where('isAttended', isEqualTo: true)
+          .where('eventStartDateTime', isGreaterThanOrEqualTo: dayStart)
+          .where('eventEndDateTime', isLessThanOrEqualTo: dayEnd)
+          .count()
+          .get();
+
+      final entryQuery = baseRef
+          .collection('entries')
+          .where('dateTime', isGreaterThanOrEqualTo: dayStart)
+          .where('dateTime', isLessThanOrEqualTo: dayEnd)
+          .count() // Using count for efficiency
           .get();
 
       // Get the current year
@@ -130,51 +151,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
           .subtract(const Duration(seconds: 1)); // End of the year
 
       // Query the entries within the current year
-      final entriesInYearQuery = FirebaseFirestore.instance
-          .collection('users')
-          .doc(user?.uid)
+      final entriesInYearQuery = baseRef
           .collection('entries')
           .where('dateTime', isGreaterThanOrEqualTo: startOfYear)
           .where('dateTime', isLessThanOrEqualTo: endOfYear)
           .count()
-          .get()
-          .then((value) {
-        setState(() {
-          numberOfEntriesInYear = value.count;
-        });
-      });
+          .get();
 
       // Query the completed tasks within current year
-      final tasksInYearQuery = FirebaseFirestore.instance
-          .collection('users')
-          .doc(user?.uid)
+      final tasksInYearQuery = baseRef
           .collection('tasks')
           .where('taskDateTime', isGreaterThanOrEqualTo: startOfYear)
           .where('taskDateTime', isLessThanOrEqualTo: endOfYear)
           .where('isCompleted', isEqualTo: true)
           .count()
-          .get()
-          .then((value) {
-        setState(() {
-          completedTasksInYear = value.count;
-        });
-      });
+          .get();
 
       // Query the events attended within current year
-      final eventsInYearQuery = FirebaseFirestore.instance
-          .collection('users')
-          .doc(user?.uid)
+      final eventsInYearQuery = baseRef
           .collection('events')
           .where('eventStartDateTime', isGreaterThanOrEqualTo: startOfYear)
           .where('eventEndDateTime', isLessThanOrEqualTo: endOfYear)
           .where('isAttended', isEqualTo: true)
           .count()
-          .get()
-          .then((value) {
-        setState(() {
-          attendedEventsInYear = value.count;
-        });
-      });
+          .get();
 
       // Wait for all the queries to complete
       final results = await Future.wait([
@@ -182,19 +182,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
         habitQuery,
         eventQuery,
         entryQuery,
-        isTaskEmptyQuery,
-        isEventEmptyQuery,
         entriesInYearQuery,
         tasksInYearQuery,
-        eventsInYearQuery
+        eventsInYearQuery,
+        completedTaskTodayQuery,
+        attendedEventTodayQuery,
       ]);
 
       final taskSnapshot = results[0] as QuerySnapshot;
       final habitSnapshot = results[1] as QuerySnapshot;
       final eventSnapshot = results[2] as QuerySnapshot;
-      final entrySnapshot = results[3] as QuerySnapshot;
-      final isTaskEmptySnapshot = results[4] as QuerySnapshot;
-      final isEventEmptySnapshot = results[5] as QuerySnapshot;
+      final entryCount = (results[3] as AggregateQuerySnapshot).count;
+      final yearEntriesCount = (results[4] as AggregateQuerySnapshot).count;
+      final yearTasksCount = (results[5] as AggregateQuerySnapshot).count;
+      final yearEventsCount = (results[6] as AggregateQuerySnapshot).count;
+      final todayCompletedTasksCount =
+          (results[7] as AggregateQuerySnapshot).count;
+      final todayAttendedEventsCount =
+          (results[8] as AggregateQuerySnapshot).count;
+
+      // Habit completion logic for progress calculation
+      int completedHabitsToday = 0;
+      for (var doc in habitSnapshot.docs) {
+        List completedDates = doc['completedDates'] ?? [];
+        if (completedDates.contains(dateString)) {
+          completedHabitsToday++;
+        }
+      }
 
       // Extract task and event dates
       taskDateTimes = taskSnapshot.docs
@@ -209,17 +223,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       // Update state
       setState(() {
-        numberOfTasks = taskSnapshot.size;
+        pendingTasks = taskSnapshot.size;
         numberOfHabits = habitLength;
         numberOfSchedules = eventSnapshot.size;
-        numberOfEntries = entrySnapshot.size;
-        isTaskEmpty = isTaskEmptySnapshot.size == 0 ? true : false;
-        isEventEmpty = isEventEmptySnapshot.size == 0 ? true : false;
+        numberOfEntries = entryCount;
+        numberOfEntriesInYear = yearEntriesCount;
+        completedTasksInYear = yearTasksCount;
+        attendedEventsInYear = yearEventsCount;
+
+        isTaskEmpty = taskSnapshot.size == 0;
+        isEventEmpty = eventSnapshot.size == 0;
+
         dates = [...taskDateTimes, ...eventDateTimes]; // Combine both lists
         dates.sort();
+
+        // Total items planned for today across all categories
+        int totalPlanned = pendingTasks! +
+            todayCompletedTasksCount! +
+            numberOfSchedules! +
+            todayAttendedEventsCount! +
+            habitLength;
+
+        // Progress value calculation including habits
+        dailyProgressValue = totalPlanned > 0
+            ? (todayCompletedTasksCount +
+                    todayAttendedEventsCount +
+                    completedHabitsToday) /
+                totalPlanned
+            : 0.0;
       });
     } catch (e) {
       //
+    }
+  }
+
+  Future<bool> hasInternet() async {
+    try {
+      if (kIsWeb) {
+        return true;
+      } else {
+        // We use a HEAD request because it's lightweight (no body downloaded)
+        final response = await http.head(Uri.parse('https://google.com'));
+        return response.statusCode == 200;
+      }
+    } catch (_) {
+      return false;
     }
   }
 
@@ -267,10 +315,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void dispose() {
     super.dispose();
+    _timer?.cancel();
   }
 
   @override
   Widget build(BuildContext context) {
+    String progressPercentage = (dailyProgressValue * 100).toStringAsFixed(0);
     return Scaffold(
       extendBody: true,
       // List the tasks and events
@@ -281,135 +331,157 @@ class _DashboardScreenState extends State<DashboardScreen> {
           SliverAppBar(
             automaticallyImplyLeading: false,
             pinned: false,
-            expandedHeight: 160,
+            expandedHeight: 170,
             flexibleSpace: FlexibleSpaceBar(
               background: Column(
                 children: [
-                  // Collapsing AppBar
-                  Expanded(
-                    child: Wrap(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                          child: Container(
-                            alignment: Alignment.centerLeft,
-                            child: Wrap(
-                              children: [
-                                Text(
-                                  DateTime.now().hour < 12
-                                      ? "Good morning"
-                                      : DateTime.now().hour > 12 &&
-                                              DateTime.now().hour < 4
-                                          ? "Good afternoon"
-                                          : "Good evening",
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineSmall
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurface,
-                                      ),
-                                ),
-                                const SizedBox(
-                                  width: 5,
-                                ),
-                                InkWell(
-                                  borderRadius: BorderRadius.circular(4),
-                                  onTap: () => Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                          builder: (context) => ProfileScreen(
-                                              isImageNetwork: isImageNetwork,
-                                              profilePicture: profilePicture,
-                                              userName: userName == '' ||
-                                                      userName == null
-                                                  ? user!.email!.substring(0, 8)
-                                                  : userName,
-                                              uid: user!.uid,
-                                              email: email,
-                                              mode: ProfileMode.display))),
-                                  child: userName == null || userName == ''
-                                      ? Hero(
-                                          tag: 'userName_hero',
-                                          transitionOnUserGestures: true,
-                                          placeholderBuilder:
-                                              (context, heroSize, child) {
-                                            return Text(
-                                              user!.email!.substring(0, 8),
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .headlineSmall
-                                                  ?.copyWith(
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .onSurface,
-                                                  ),
-                                            );
-                                          },
-                                          child: Text(
+                  // Greetings and Username
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                        child: Container(
+                          alignment: Alignment.centerLeft,
+                          child: Column(
+                            spacing: 5,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                DateTime.now().hour < 12
+                                    ? "Good morning"
+                                    : DateTime.now().hour > 12 &&
+                                            DateTime.now().hour < 4
+                                        ? "Good afternoon"
+                                        : "Good evening",
+                                textAlign: TextAlign.left,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall
+                                    ?.copyWith(
+                                      fontSize: 26,
+                                      fontFamily: 'ClashGrotesk',
+                                      fontWeight: FontWeight.w600,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                    ),
+                              ),
+                              InkWell(
+                                borderRadius: BorderRadius.circular(4),
+                                onTap: () => Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                        builder: (context) => ProfileScreen(
+                                            isImageNetwork: isImageNetwork,
+                                            profilePicture: profilePicture,
+                                            userName: userName == '' ||
+                                                    userName == null
+                                                ? user!.email!.substring(0, 8)
+                                                : userName,
+                                            uid: user!.uid,
+                                            email: email,
+                                            mode: ProfileMode.display))),
+                                child: userName == null || userName == ''
+                                    ? Hero(
+                                        tag: 'userName_hero',
+                                        transitionOnUserGestures: true,
+                                        placeholderBuilder:
+                                            (context, heroSize, child) {
+                                          return Text(
                                             user!.email!.substring(0, 8),
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .headlineSmall
                                                 ?.copyWith(
-                                                  fontWeight: FontWeight.w600,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  fontWeight: FontWeight.bold,
                                                   color: Theme.of(context)
                                                       .colorScheme
                                                       .onSurface,
                                                 ),
-                                          ),
-                                        )
-                                      : Hero(
-                                          tag: 'userName_hero',
-                                          child: Text(
-                                            '$userName',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .headlineSmall
-                                                ?.copyWith(
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurface,
-                                                ),
-                                          ),
+                                          );
+                                        },
+                                        child: Text(
+                                          user!.email!.substring(0, 8),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .headlineSmall
+                                              ?.copyWith(
+                                                overflow: TextOverflow.ellipsis,
+                                                fontWeight: FontWeight.bold,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
+                                              ),
                                         ),
-                                ),
-                              ],
-                            ),
+                                      )
+                                    : Hero(
+                                        tag: 'userName_hero',
+                                        child: Text(
+                                          '$userName',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .headlineSmall
+                                              ?.copyWith(
+                                                overflow: TextOverflow.ellipsis,
+                                                fontWeight: FontWeight.w600,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
+                                              ),
+                                        ),
+                                      ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  // Overview data
-                  Expanded(
-                    child: Container(
-                      margin: EdgeInsets.symmetric(horizontal: 14),
-                      padding: EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color:
-                              Theme.of(context).colorScheme.surfaceContainer),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          TaskData(
-                            numberOfTasks: numberOfTasks,
-                          ),
-                          HabitData(
-                            numberOfHabits: numberOfHabits,
-                          ),
-                          SchedulesData(
-                            numberOfSchedules: numberOfSchedules,
-                          ),
-                          EntriesData(
-                            numberOfEntries: numberOfEntriesInYear ?? 0,
-                          )
-                        ],
                       ),
+                      // Day completion percentage of the user
+                      Flexible(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Text(
+                                  progressPercentage == '100'
+                                      ? '✅'
+                                      : '$progressPercentage%',
+                                  style: TextStyle(fontSize: 12)),
+                              CircularProgressIndicator(
+                                year2023: false,
+                                value: dailyProgressValue,
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                  // Overview data of the day for the user
+                  Container(
+                    width: double.maxFinite,
+                    margin: EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                    padding: EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Theme.of(context).colorScheme.surfaceContainer),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Expanded(child: TaskData(numberOfTasks: pendingTasks)),
+                        Expanded(
+                            child: HabitData(numberOfHabits: numberOfHabits)),
+                        Expanded(
+                            child: SchedulesData(
+                                numberOfSchedules: numberOfSchedules)),
+                        Expanded(
+                          child: EntriesData(
+                              numberOfEntries: numberOfEntries ?? 0),
+                        )
+                      ],
                     ),
                   ),
                 ],
@@ -429,7 +501,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     (shrinkOffset / (100 - 90)).clamp(0.0, 1.0);
                 final color = Color.lerp(
                   Theme.of(context).colorScheme.surface,
-                  Theme.of(context).colorScheme.surfaceContainerHighest,
+                  Theme.of(context).colorScheme.surfaceContainerHigh,
                   scrollPercent,
                 )!;
 
@@ -458,7 +530,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     },
                     onDaySelected: (selectedDay, focusedDay) {
                       onDaySelected(selectedDay, focusedDay);
-                      dataOverviewCheck(focusedDay);
+                      dataOverviewCheck(selectedDay);
                     },
                     onDayLongPressed: (selectedDay, focusedDay) {
                       Navigator.of(context).push(MaterialPageRoute(
@@ -485,59 +557,115 @@ class _DashboardScreenState extends State<DashboardScreen> {
           // SliverAppBar Content
           SliverList(
               delegate: SliverChildListDelegate([
-            isEventEmpty == true && isTaskEmpty == true && numberOfEntries == 0
+            displayNoInternet == true
                 ? Padding(
                     padding: EdgeInsets.only(left: 14.0, right: 14.0),
                     child: SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.6,
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image(
-                              height: 250,
-                              width: 250,
-                              image: AssetImage(
-                                  'assets/images/allCompletedBackground.png'),
-                            ),
-                            Text(
-                              'Nothing to see here',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w500, fontSize: 24),
-                              textAlign: TextAlign.center,
-                            ),
-                            SizedBox(
-                              height: 4,
-                            ),
-                            Text(
-                              isFirstTime == true
-                                  ? 'Add new tasks, events or notes to get started'
-                                  : 'Click on the + icon to add a new object',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.grey),
-                              textAlign: TextAlign.center,
-                            ),
-                            SizedBox(
-                              height: 4,
-                            ),
-                          ],
-                        ),
+                      height: MediaQuery.of(context).size.height,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Image(
+                            height: 250,
+                            width: 250,
+                            image:
+                                AssetImage('assets/images/deviceOffline.png'),
+                          ),
+                          Text(
+                            'Nothing to see here',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w500, fontSize: 24),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(
+                            height: 4,
+                          ),
+                          Text(
+                            'Lost connection to the internet',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(
+                            height: 4,
+                          ),
+                        ],
                       ),
                     ),
-                  ).animate().fade(delay: Duration(milliseconds: 600))
-                : SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                          left: 14.0, right: 14, bottom: 14),
-                      child: DashboardCardLayout(
-                          numberOfTasks: numberOfTasks ?? 0,
-                          numberOfSchedules: numberOfSchedules ?? 0,
-                          numberOfEntries: numberOfEntries ?? 0,
-                          focusedDay: _focusedDay),
-                    ),
-                  ),
+                  )
+                : isEventEmpty == true &&
+                        isTaskEmpty == true &&
+                        numberOfEntries == 0 &&
+                        numberOfHabits == 0
+                    ? Padding(
+                        padding: EdgeInsets.only(left: 14.0, right: 14.0),
+                        child: SizedBox(
+                          height: MediaQuery.of(context).size.height,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              displayNoInternet == true
+                                  ? Image(
+                                      height: 250,
+                                      width: 250,
+                                      image: AssetImage(
+                                          'assets/images/deviceOffline.png'),
+                                    )
+                                  : Image(
+                                      height: 250,
+                                      width: 250,
+                                      image: AssetImage(
+                                          'assets/images/allCompletedBackground.png'),
+                                    ),
+                              Text(
+                                'Nothing to see here',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w500, fontSize: 24),
+                                textAlign: TextAlign.center,
+                              ),
+                              SizedBox(
+                                height: 4,
+                              ),
+                              displayNoInternet == true
+                                  ? Text(
+                                      'Lost connection to the internet',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.grey),
+                                      textAlign: TextAlign.center,
+                                    )
+                                  : Text(
+                                      isFirstTime == true
+                                          ? 'Add new tasks, events or notes to get started'
+                                          : 'Click on the + icon to add a new object',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.grey),
+                                      textAlign: TextAlign.center,
+                                    ),
+                              SizedBox(
+                                height: 4,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ).animate().fade(delay: Duration(milliseconds: 600))
+                    : SafeArea(
+                        child: Container(
+                          height: MediaQuery.of(context).size.height,
+                          padding: const EdgeInsets.only(
+                              left: 14.0, right: 14, bottom: 14),
+                          child: DashboardCardLayout(
+                              // numberOfTasks: pendingTasks ?? 0,
+                              // numberOfSchedules: numberOfSchedules ?? 0,
+                              // numberOfEntries: numberOfEntries ?? 0,
+                              // numberOfHabits: numberOfHabits ?? 0,
+                              focusedDay: _selectedDay),
+                        ),
+                      ),
           ]))
         ],
       ),
@@ -556,7 +684,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
 /// [TableCalendar] widget for [SliverPersistentHeader] as a Persistent [AppBar].
 class _CalendarHeaderDelegate extends SliverPersistentHeaderDelegate {
+  @override
   final double minExtent;
+  @override
   final double maxExtent;
   final Widget Function(BuildContext, double) childBuilder;
 

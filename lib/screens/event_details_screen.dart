@@ -1,4 +1,6 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:bloom/audio_services/audio_manager.dart';
+import 'package:bloom/components/delete_confirmation_dialog.dart';
 import 'package:bloom/notifications/notification.dart';
 import 'package:bloom/screens/event_editing_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,6 +17,7 @@ class EventDetailsScreen extends StatefulWidget {
   final DateTime? eventEndDateTime;
   final int eventUniqueId;
   final bool isAttended;
+  final IconData? appBarLeading;
   const EventDetailsScreen(
       {super.key,
       required this.eventName,
@@ -24,6 +27,7 @@ class EventDetailsScreen extends StatefulWidget {
       this.eventColorCode,
       this.eventEndDateTime,
       required this.eventUniqueId,
+      this.appBarLeading,
       required this.isAttended});
 
   @override
@@ -37,10 +41,22 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Details'),
+        leading: IconButton(
+            style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.surfaceContainer)),
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Icon(widget.appBarLeading ?? Icons.arrow_back,
+                color: Colors.grey)),
+        title: const Text('Details',
+            style: TextStyle(
+                fontFamily: 'ClashGrotesk', fontWeight: FontWeight.w500)),
         actions: [
           // Button to mark event as attended
           IconButton(
+            style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.surfaceContainer)),
             onPressed: () async {
               await FirebaseFirestore.instance
                   .collection('users')
@@ -51,21 +67,16 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
               // Cancel the scheduled notification
               await NotificationService.cancelNotification(
                   widget.eventUniqueId);
-              player.setVolume(1);
-              player.play(AssetSource('audio/task_completed.mp3'));
+              // Play completion Audio
+              AudioManager().playTaskCompleted();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   margin: const EdgeInsets.all(6),
                   behavior: SnackBarBehavior.floating,
                   showCloseIcon: true,
-                  backgroundColor: Theme.of(context).primaryColor,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
-                  content: Text(
-                    'Marked as attended!',
-                    style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color),
-                  ),
+                  content: Text('Marked as attended!'),
                 ),
               );
               if (widget.isAttended) {
@@ -98,6 +109,10 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           ),
           // Button for more options like edit, delete etc
           PopupMenuButton(
+            iconColor: Colors.grey,
+            style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.surfaceContainer)),
             popUpAnimationStyle:
                 AnimationStyle(duration: const Duration(milliseconds: 500)),
             itemBuilder: (context) => [
@@ -113,11 +128,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                           eventStartDateTime: widget.eventStartDateTime,
                           eventUniqueId: widget.eventUniqueId,
                         ))),
-                child: Text(
-                  'Edit',
-                  style: TextStyle(
-                      color: Theme.of(context).textTheme.bodyMedium?.color),
-                ),
+                child: Text('Edit'),
               ),
               PopupMenuItem(
                 value: 'Delete',
@@ -126,26 +137,34 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                   style: TextStyle(color: Colors.red),
                 ),
                 onTap: () async {
-                  // Delete the task from database
-                  await FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(userId)
-                      .collection('events')
-                      .doc(widget.eventId)
-                      .delete();
-                  // Show confirmation that task is deleted
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      margin: const EdgeInsets.all(6),
-                      behavior: SnackBarBehavior.floating,
-                      showCloseIcon: true,
-                      backgroundColor: Theme.of(context).primaryColor,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      content: Text('Event deleted succesfully.'),
-                    ),
-                  );
-                  Navigator.pop(context);
+                  showAdaptiveDialog(
+                      context: context,
+                      builder: (context) {
+                        return DeleteConfirmationDialog(
+                            onPressed: () async {
+                              // Delete the task from database
+                              await FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(userId)
+                                  .collection('events')
+                                  .doc(widget.eventId)
+                                  .delete();
+                              // Show confirmation that task is deleted
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  margin: const EdgeInsets.all(6),
+                                  behavior: SnackBarBehavior.floating,
+                                  showCloseIcon: true,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
+                                  content: Text('Event deleted succesfully.'),
+                                ),
+                              );
+                              Navigator.pop(context);
+                              Navigator.pop(context);
+                            },
+                            objectName: widget.eventName);
+                      });
                 },
               ),
             ],

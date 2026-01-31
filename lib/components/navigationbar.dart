@@ -40,6 +40,7 @@ class _NavigationbarState extends State<Navigationbar> {
       extendBodyBehindAppBar: true,
       body: screens[currentPageIndex],
       bottomNavigationBar: NavigationBar(
+        maintainBottomViewPadding: false,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         destinations: const [
           NavigationDestination(

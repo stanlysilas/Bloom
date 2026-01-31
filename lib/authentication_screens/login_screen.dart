@@ -76,12 +76,12 @@ class _LoginScreenState extends State<LoginScreen> {
           if (MediaQuery.of(context).size.width > mobileWidth)
             Expanded(
                 child: Container(
-              color: Theme.of(context).colorScheme.onInverseSurface,
+              // color: Theme.of(context).colorScheme.onInverseSurface,
               padding: const EdgeInsets.all(8.0),
               child: Padding(
                 padding: EdgeInsets.all(15),
                 child: Image.asset(
-                  'assets/icons/default_app_icon.png',
+                  'assets/icons/default_app_icon_png.png',
                   fit: BoxFit.contain,
                   scale: 1,
                 ),
@@ -111,15 +111,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: 95,
                             padding: EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(100),
+                                borderRadius: BorderRadius.circular(16),
                                 color: Theme.of(context)
                                     .colorScheme
-                                    .tertiaryContainer),
+                                    .secondaryContainer),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
+                              spacing: 4,
                               children: [
                                 Image.asset(
-                                  'assets/icons/default_app_icon.png',
+                                  'assets/icons/default_app_icon_png.png',
                                   scale: 20,
                                 ),
                                 Text(
@@ -781,6 +782,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 52)
                   ],
                 ),
               ),

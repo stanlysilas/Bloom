@@ -1,24 +1,24 @@
 import 'package:bloom/components/entries_tile.dart';
 import 'package:bloom/components/events_tile.dart';
+import 'package:bloom/components/habit_tile.dart';
 import 'package:bloom/components/tasktile.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'dart:async';
 
 class DashboardCardLayout extends StatefulWidget {
-  final int? numberOfTasks;
-  final int? numberOfSchedules;
-  final int? numberOfEntries;
+  // final int? numberOfTasks;
+  // final int? numberOfSchedules;
+  // final int? numberOfEntries;
+  // final int? numberOfHabits;
   final DateTime focusedDay;
-  const DashboardCardLayout(
-      {super.key,
-      required this.numberOfTasks,
-      required this.numberOfSchedules,
-      required this.numberOfEntries,
-      required this.focusedDay});
+  const DashboardCardLayout({
+    super.key,
+    required this.focusedDay,
+  });
 
   @override
   State<DashboardCardLayout> createState() => _DashboardCardLayoutState();
@@ -26,13 +26,31 @@ class DashboardCardLayout extends StatefulWidget {
 
 class _DashboardCardLayoutState extends State<DashboardCardLayout> {
   final user = FirebaseAuth.instance.currentUser;
+  late Stream<List<QuerySnapshot>> combinedStream;
+  BorderRadius borderRadius = BorderRadius.all(Radius.circular(0));
 
   @override
   void initState() {
     super.initState();
-    fetchEvents(widget.focusedDay);
-    fetchTasks(widget.focusedDay);
-    fetchEntriesForDay(widget.focusedDay);
+    _initCombinedStream();
+  }
+
+  @override
+  void didUpdateWidget(covariant DashboardCardLayout oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // If focusedDay changes, rebuild the stream once
+    if (oldWidget.focusedDay != widget.focusedDay) {
+      _initCombinedStream();
+    }
+  }
+
+  void _initCombinedStream() {
+    combinedStream = combineFourStreams(
+      fetchEntriesForDay(widget.focusedDay),
+      fetchEvents(widget.focusedDay),
+      fetchTasks(widget.focusedDay),
+      fetchHabits(widget.focusedDay),
+    );
   }
 
   Stream<QuerySnapshot> fetchEntriesForDay(DateTime date) {
@@ -50,21 +68,20 @@ class _DashboardCardLayoutState extends State<DashboardCardLayout> {
         .snapshots();
   }
 
-  // Method to retrieve the documents of events collection to display them
   Stream<QuerySnapshot> fetchEvents(DateTime date) {
     var dayStart = DateTime(date.year, date.month, date.day, 0, 0, 0);
-    // var dayEnd = DateTime(date.year, date.month, date.day, 23, 59, 59);
+    var dayEnd = DateTime(date.year, date.month, date.day, 23, 59, 59);
     return FirebaseFirestore.instance
         .collection('users')
         .doc(user?.uid)
         .collection('events')
         .where('isAttended', isEqualTo: false)
         .where('eventStartDateTime', isGreaterThanOrEqualTo: dayStart)
+        .where('eventEndDateTime', isLessThanOrEqualTo: dayEnd)
         .orderBy('eventStartDateTime', descending: true)
         .snapshots();
   }
 
-  // Method to retrieve the documents of tasks collection to display them
   Stream<QuerySnapshot> fetchTasks(DateTime date) {
     var dayStart = DateTime(date.year, date.month, date.day, 0, 0, 0);
     var dayEnd = DateTime(date.year, date.month, date.day, 23, 59, 59);
@@ -79,60 +96,161 @@ class _DashboardCardLayoutState extends State<DashboardCardLayout> {
         .snapshots();
   }
 
+  Stream<QuerySnapshot> fetchHabits(DateTime date) {
+    var dayStart = DateTime(date.year, date.month, date.day, 0, 0, 0);
+    var dayEnd = DateTime(date.year, date.month, date.day, 23, 59, 59);
+    // var dateString = DateFormat('yyyy-MM-dd').format(date);
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(user?.uid)
+        .collection('habits')
+        // .where('lastUpdated', isNotEqualTo: dateString)
+        .where('habitDateTime', isGreaterThanOrEqualTo: dayStart)
+        .where('habitDateTime', isLessThanOrEqualTo: dayEnd)
+        // .orderBy('habitDateTime', descending: false)
+        .snapshots();
+  }
+
+  /// Combine three streams manually (pure dart:async, no async package)
+  Stream<List<QuerySnapshot>> combineFourStreams(
+    Stream<QuerySnapshot> s1,
+    Stream<QuerySnapshot> s2,
+    Stream<QuerySnapshot> s3,
+    Stream<QuerySnapshot> s4,
+  ) {
+    // We use a controller to merge the results
+    final controller = StreamController<List<QuerySnapshot>>();
+
+    // Latest values storage
+    QuerySnapshot? last1, last2, last3, last4;
+
+    void update() {
+      // Only emit when we have at least one snapshot from each
+      if (last1 != null && last2 != null && last3 != null && last4 != null) {
+        controller.add([last1!, last2!, last3!, last4!]);
+      }
+    }
+
+    // Subscribe to all three independently
+    final sub1 = s1.listen((v) {
+      last1 = v;
+      update();
+    });
+    final sub2 = s2.listen((v) {
+      last2 = v;
+      update();
+    });
+    final sub3 = s3.listen((v) {
+      last3 = v;
+      update();
+    });
+    final sub4 = s4.listen((v) {
+      last4 = v;
+      update();
+    });
+
+    controller.onCancel = () {
+      sub1.cancel();
+      sub2.cancel();
+      sub3.cancel();
+      sub4.cancel();
+    };
+
+    return controller.stream;
+  }
+
+  /// Calculate the [BorderRadius] for the entry, task and event tiles
+  BorderRadius calculateBorderRadius(
+      int totalItems, bool isFirst, bool isLast) {
+    if (totalItems == 1) {
+      // Only one item exists: rounded on all corners
+      borderRadius = BorderRadius.circular(16);
+    } else if (isFirst) {
+      // First of many: rounded top
+      borderRadius = const BorderRadius.vertical(
+          top: Radius.circular(16), bottom: Radius.circular(4));
+    } else if (isLast) {
+      // Last of many: rounded bottom
+      borderRadius = const BorderRadius.vertical(
+          top: Radius.circular(4), bottom: Radius.circular(16));
+    } else {
+      // Middle items: minimal rounding
+      borderRadius = BorderRadius.circular(4);
+    }
+    return borderRadius;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Notes and Books Area
-        if (widget.numberOfEntries != 0)
-          StreamBuilder<QuerySnapshot>(
-            stream: fetchEntriesForDay(widget.focusedDay),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Skeletonizer(
-                  enabled: true,
-                  containersColor: Theme.of(context).primaryColorLight,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 14.0),
-                    child: ListTile(
-                      leading: Icon(Icons.abc),
-                      title: Text(
-                        'So this is the text of the title of the object here...',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                        ),
-                        maxLines: 1,
-                      ),
-                      subtitle: Text(
-                        'So this is the text of the subtitle of the object here...',
-                        maxLines: 1,
-                      ),
-                      trailing: Text('End'),
-                    ),
+    return SingleChildScrollView(
+      child: StreamBuilder<List<QuerySnapshot>>(
+        stream: combinedStream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Skeletonizer(
+              enabled: true,
+              containersColor: Theme.of(context).primaryColorDark,
+              child: const ListTile(
+                leading: Icon(Icons.abc),
+                title: Text(
+                  'So this is the text of the title of the object here...',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
                   ),
-                ).animate().fade(delay: const Duration(milliseconds: 50));
-              }
-              if (snapshot.hasError) {
-                return Center(
-                  child: Text(
-                      'Encountered an error while retrieving entries for ${DateFormat.yMMMMd().format(widget.focusedDay)}'),
-                ).animate().fadeIn(
-                      duration: const Duration(milliseconds: 500),
-                    );
-              }
-              final entries = snapshot.data!.docs;
-              return Container(
-                padding: EdgeInsets.symmetric(horizontal: 8),
-                decoration: BoxDecoration(
+                  maxLines: 1,
+                ),
+                subtitle: Text(
+                  'So this is the text of the subtitle of the object here...',
+                  maxLines: 1,
+                ),
+                trailing: Text('End'),
+              ),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return const Center(
+              child: Text('Failed to load dashboard data.'),
+            );
+          }
+
+          if (!snapshot.hasData) {
+            return const SizedBox();
+          }
+
+          // Order of streams = entries, events, tasks
+          final entriesSnap = snapshot.data![0];
+          final eventsSnap = snapshot.data![1];
+          final tasksSnap = snapshot.data![2];
+          final habitsSnap = snapshot.data![3];
+
+          final entries = entriesSnap.docs;
+          final events = eventsSnap.docs;
+          final tasksList = tasksSnap.docs;
+          final habitsList = habitsSnap.docs;
+          // print(habitsList.first);
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (entries.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surfaceContainer,
-                    borderRadius: BorderRadius.circular(24)),
-                child: ListView.builder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: ListView.builder(
                     itemCount: entries.length > 3 ? 3 : entries.length,
                     shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
+                    physics: const NeverScrollableScrollPhysics(),
                     itemBuilder: (context, index) {
+                      final int totalItems =
+                          entries.length > 3 ? 3 : entries.length;
+                      final bool isFirst = index == 0;
+                      final bool isLast = index == totalItems - 1;
+                      calculateBorderRadius(totalItems, isFirst, isLast);
                       final entry = entries[index];
                       final entryDescription =
                           entry['mainEntryDescription'] ?? '{}';
@@ -155,16 +273,28 @@ class _DashboardCardLayoutState extends State<DashboardCardLayout> {
                       final entryTime = entry['dateTime']?.toDate() ?? '';
                       final time = DateFormat('h:mm a').format(entryTime);
                       final isSynced = entry['synced'];
-                      final isEntryLocked = entry['isEntryLocked'] ?? false;
+                      // Fix for a bug in v1.0.1 beta-1 that caused grey screens when notes are added
+                      // This is because of missing the isEntryLocked field when creating & updating new notes
+                      final data = entry.data() as Map<String, dynamic>;
+                      final isEntryLocked = data['isEntryLocked'] ?? false;
+                      // Updating the isEntryLocked to false to avoid any errors
+                      if (data['isEntryLocked'] == null) {
+                        FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(user?.uid)
+                            .collection('entries')
+                            .doc(entryId)
+                            .set({'isEntryLocked': false},
+                                SetOptions(merge: true));
+                      }
+
                       return Column(
                         children: [
-                          SizedBox(
-                            height: index != 0 ? 4 : 8,
-                          ),
+                          SizedBox(height: index != 0 ? 0 : 8),
                           EntriesTile(
                             innerPadding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 12),
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: borderRadius,
                             content: entryDescription,
                             title: entryTitle,
                             emoji: entryEmoji,
@@ -180,68 +310,33 @@ class _DashboardCardLayoutState extends State<DashboardCardLayout> {
                             addedOn: addedOn,
                             dateTime: dateTime,
                             isSynced: isSynced,
-                            isEntryLocked: isEntryLocked,
+                            isEntryLocked: isEntryLocked ?? false,
                             isTemplate: false,
                           ),
-                          SizedBox(
-                            height: entries.length - 1 == index ? 8 : 4,
-                          )
+                          SizedBox(height: entries.length - 1 == index ? 8 : 4),
                         ],
                       );
-                    }),
-              );
-            },
-          ),
-        if (widget.numberOfSchedules != 0)
-          const SizedBox(
-            height: 14,
-          ),
-        // Upcoming events are displayed here
-        if (widget.numberOfSchedules != 0)
-          StreamBuilder(
-            stream: fetchEvents(widget.focusedDay),
-            builder: (context, snapshot) {
-              if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
-                return const SizedBox();
-              }
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Skeletonizer(
-                  enabled: true,
-                  containersColor: Theme.of(context).primaryColorDark,
-                  child: const ListTile(
-                    leading: Icon(Icons.abc),
-                    title: Text(
-                      'So this is the text of the title of the object here...',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                      maxLines: 1,
-                    ),
-                    subtitle: Text(
-                      'So this is the text of the subtitle of the object here...',
-                      maxLines: 1,
-                    ),
-                    trailing: Text('End'),
+                    },
                   ),
-                ).animate().fade(delay: const Duration(milliseconds: 50));
-              }
-              if (snapshot.hasError) {
-                return const Center(
-                  child: Text('There was an error trying to fetch events.'),
-                );
-              }
-              final events = snapshot.data!.docs;
-              return Container(
-                padding: EdgeInsets.symmetric(horizontal: 8),
-                decoration: BoxDecoration(
+                ),
+              if (events.isNotEmpty) const SizedBox(height: 14),
+              if (events.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surfaceContainer,
-                    borderRadius: BorderRadius.circular(24)),
-                child: ListView.builder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: ListView.builder(
                     itemCount: events.length > 3 ? 3 : events.length,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemBuilder: (context, index) {
+                      final int totalItems =
+                          events.length > 3 ? 3 : events.length;
+                      final bool isFirst = index == 0;
+                      final bool isLast = index == totalItems - 1;
+                      calculateBorderRadius(totalItems, isFirst, isLast);
                       final eventDoc = events[index];
                       final eventName = eventDoc['eventName'];
                       final eventDetails = eventDoc['eventNotes'];
@@ -258,15 +353,14 @@ class _DashboardCardLayoutState extends State<DashboardCardLayout> {
                       final eventId = eventDoc['eventId'];
                       final int? eventUniqueId = eventDoc['eventUniqueId'];
                       final bool isAttended = eventDoc['isAttended'] ?? false;
+
                       return Column(
                         children: [
-                          SizedBox(
-                            height: index != 0 ? 4 : 8,
-                          ),
+                          SizedBox(height: index != 0 ? 0 : 8),
                           EventsTile(
                             innerPadding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 12),
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: borderRadius,
                             eventName: eventName,
                             eventNotes: eventDetails,
                             eventStartDateTime: eventStartDateTime,
@@ -276,63 +370,30 @@ class _DashboardCardLayoutState extends State<DashboardCardLayout> {
                             eventUniqueId: eventUniqueId ?? 0,
                             isAttended: isAttended,
                           ),
-                          SizedBox(
-                            height: events.length - 1 == index ? 8 : 4,
-                          )
+                          SizedBox(height: events.length - 1 == index ? 8 : 4),
                         ],
                       );
-                    }),
-              );
-            },
-          ),
-        const SizedBox(
-          height: 14,
-        ),
-        // Recent tasks and habits area
-        if (widget.numberOfTasks != 0)
-          StreamBuilder<QuerySnapshot>(
-              stream: fetchTasks(widget.focusedDay),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Skeletonizer(
-                    enabled: true,
-                    child: ListTile(
-                      leading: Icon(Icons.abc),
-                      title: Text(
-                        'So this is the text of the title of the object here...',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                        ),
-                        maxLines: 1,
-                      ),
-                      subtitle: Text(
-                        'So this is the text of the subtitle of the object here...',
-                        maxLines: 1,
-                      ),
-                      trailing: Text('End'),
-                    ),
-                  ).animate().fade(delay: const Duration(milliseconds: 50));
-                }
-                if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
-                  return const SizedBox();
-                }
-                if (snapshot.hasError) {
-                  return const Center(
-                    child: Text('There was an error trying to fetch tasks.'),
-                  );
-                }
-                List tasksList = snapshot.data!.docs;
-                return Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8),
+                    },
+                  ),
+                ),
+              if (tasksList.isNotEmpty) const SizedBox(height: 14),
+              if (tasksList.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
                   decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainer,
-                      borderRadius: BorderRadius.circular(24)),
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
                   child: ListView.builder(
                     itemCount: tasksList.length > 3 ? 3 : tasksList.length,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemBuilder: (context, index) {
+                      final int totalItems =
+                          tasksList.length > 3 ? 3 : tasksList.length;
+                      final bool isFirst = index == 0;
+                      final bool isLast = index == totalItems - 1;
+                      calculateBorderRadius(totalItems, isFirst, isLast);
                       DocumentSnapshot document = tasksList[index];
                       String docId = document.id;
                       Map<String, dynamic> data =
@@ -350,15 +411,14 @@ class _DashboardCardLayoutState extends State<DashboardCardLayout> {
                       DateTime addedOn = timeStamp.toDate();
                       String priorityLevelString = data['priorityLevelString'];
                       String taskMode = data['taskMode'];
+
                       return Column(
                         children: [
-                          SizedBox(
-                            height: index != 0 ? 4 : 8,
-                          ),
+                          SizedBox(height: index != 0 ? 0 : 8),
                           TaskTile(
                             innerPadding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 12),
-                            borderRadius: BorderRadius.circular(16),
+                                horizontal: 12, vertical: 12),
+                            borderRadius: borderRadius,
                             taskTitle: taskName,
                             taskNotes: taskNotes,
                             isCompleted: isCompleted,
@@ -373,15 +433,75 @@ class _DashboardCardLayoutState extends State<DashboardCardLayout> {
                             taskMode: taskMode,
                           ),
                           SizedBox(
-                            height: tasksList.length - 1 == index ? 8 : 4,
-                          )
+                              height: tasksList.length - 1 == index ? 8 : 4),
                         ],
                       );
                     },
                   ),
-                );
-              }),
-      ],
+                ),
+              if (habitsList.isNotEmpty) const SizedBox(height: 14),
+              if (habitsList.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: habitsList.length,
+                    itemBuilder: (context, index) {
+                      DocumentSnapshot document = habitsList[index];
+                      String habitId = document.id;
+                      Map<String, dynamic> data =
+                          document.data() as Map<String, dynamic>;
+                      String habitName = data['habitName'];
+                      String habitNotes = data['habitNotes'];
+                      int habitUniqueId = data['habitUniqueId'] ?? 0;
+                      Timestamp timestamp = data['habitDateTime'];
+                      List daysOfWeek = data['daysOfWeek'] ?? [];
+                      List completedDaysOfWeek =
+                          data['completedDaysOfWeek'] ?? [];
+                      List completedDates = data['completedDates'] ?? [];
+                      DateTime habitDateTime = timestamp.toDate();
+                      List habitGroups = data['habitGroups'];
+                      Timestamp timeStamp = data['addedOn'];
+                      int bestStreak = data['bestStreak'] ?? 0;
+                      int currentStreak = data['currentStreak'] ?? 0;
+                      DateTime addedOn = timeStamp.toDate();
+                      return Column(
+                        children: [
+                          SizedBox(height: index != 0 ? 0 : 8),
+                          HabitTile(
+                            margin: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            innerPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 12),
+                            habitId: habitId,
+                            habitName: habitName,
+                            habitNotes: habitNotes,
+                            habitDateTime: habitDateTime,
+                            habitGroups: habitGroups,
+                            daysOfWeek: daysOfWeek,
+                            completedDaysOfWeek: completedDaysOfWeek,
+                            addedOn: addedOn,
+                            habitUniqueId: habitUniqueId,
+                            completedDates: completedDates,
+                            bestStreak: bestStreak,
+                            currentStreak: currentStreak,
+                          ),
+                          SizedBox(
+                              height: habitsList.length - 1 == index ? 8 : 4),
+                        ],
+                      );
+                    },
+                  ),
+                )
+            ],
+          );
+        },
+      ),
     );
   }
 }

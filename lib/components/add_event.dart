@@ -455,7 +455,8 @@ class _AddEventModalSheetState extends State<AddEventModalSheet> {
                             color: Theme.of(context).colorScheme.onPrimary)),
                   ),
                 ),
-              )
+              ),
+              const SizedBox(height: 52)
             ],
           ),
         ),

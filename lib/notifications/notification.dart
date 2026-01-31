@@ -80,6 +80,26 @@ class NotificationService {
     }
   }
 
+  // Check the active notificationIds against the ones in Firestore
+  // static Future<void> checkNotificationIds() async {
+  //   final notificationIds = await FirebaseAPI().getNotificationID();
+  //   final pendingRequests =
+  //       await flutterLocalNotificationsPlugin.pendingNotificationRequests();
+  //   final List<int> pendingNotifications =
+  //       pendingRequests.map((request) => request.id).toList();
+  //   final notificationIdsSet = notificationIds.toSet();
+  //   final pendingNotificationsSet = pendingNotifications.toSet();
+  //   final Set<int> idsToCancel =
+  //       pendingNotificationsSet.difference(notificationIdsSet);
+  //   print("Pending Notifications: $pendingNotifications");
+  //   print("IdsToCancel: $idsToCancel");
+  //   for (final int id in idsToCancel) {
+  //     await flutterLocalNotificationsPlugin.cancel(id);
+  //     print("Canceled notification with ID: $id");
+  //   }
+  //   // FIXME: MAKE THE CODE TO ALSO CHECK THE FIREBASEIDS AND THEN RESCHEDULE A NOTIFICATION WITH THAT ID IF ITS NOT SCHEDULED
+  // }
+
   // Show an instant notification
   static Future<void> showInstantNotification(
       String title, String body, int uniqueId) async {
@@ -262,7 +282,7 @@ class NotificationService {
             scheduledDate.isBefore(now)) {
           scheduledDate = scheduledDate.add(const Duration(days: 1));
         }
-
+        // print(scheduledDate);
         return scheduledDate;
       }
 
@@ -279,10 +299,7 @@ class NotificationService {
             priority: priority,
           ),
         ),
-        matchDateTimeComponents: DateTimeComponents
-            .dayOfWeekAndTime, // Repeats every selected weekday
-        // uiLocalNotificationDateInterpretation:
-        //     UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       );
     }

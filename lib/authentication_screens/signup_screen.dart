@@ -91,12 +91,12 @@ class _SignupScreenState extends State<SignupScreen> {
           if (MediaQuery.of(context).size.width > mobileWidth)
             Expanded(
                 child: Container(
-              color: Theme.of(context).colorScheme.onInverseSurface,
+              // color: Theme.of(context).colorScheme.onInverseSurface,
               padding: const EdgeInsets.all(8.0),
               child: Padding(
                 padding: EdgeInsets.all(15),
                 child: Image.asset(
-                  'assets/icons/default_app_icon.png',
+                  'assets/icons/default_app_icon_png.png',
                   fit: BoxFit.contain,
                   scale: 1,
                 ),
@@ -124,8 +124,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           InkWell(
                             borderRadius: BorderRadius.circular(100),
                             onTap: () async {
-                              final selectedPicture =
-                                  await showAdaptiveDialog<String>(
+                              final selectedPicture = await showDialog<String>(
                                 context: context,
                                 builder: (context) =>
                                     const ProfilePictureDialog(),
@@ -787,7 +786,8 @@ class _SignupScreenState extends State<SignupScreen> {
                           )
                         ],
                       ),
-                    )
+                    ),
+                    const SizedBox(height: 52)
                   ],
                 ),
               ),

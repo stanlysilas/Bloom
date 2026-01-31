@@ -432,6 +432,36 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           await StoragePermission.init();
                     } else {
                       granted = true;
+                      // Confirmation dialog to turn off notifications for reminders
+                      showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              constraints: BoxConstraints(maxWidth: 450),
+                              icon: Icon(Icons.warning_amber_rounded),
+                              iconColor: Theme.of(context).colorScheme.error,
+                              title: Text(
+                                'Notifications unavailable',
+                                style: TextStyle(
+                                  fontFamily: 'ClashGrotesk',
+                                ),
+                              ),
+                              content: Text(
+                                "We are sorry to inform you that notifications on Web platforms are unavailable as of now. We will be sure to fix this soon. Thank you for your patience.",
+                              ),
+                              actions: [
+                                FilledButton(
+                                  onPressed: () {
+                                    // Cancel and close the dialog
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text(
+                                    'Close',
+                                  ),
+                                ),
+                              ],
+                            );
+                          });
                     }
                     if (granted) {
                       setState(() {
@@ -462,7 +492,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       curve: Curves.easeIn);
                 }
               },
-              child: Text(currentPage == 4 ? 'Grant permission' : 'Next'),
+              child: Text(currentPage == 4
+                  ? kIsWeb
+                      ? 'Get Started'
+                      : 'Grant permission'
+                  : 'Next'),
             )
           ],
         ),

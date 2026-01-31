@@ -1,5 +1,4 @@
 import 'package:bloom/theme/colors.dart';
-import 'package:bloom/theme/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -10,7 +9,7 @@ class ThemeProvider with ChangeNotifier {
   String _themeValue = 'system';
   int _accentIndex = 0;
 
-  ThemeData _themeData = lightTheme;
+  ThemeData _themeData = ThemeData();
 
   ThemeProvider() {
     _loadPreferences();
@@ -34,6 +33,7 @@ class ThemeProvider with ChangeNotifier {
     final colorScheme = _getColorScheme(isDark);
     _themeData = ThemeData(
         useMaterial3: true,
+        brightness: colorScheme.brightness,
         colorScheme: colorScheme,
         scaffoldBackgroundColor: colorScheme.surface,
         fontFamily: 'Nunito');
@@ -47,6 +47,14 @@ class ThemeProvider with ChangeNotifier {
       // Add future palettes here:
       case 1:
         return isDark ? greenDarkColorScheme : greenLightColorScheme;
+      case 2:
+        return isDark ? amberDarkColorScheme : amberLightColorScheme;
+      case 3:
+        return isDark ? crimsonDarkColorScheme : crimsonLightColorScheme;
+      case 4:
+        return isDark ? obsidianDarkColorScheme : obsidianLightColorScheme;
+      case 5:
+        return isDark ? purpleDarkColorScheme : purpleLightColorScheme;
       default:
         return isDark ? blueDarkColorScheme : blueLightColorScheme;
     }

@@ -212,6 +212,8 @@ class _GoalsScreenState extends State<GoalsScreen>
                       : tabIndex == 2
                           ? 'Events'
                           : 'Goals',
+          style: TextStyle(
+              fontFamily: 'ClashGrotesk', fontWeight: FontWeight.w500),
         ),
         actions: [
           // Display a streak dialog box for tasks (temporary)
@@ -258,6 +260,15 @@ class _GoalsScreenState extends State<GoalsScreen>
           // ),
           IconButton(
               tooltip: 'Search',
+              style: ButtonStyle(
+                  // shape: WidgetStatePropertyAll(RoundedRectangleBorder(
+                  //     borderRadius: BorderRadiusGeometry.only(
+                  //         topRight: Radius.circular(4),
+                  //         topLeft: Radius.circular(100),
+                  //         bottomRight: Radius.circular(4),
+                  //         bottomLeft: Radius.circular(100)))),
+                  backgroundColor: WidgetStatePropertyAll(
+                      Theme.of(context).colorScheme.surfaceContainer)),
               onPressed: () {
                 setState(() {
                   // Set search to true
@@ -267,7 +278,7 @@ class _GoalsScreenState extends State<GoalsScreen>
                     ? searchController.clear()
                     : searchController.text;
               },
-              icon: const Icon(Icons.search_rounded)),
+              icon: const Icon(Icons.search_rounded, color: Colors.grey)),
         ],
         bottom: toggleSearch
             ? PreferredSize(
@@ -307,7 +318,6 @@ class _GoalsScreenState extends State<GoalsScreen>
                     tabIndex = value;
                   });
                 },
-                dividerColor: Colors.transparent,
                 tabs: const [
                     Tab(
                       text: 'Tasks',
@@ -557,6 +567,8 @@ class _GoalsScreenState extends State<GoalsScreen>
                                   DateTime habitDateTime = timestamp.toDate();
                                   List habitGroups = doc['habitGroups'];
                                   Timestamp timeStamp = doc['addedOn'];
+                                  int bestStreak = doc['bestStreak'] ?? 0;
+                                  int currentStreak = doc['currentStreak'] ?? 0;
                                   DateTime addedOn = timeStamp.toDate();
                                   return HabitTile(
                                     innerPadding: const EdgeInsets.symmetric(
@@ -571,6 +583,8 @@ class _GoalsScreenState extends State<GoalsScreen>
                                     addedOn: addedOn,
                                     habitUniqueId: habitUniqueId,
                                     completedDates: completedDates,
+                                    bestStreak: bestStreak,
+                                    currentStreak: currentStreak,
                                   );
                                 } else if (searchObject == 'events') {
                                   final eventId = doc['eventId'];

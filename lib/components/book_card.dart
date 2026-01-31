@@ -1,4 +1,4 @@
-import 'package:bloom/authentication_screens/lock_object_method.dart';
+import 'package:bloom/authentication_screens/authenticate_object.dart';
 import 'package:bloom/models/book_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -49,12 +49,34 @@ class _BookCardState extends State<BookCard> {
       child: InkWell(
         onTap: widget.onTap ??
             () async {
-              if (widget.isBookLocked) {
-                final bool isAuthenticated = await checkForBiometrics(
-                    'Please authenticate to open this entry', context);
-                if (isAuthenticated) {
+              try {
+                // Check if Book is locked or not
+                if (widget.isBookLocked) {
+                  // Book is locked, authenticate the user
+                  final bool isAuthenticated = await authenticate(
+                      'Please authenticate to open this entry', context);
+                  if (isAuthenticated) {
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => BookLayout(
+                            isBookLocked: widget.isBookLocked,
+                            type: widget.type ?? 'book',
+                            bookId: widget.bookId,
+                            emoji: widget.emoji,
+                            dateTime: widget.dateTime,
+                            title: widget.title,
+                            description: widget.description,
+                            bookLayoutMethod: BookLayoutMethod.edit,
+                            children: widget.children ?? [],
+                            hasChildren: widget.hasChildren ?? false,
+                            isFirstTime: false,
+                            isTemplate: widget.isTemplate,
+                            isFavorite: false)));
+                  }
+                } else {
+                  // Book is not locked, proceed normally
                   Navigator.of(context).push(MaterialPageRoute(
                       builder: (context) => BookLayout(
+                          isBookLocked: widget.isBookLocked,
                           type: widget.type ?? 'book',
                           bookId: widget.bookId,
                           emoji: widget.emoji,
@@ -68,22 +90,113 @@ class _BookCardState extends State<BookCard> {
                           isTemplate: widget.isTemplate,
                           isFavorite: false)));
                 }
-              } else {
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => BookLayout(
-                        type: widget.type ?? 'book',
-                        bookId: widget.bookId,
-                        emoji: widget.emoji,
-                        dateTime: widget.dateTime,
-                        title: widget.title,
-                        description: widget.description,
-                        bookLayoutMethod: BookLayoutMethod.edit,
-                        children: widget.children ?? [],
-                        hasChildren: widget.hasChildren ?? false,
-                        isFirstTime: false,
-                        isTemplate: widget.isTemplate,
-                        isFavorite: false)));
+              } catch (e) {
+                print(e.toString());
               }
+              //   bool? isPinEnabled = await BloomPinService().isPinEnabled();
+              //   if (widget.isBookLocked) {
+              //     if (kIsWeb) {
+              //       if (isPinEnabled == true) {
+              //         final authenticated = await Navigator.push<bool>(
+              //           context,
+              //           MaterialPageRoute(
+              //             fullscreenDialog: true,
+              //             builder: (_) => const PasswordEntryScreen(
+              //               mode: PinMode.verify,
+              //               message: 'Verify your Privacy PIN to access',
+              //             ),
+              //           ),
+              //         );
+              //         if (authenticated == true) {
+              //           Navigator.of(context).push(MaterialPageRoute(
+              //               builder: (context) => BookLayout(
+              //                   isBookLocked: widget.isBookLocked,
+              //                   type: widget.type ?? 'book',
+              //                   bookId: widget.bookId,
+              //                   emoji: widget.emoji,
+              //                   dateTime: widget.dateTime,
+              //                   title: widget.title,
+              //                   description: widget.description,
+              //                   bookLayoutMethod: BookLayoutMethod.edit,
+              //                   children: widget.children ?? [],
+              //                   hasChildren: widget.hasChildren ?? false,
+              //                   isFirstTime: false,
+              //                   isTemplate: widget.isTemplate,
+              //                   isFavorite: false)));
+              //         } else {
+              //           print('Bloom PIN authentication failed.');
+              //         }
+              //       } else {
+              //         final authenticated = await Navigator.push<bool>(
+              //           context,
+              //           MaterialPageRoute(
+              //             fullscreenDialog: true,
+              //             builder: (_) => const PasswordEntryScreen(
+              //               mode: PinMode.set,
+              //               message:
+              //                   'Set your Privacy PIN to authenticate with all objects',
+              //             ),
+              //           ),
+              //         );
+              //         if (authenticated == true) {
+              //           Navigator.of(context).push(MaterialPageRoute(
+              //               builder: (context) => BookLayout(
+              //                   isBookLocked: widget.isBookLocked,
+              //                   type: widget.type ?? 'book',
+              //                   bookId: widget.bookId,
+              //                   emoji: widget.emoji,
+              //                   dateTime: widget.dateTime,
+              //                   title: widget.title,
+              //                   description: widget.description,
+              //                   bookLayoutMethod: BookLayoutMethod.edit,
+              //                   children: widget.children ?? [],
+              //                   hasChildren: widget.hasChildren ?? false,
+              //                   isFirstTime: false,
+              //                   isTemplate: widget.isTemplate,
+              //                   isFavorite: false)));
+              //         } else {
+              //           print('Bloom PIN authentication failed.');
+              //         }
+              //       }
+              //     }
+              //     final bool isAuthenticated = await checkForBiometrics(
+              //         'Please authenticate to open this entry', context);
+              //     if (isAuthenticated) {
+              //       Navigator.of(context).push(MaterialPageRoute(
+              //           builder: (context) => BookLayout(
+              //               isBookLocked: widget.isBookLocked,
+              //               type: widget.type ?? 'book',
+              //               bookId: widget.bookId,
+              //               emoji: widget.emoji,
+              //               dateTime: widget.dateTime,
+              //               title: widget.title,
+              //               description: widget.description,
+              //               bookLayoutMethod: BookLayoutMethod.edit,
+              //               children: widget.children ?? [],
+              //               hasChildren: widget.hasChildren ?? false,
+              //               isFirstTime: false,
+              //               isTemplate: widget.isTemplate,
+              //               isFavorite: false)));
+              //     } else {
+              //       print('Authentication failed.');
+              //     }
+              //   } else {
+              //     Navigator.of(context).push(MaterialPageRoute(
+              //         builder: (context) => BookLayout(
+              //             isBookLocked: widget.isBookLocked,
+              //             type: widget.type ?? 'book',
+              //             bookId: widget.bookId,
+              //             emoji: widget.emoji,
+              //             dateTime: widget.dateTime,
+              //             title: widget.title,
+              //             description: widget.description,
+              //             bookLayoutMethod: BookLayoutMethod.edit,
+              //             children: widget.children ?? [],
+              //             hasChildren: widget.hasChildren ?? false,
+              //             isFirstTime: false,
+              //             isTemplate: widget.isTemplate,
+              //             isFavorite: false)));
+              //   }
             },
         borderRadius: BorderRadius.circular(16),
         child: Padding(
@@ -92,10 +205,14 @@ class _BookCardState extends State<BookCard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Text(
-                widget.emoji ?? '',
-                style: const TextStyle(fontSize: 28),
-              ),
+              widget.isBookLocked
+                  ? Icon(Icons.lock,
+                      size: 32,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant)
+                  : Text(
+                      widget.emoji ?? '',
+                      style: const TextStyle(fontSize: 28),
+                    ),
               const Spacer(),
               Text(
                 widget.title ?? 'Untitled',

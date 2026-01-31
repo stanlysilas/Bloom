@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:bloom/authentication_screens/authenticateuser.dart';
 import 'package:bloom/firebase_options.dart';
+import 'package:bloom/loading_animation.dart';
 import 'package:bloom/models/note_layout.dart';
 import 'package:bloom/notifications/notification.dart';
 import 'package:bloom/screens/pomodoro_timer.dart';
@@ -74,11 +75,10 @@ class _BloomAppState extends State<BloomApp> {
       builder: (context, snapshot) {
         // Show splash/loader while waiting
         if (!snapshot.hasData) {
-          return const MaterialApp(
+          return MaterialApp(
+            color: Theme.of(context).colorScheme.surface,
             debugShowCheckedModeBanner: false,
-            home: Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            ),
+            home: BreathingLoader(),
           );
         }
 
@@ -107,7 +107,7 @@ class _BloomAppState extends State<BloomApp> {
                   ),
                   child: MaterialApp(
                     debugShowCheckedModeBanner: false,
-                    title: 'Bloom',
+                    title: kIsWeb == true ? 'Bloom Web' : 'Bloom',
                     theme: themeProvider.themeData,
                     darkTheme: themeProvider.themeData,
                     localizationsDelegates:

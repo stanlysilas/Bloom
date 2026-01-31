@@ -21,13 +21,32 @@ class ColorSchemeProvider with ChangeNotifier {
       'light': greenLightColorScheme,
       'dark': greenDarkColorScheme,
     },
-    // Add more families here (coral, violet, etc.)
+    {
+      'light': amberLightColorScheme,
+      'dark': amberDarkColorScheme,
+    },
+    {
+      'light': crimsonLightColorScheme,
+      'dark': crimsonDarkColorScheme,
+    },
+    {
+      'light': obsidianLightColorScheme,
+      'dark': obsidianDarkColorScheme,
+    },
+    {
+      'light': purpleLightColorScheme,
+      'dark': purpleDarkColorScheme,
+    }
   ];
 
   /// Corresponding display names for the color families
   final List<String> _schemeNames = [
     'Default Blue',
     'Nature Green',
+    'Momentum Amber',
+    'Crimson Serenity',
+    'Obsidian Focus',
+    'Lavender Muse',
   ];
 
   List<String> get schemeNames => _schemeNames;

@@ -181,6 +181,14 @@ class _EntriesScreenState extends State<EntriesScreen> {
           .collection('books')
           .orderBy('addedOn', descending: false)
           .snapshots();
+    } else if (sortValue == 'Favorite') {
+      query = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user?.uid)
+          .collection('books')
+          .where('isFavorite', isEqualTo: true)
+          // .orderBy('addedOn', descending: true)
+          .snapshots();
     } else {
       query = FirebaseFirestore.instance
           .collection('users')
@@ -294,9 +302,20 @@ class _EntriesScreenState extends State<EntriesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Entries'),
+        title: const Text('Entries',
+            style: TextStyle(
+                fontFamily: 'ClashGrotesk', fontWeight: FontWeight.w500)),
         actions: [
           IconButton(
+              style: ButtonStyle(
+                  // shape: WidgetStatePropertyAll(RoundedRectangleBorder(
+                  //     borderRadius: BorderRadiusGeometry.only(
+                  //         topRight: Radius.circular(4),
+                  //         topLeft: Radius.circular(100),
+                  //         bottomRight: Radius.circular(4),
+                  //         bottomLeft: Radius.circular(100)))),
+                  backgroundColor: WidgetStatePropertyAll(
+                      Theme.of(context).colorScheme.surfaceContainer)),
               onPressed: () {
                 setState(() {
                   // Set search to true
@@ -306,7 +325,7 @@ class _EntriesScreenState extends State<EntriesScreen> {
                     ? searchController.clear()
                     : searchController;
               },
-              icon: const Icon(Icons.search_rounded)),
+              icon: const Icon(Icons.search_rounded, color: Colors.grey)),
         ],
         bottom: toggleSearch
             ? PreferredSize(
@@ -531,13 +550,15 @@ class _EntriesScreenState extends State<EntriesScreen> {
                                   .onPrimaryContainer),
                           onPressed: () {
                             // Functionality to show the filter and other options as a modal bottom sheet
-                            showAdaptiveDialog(
+                            showDialog(
                                 context: context,
                                 builder: (context) {
-                                  return AlertDialog.adaptive(
-                                    backgroundColor: Theme.of(context)
-                                        .scaffoldBackgroundColor,
-                                    title: const Text('Filters'),
+                                  return AlertDialog(
+                                    title: const Text(
+                                      'Filters',
+                                      style:
+                                          TextStyle(fontFamily: 'ClashGrotesk'),
+                                    ),
                                     contentPadding: EdgeInsets.symmetric(
                                         horizontal: 0, vertical: 8),
                                     content: StatefulBuilder(builder:
@@ -558,7 +579,7 @@ class _EntriesScreenState extends State<EntriesScreen> {
                                                 contentPadding:
                                                     EdgeInsets.symmetric(
                                                         horizontal: 4),
-                                                leading: Radio.adaptive(
+                                                leading: Radio(
                                                     value: 'Recents',
                                                     groupValue: sortValue,
                                                     onChanged:
@@ -591,7 +612,7 @@ class _EntriesScreenState extends State<EntriesScreen> {
                                                 contentPadding:
                                                     EdgeInsets.symmetric(
                                                         horizontal: 4),
-                                                leading: Radio.adaptive(
+                                                leading: Radio(
                                                     value: 'Oldest',
                                                     groupValue: sortValue,
                                                     onChanged:
@@ -624,7 +645,7 @@ class _EntriesScreenState extends State<EntriesScreen> {
                                                 contentPadding:
                                                     EdgeInsets.symmetric(
                                                         horizontal: 4),
-                                                leading: Radio.adaptive(
+                                                leading: Radio(
                                                     value: 'Favorite',
                                                     groupValue: sortValue,
                                                     onChanged:
@@ -657,7 +678,7 @@ class _EntriesScreenState extends State<EntriesScreen> {
                                                 contentPadding:
                                                     EdgeInsets.symmetric(
                                                         horizontal: 4),
-                                                leading: Radio.adaptive(
+                                                leading: Radio(
                                                     value: 'Locked',
                                                     groupValue: sortValue,
                                                     onChanged:
@@ -929,7 +950,7 @@ class _EntriesScreenState extends State<EntriesScreen> {
                               final time =
                                   DateFormat('h:mm a').format(entryTime);
                               final isSynced = entry['synced'];
-                              final isEntryLocked =
+                              final bool? isEntryLocked =
                                   entry['isEntryLocked'] ?? false;
                               return EntriesTile(
                                 innerPadding: const EdgeInsets.symmetric(
@@ -950,13 +971,16 @@ class _EntriesScreenState extends State<EntriesScreen> {
                                 addedOn: addedOn,
                                 dateTime: dateTime,
                                 isSynced: isSynced,
-                                isEntryLocked: isEntryLocked,
+                                isEntryLocked: isEntryLocked ?? false,
                                 isTemplate: false,
                               );
                             },
                           );
                         }
                       }),
+                  const SizedBox(
+                    height: 64,
+                  )
                 ],
               ),
             ),

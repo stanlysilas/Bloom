@@ -174,7 +174,7 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                   // Default button
                   RawChip(
                     backgroundColor: sortValue != 'Recent'
-                        ? Theme.of(context).colorScheme.surfaceVariant
+                        ? Theme.of(context).colorScheme.surfaceContainer
                         : Theme.of(context).colorScheme.secondaryContainer,
                     side: BorderSide.none,
                     labelStyle: TextStyle(
@@ -199,7 +199,7 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                   RawChip(
                     backgroundColor: sortValue != 'Recent'
                         ? Theme.of(context).colorScheme.secondaryContainer
-                        : Theme.of(context).colorScheme.surfaceVariant,
+                        : Theme.of(context).colorScheme.surfaceContainer,
                     side: BorderSide.none,
                     labelStyle: TextStyle(
                         color:
@@ -211,13 +211,14 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                             Theme.of(context).colorScheme.onSecondaryContainer),
                     onPressed: () {
                       // Functionality to show the filter and other options as a modal bottom sheet
-                      showAdaptiveDialog(
+                      showDialog(
                           context: context,
                           builder: (context) {
-                            return AlertDialog.adaptive(
-                              backgroundColor:
-                                  Theme.of(context).scaffoldBackgroundColor,
-                              title: const Text('Filters'),
+                            return AlertDialog(
+                              title: const Text(
+                                'Filters',
+                                style: TextStyle(fontFamily: 'ClashGrotesk'),
+                              ),
                               contentPadding: EdgeInsets.symmetric(
                                   horizontal: 0, vertical: 8),
                               content: StatefulBuilder(builder:
@@ -236,7 +237,7 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                                           minVerticalPadding: 0,
                                           contentPadding: EdgeInsets.symmetric(
                                               horizontal: 4),
-                                          leading: Radio.adaptive(
+                                          leading: Radio(
                                               value: 'Today',
                                               groupValue: sortValue,
                                               onChanged: (String? sortvalue) {
@@ -252,12 +253,6 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                                           ),
                                           subtitle: Text(
                                               'Show only the events for today'),
-                                          titleTextStyle: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.color),
                                           subtitleTextStyle:
                                               TextStyle(color: Colors.grey),
                                           onTap: () {
@@ -273,7 +268,7 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                                           minVerticalPadding: 0,
                                           contentPadding: EdgeInsets.symmetric(
                                               horizontal: 4),
-                                          leading: Radio.adaptive(
+                                          leading: Radio(
                                               value: 'Recent',
                                               groupValue: sortValue,
                                               onChanged: (String? sortvalue) {
@@ -289,12 +284,6 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                                           ),
                                           subtitle: Text(
                                               'Sort the tasks from recent to oldest'),
-                                          titleTextStyle: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.color),
                                           subtitleTextStyle:
                                               TextStyle(color: Colors.grey),
                                           onTap: () {
@@ -310,7 +299,7 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                                           minVerticalPadding: 0,
                                           contentPadding: EdgeInsets.symmetric(
                                               horizontal: 4),
-                                          leading: Radio.adaptive(
+                                          leading: Radio(
                                               value: 'Oldest',
                                               groupValue: sortValue,
                                               onChanged: (String? sortvalue) {
@@ -326,12 +315,6 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                                           ),
                                           subtitle: Text(
                                               'Sort the events from oldest to recent'),
-                                          titleTextStyle: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.color),
                                           subtitleTextStyle:
                                               TextStyle(color: Colors.grey),
                                           onTap: () {
@@ -347,7 +330,7 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                                           minVerticalPadding: 0,
                                           contentPadding: EdgeInsets.symmetric(
                                               horizontal: 4),
-                                          leading: Radio.adaptive(
+                                          leading: Radio(
                                               value: 'Attended',
                                               groupValue: sortValue,
                                               onChanged: (String? sortvalue) {
@@ -363,12 +346,6 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                                           ),
                                           subtitle:
                                               Text('Show only attended events'),
-                                          titleTextStyle: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.color),
                                           subtitleTextStyle:
                                               TextStyle(color: Colors.grey),
                                           onTap: () {
@@ -441,11 +418,13 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Image(
-                            height: 250,
-                            width: 250,
-                            image: AssetImage(
-                                'assets/images/allCompletedBackground.png'),
+                          Expanded(
+                            child: Image(
+                              height: 250,
+                              width: 250,
+                              image: AssetImage(
+                                  'assets/images/allCompletedBackground.png'),
+                            ),
                           ),
                           Text(
                             'Finally! Attended your events',

@@ -6,9 +6,11 @@ import 'dart:convert';
 import 'package:bloom/components/custom_textediting_toolbar.dart';
 import 'package:bloom/components/more_entry_options.dart';
 import 'package:bloom/components/textfield_nobackground.dart';
+import 'package:bloom/models/bloom_ai.dart';
 import 'package:bloom/responsive/dimensions.dart';
 import 'package:bloom/screens/entries_background_images.dart';
 import 'package:bloom/screens/entries_icon_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -90,7 +92,7 @@ class _NoteLayoutState extends State<NoteLayout> {
   late BackgroundImageNotifier backgroundImageNotifier;
   late EmojiNotifier emojiNotifier;
   bool textFormatEnabled = false;
-  // bool bloomAIEnabled = false;
+  bool bloomAIEnabled = false;
 
   // Method to initialise the required variables and methods
   @override
@@ -232,7 +234,7 @@ class _NoteLayoutState extends State<NoteLayout> {
           'attachments': attachments,
           'synced': isEditing,
           'isFavorite': isFavorite,
-          'isEntryLocked': false,
+          'isEntryLocked': widget.isEntryLocked,
         }, SetOptions(merge: true));
         // Set the syncing status to false after syncing
         setState(() {
@@ -288,13 +290,39 @@ class _NoteLayoutState extends State<NoteLayout> {
     });
   }
 
+  /// Build the background of the image based on the prefix of url/path.
+  Widget buildNoteBackground(String path) {
+    if (path.startsWith('http')) {
+      return CachedNetworkImage(
+          imageUrl: path,
+          fit: BoxFit.cover,
+          errorWidget: (_, __, ___) =>
+              Icon(Icons.error, color: Theme.of(context).colorScheme.error));
+    } else {
+      final imageName = path.substring(25);
+      final imageUrl =
+          "https://raw.githubusercontent.com/stanlysilas/bloom_data/refs/heads/main/backgrounds/$imageName";
+      return CachedNetworkImage(
+          imageUrl: imageUrl,
+          fit: BoxFit.cover,
+          errorWidget: (_, __, ___) =>
+              Icon(Icons.error, color: Theme.of(context).colorScheme.error));
+    }
+  }
+
   @override
   Widget build(BuildContext mainContext) {
     final focusProvider = Provider.of<EditorFocusProvider>(context);
     return Scaffold(
       key: _scaffold,
+      extendBody: true,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        leading: IconButton(
+            style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.surfaceContainer)),
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Icon(Icons.arrow_back, color: Colors.grey)),
         title: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.start,
@@ -303,12 +331,15 @@ class _NoteLayoutState extends State<NoteLayout> {
               Provider.of<EmojiNotifier>(context).emoji.toString(),
             ),
             const SizedBox(
-              height: 3,
+              width: 3,
             ),
             Expanded(
-              child: Text(widget.title!.isEmpty || widget.title == null
-                  ? 'Untitled'
-                  : widget.title!),
+              child: Text(
+                  widget.title!.isEmpty || widget.title == null
+                      ? 'Untitled'
+                      : widget.title!,
+                  style: TextStyle(
+                      fontFamily: 'ClashGrotesk', fontWeight: FontWeight.w500)),
             ),
           ],
         ),
@@ -316,15 +347,16 @@ class _NoteLayoutState extends State<NoteLayout> {
           // Sync status of the entry
           Padding(
             padding: const EdgeInsets.only(left: 8.0, top: 2),
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
-                color: Theme.of(context).colorScheme.surfaceContainer,
-              ),
-              child: isSynced
-                  ? Tooltip(
-                      message: 'Syncing',
+            child: isSynced
+                ? Tooltip(
+                    triggerMode: TooltipTriggerMode.tap,
+                    message: 'Syncing',
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: Theme.of(context).colorScheme.surfaceContainer,
+                      ),
                       child: Container(
                         height: 8,
                         width: 8,
@@ -333,9 +365,17 @@ class _NoteLayoutState extends State<NoteLayout> {
                           color: Colors.blue,
                         ),
                       ),
-                    )
-                  : Tooltip(
-                      message: 'Synced',
+                    ),
+                  )
+                : Tooltip(
+                    triggerMode: TooltipTriggerMode.tap,
+                    message: 'Synced',
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: Theme.of(context).colorScheme.surfaceContainer,
+                      ),
                       child: Container(
                         height: 8,
                         width: 8,
@@ -345,7 +385,7 @@ class _NoteLayoutState extends State<NoteLayout> {
                         ),
                       ),
                     ),
-            ),
+                  ),
           ),
           const SizedBox(
             width: 6,
@@ -355,6 +395,9 @@ class _NoteLayoutState extends State<NoteLayout> {
             padding: const EdgeInsets.only(top: 2.0, right: 4),
             child: IconButton(
               tooltip: 'Menu',
+              style: ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll(
+                      Theme.of(context).colorScheme.surfaceContainer)),
               onPressed: () async {
                 countWords(); // Perform the count only when tapped.
                 showModalBottomSheet(
@@ -382,9 +425,7 @@ class _NoteLayoutState extends State<NoteLayout> {
                   showDragHandle: true,
                 );
               },
-              icon: const Icon(
-                Icons.more_horiz_rounded,
-              ),
+              icon: const Icon(Icons.more_horiz_rounded, color: Colors.grey),
             ),
           ),
         ],
@@ -403,6 +444,7 @@ class _NoteLayoutState extends State<NoteLayout> {
                     InkWell(
                       onTap: () => Navigator.of(context).push(MaterialPageRoute(
                           builder: (context) => EntriesBackgroundImages(
+                              from: 'note',
                               backgroundImageNotifier:
                                   backgroundImageNotifier))),
                       child: SizedBox(
@@ -410,7 +452,7 @@ class _NoteLayoutState extends State<NoteLayout> {
                         height: Provider.of<BackgroundImageNotifier>(context)
                                     .backgroundImageUrl ==
                                 ''
-                            ? 100
+                            ? 0
                             :
                             // : defaultTargetPlatform == TargetPlatform.android
                             // ?
@@ -428,12 +470,13 @@ class _NoteLayoutState extends State<NoteLayout> {
                                     .backgroundImageUrl ==
                                 ''
                             ? const SizedBox()
-                            : Image.asset(
-                                Provider.of<BackgroundImageNotifier>(context)
-                                    .backgroundImageUrl
-                                    .toString(),
-                                fit: BoxFit.cover,
-                              ).animate().fadeIn(
+                            : buildNoteBackground(
+                                    Provider.of<BackgroundImageNotifier>(
+                                            context)
+                                        .backgroundImageUrl
+                                        .toString())
+                                .animate()
+                                .fadeIn(
                                   duration: const Duration(
                                     milliseconds: 500,
                                   ),
@@ -452,25 +495,31 @@ class _NoteLayoutState extends State<NoteLayout> {
                     ? const SizedBox()
                     : Padding(
                         padding: MediaQuery.of(context).size.width < mobileWidth
-                            ? const EdgeInsets.all(0)
+                            ? const EdgeInsets.symmetric(horizontal: 8)
                             : const EdgeInsets.symmetric(horizontal: 250),
-                        child: InkWell(
-                          onTap: () =>
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => EntriesIconPicker(
-                                        icon: emoji,
-                                        iconNotifier: emojiNotifier,
-                                      ))),
-                          // Emoji container
-                          child: Container(
-                            height: 70,
-                            width: 70,
-                            alignment: Alignment.bottomCenter,
-                            child: Text(
-                              Provider.of<EmojiNotifier>(context)
-                                  .emoji
-                                  .toString(),
-                              style: const TextStyle(fontSize: 45),
+                        child: Material(
+                          borderRadius: BorderRadius.circular(24),
+                          color: Theme.of(context).colorScheme.surfaceContainer,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(24),
+                            onTap: () =>
+                                Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (context) => EntriesIconPicker(
+                                          from: 'note',
+                                          icon: emoji,
+                                          iconNotifier: emojiNotifier,
+                                        ))),
+                            // Emoji container
+                            child: Container(
+                              height: 70,
+                              width: 70,
+                              alignment: Alignment.center,
+                              child: Text(
+                                Provider.of<EmojiNotifier>(context)
+                                    .emoji
+                                    .toString(),
+                                style: const TextStyle(fontSize: 45),
+                              ),
                             ),
                           ),
                         ),
@@ -488,28 +537,29 @@ class _NoteLayoutState extends State<NoteLayout> {
                           Provider.of<EmojiNotifier>(context).emoji == null
                       ? Padding(
                           padding: const EdgeInsets.only(left: 8.0, top: 2),
-                          child: InkWell(
-                            onTap: () =>
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (context) => EntriesIconPicker(
-                                          icon: emoji,
-                                          iconNotifier: emojiNotifier,
-                                        ))),
-                            child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(4),
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .surfaceContainer,
-                                ),
-                                child: Text(
-                                  'Add icon',
-                                  style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurfaceVariant),
-                                )),
+                          child: Material(
+                            borderRadius: BorderRadius.circular(4),
+                            color:
+                                Theme.of(context).colorScheme.surfaceContainer,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(4),
+                              onTap: () =>
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => EntriesIconPicker(
+                                            from: 'note',
+                                            icon: emoji,
+                                            iconNotifier: emojiNotifier,
+                                          ))),
+                              child: Padding(
+                                  padding: const EdgeInsets.all(4),
+                                  child: Text(
+                                    'Add icon',
+                                    style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant),
+                                  )),
+                            ),
                           ),
                         )
                       : const SizedBox(),
@@ -529,8 +579,8 @@ class _NoteLayoutState extends State<NoteLayout> {
                 autoFocus: false,
                 hintText: 'Title',
                 style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                     color: Theme.of(context).textTheme.bodyMedium?.color),
               ),
             ),
@@ -539,7 +589,6 @@ class _NoteLayoutState extends State<NoteLayout> {
             ),
             // Description of the note should be displayed here
             Container(
-              height: MediaQuery.of(context).size.height * 0.8,
               width: MediaQuery.of(context).size.width,
               padding: MediaQuery.of(context).size.width < mobileWidth
                   ? const EdgeInsets.all(0)
@@ -549,124 +598,20 @@ class _NoteLayoutState extends State<NoteLayout> {
                 scrollController: ScrollController(),
                 controller: descriptionController,
                 config: QuillEditorConfig(
-                  padding:
-                      const EdgeInsets.only(left: 12, right: 12, bottom: 10),
-                  scrollable: true,
-                  scrollBottomInset: 300,
-                  expands: true,
-                  requestKeyboardFocusOnCheckListChanged: true,
-                  placeholder: 'Start typing here',
-                  enableScribble: true,
-                  onTapOutsideEnabled: true,
-                  // customStyles: DefaultStyles(
-                  //   color: Theme.of(context).textTheme.bodyMedium?.color,
-                  //   leading: DefaultListBlockStyle(
-                  //       TextStyle(
-                  //         foreground: Paint()
-                  //           ..color =
-                  //               Theme.of(context).textTheme.bodyMedium!.color ??
-                  //                   Colors.black,
-                  //       ),
-                  //       const HorizontalSpacing(0, 0),
-                  //       const VerticalSpacing(0, 0),
-                  //       const VerticalSpacing(0, 0),
-                  //       null,
-                  //       null),
-                  //   paragraph: DefaultTextBlockStyle(
-                  //       TextStyle(
-                  //           color:
-                  //               Theme.of(context).textTheme.bodyMedium?.color,
-                  //           fontSize: 16,
-                  //           fontFamily: 'Nunito'),
-                  //       const HorizontalSpacing(0, 0),
-                  //       const VerticalSpacing(0, 0),
-                  //       const VerticalSpacing(0, 0),
-                  //       null),
-                  //   bold: TextStyle(
-                  //       color: Theme.of(context).textTheme.bodyMedium?.color,
-                  //       fontWeight: FontWeight.bold),
-                  //   italic: TextStyle(
-                  //       color: Theme.of(context).textTheme.bodyMedium?.color,
-                  //       fontStyle: FontStyle.italic),
-                  //   underline:
-                  //       const TextStyle(decoration: TextDecoration.underline),
-                  //   small: TextStyle(
-                  //       color: Theme.of(context).textTheme.bodyMedium?.color),
-                  //   sizeHuge: TextStyle(
-                  //       color: Theme.of(context).textTheme.bodyMedium?.color,
-                  //       fontSize: 22),
-                  //   sizeLarge: TextStyle(
-                  //       color: Theme.of(context).textTheme.bodyMedium?.color,
-                  //       fontSize: 18),
-                  //   sizeSmall: TextStyle(
-                  //       color: Theme.of(context).textTheme.bodyMedium?.color,
-                  //       fontSize: 16),
-                  //   code: DefaultTextBlockStyle(
-                  //     TextStyle(
-                  //         foreground: Paint()
-                  //           ..color =
-                  //               Theme.of(context).textTheme.bodyMedium!.color ??
-                  //                   Colors.black),
-                  //     const HorizontalSpacing(0, 0),
-                  //     const VerticalSpacing(0, 0),
-                  //     const VerticalSpacing(0, 0),
-                  //     BoxDecoration(
-                  //         borderRadius: BorderRadius.circular(8),
-                  //         color: Theme.of(context).primaryColorLight),
-                  //   ),
-                  //   inlineCode: InlineCodeStyle(
-                  //       radius: const Radius.circular(8),
-                  //       backgroundColor: Colors.transparent,
-                  //       style: TextStyle(
-                  //           background: Paint()
-                  //             ..color = Theme.of(context).primaryColorDark,
-                  //           foreground: Paint()
-                  //             ..color = Theme.of(context)
-                  //                     .textTheme
-                  //                     .bodyMedium!
-                  //                     .color ??
-                  //                 Colors.black)),
-                  //   quote: DefaultTextBlockStyle(
-                  //       TextStyle(
-                  //         foreground: Paint()
-                  //           ..color =
-                  //               Theme.of(context).textTheme.bodyMedium!.color ??
-                  //                   Colors.black,
-                  //       ),
-                  //       const HorizontalSpacing(0, 0),
-                  //       const VerticalSpacing(0, 0),
-                  //       const VerticalSpacing(0, 0),
-                  //       BoxDecoration(
-                  //           border: Border(
-                  //               left: BorderSide(
-                  //                   color: Theme.of(context).primaryColorDark,
-                  //                   width: 4)))),
-                  //   lists: DefaultListBlockStyle(
-                  //       TextStyle(
-                  //         foreground: Paint()
-                  //           ..color =
-                  //               Theme.of(context).textTheme.bodyMedium!.color ??
-                  //                   Colors.black,
-                  //       ),
-                  //       const HorizontalSpacing(0, 0),
-                  //       const VerticalSpacing(0, 0),
-                  //       const VerticalSpacing(0, 0),
-                  //       const BoxDecoration(),
-                  //       null),
-                  // ),
-                  onTapOutside: (event, focusNode) {
-                    focusNode.unfocus();
-                  },
-                  onScribbleActivated: () {
-                    // Add the functionality for writing with apple pencil and others here
-                  },
-                  // onImagePaste: (imageBytes) async {
-                  //   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  //       content: Text(
-                  //           'User pasted an image. Process and display it properly.')));
-                  //   return;
-                  // },
-                ),
+                    padding:
+                        const EdgeInsets.only(left: 12, right: 12, bottom: 10),
+                    scrollable: false,
+                    requestKeyboardFocusOnCheckListChanged: true,
+                    placeholder: 'Start typing here',
+                    enableScribble: true,
+                    onTapOutsideEnabled: true,
+                    // onTapOutside: (event, focusNode) {
+                    //   focusNode.unfocus();
+                    // },
+                    onScribbleActivated: () {
+                      // Add the functionality for writing with apple pencil and others here
+                    },
+                    scrollBottomInset: 100),
               ),
             ),
             const SizedBox(
@@ -678,8 +623,7 @@ class _NoteLayoutState extends State<NoteLayout> {
       bottomSheet: isEditing == true || focusProvider.editorFocusNode.hasFocus
           ? SafeArea(
               child: Container(
-                padding:
-                    const EdgeInsets.only(left: 8.0, right: 8.0, bottom: 16.0),
+                padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                 decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surfaceContainer),
                 child: Row(
@@ -702,7 +646,7 @@ class _NoteLayoutState extends State<NoteLayout> {
                       onPressed: () {
                         setState(() {
                           textFormatEnabled = !textFormatEnabled;
-                          // bloomAIEnabled = false;
+                          bloomAIEnabled = false;
                           focusProvider.editorFocusNode.requestFocus();
                         });
                       },

@@ -146,7 +146,15 @@ class _TaskEditingScreenState extends State<TaskEditingScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: const Text('Editing task'),
+        leading: IconButton(
+            style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.surfaceContainer)),
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Icon(Icons.arrow_back, color: Colors.grey)),
+        title: const Text('Editing task',
+            style: TextStyle(
+                fontFamily: 'ClashGrotesk', fontWeight: FontWeight.w500)),
       ),
       body: SafeArea(
         child: SizedBox(
@@ -236,8 +244,16 @@ class _TaskEditingScreenState extends State<TaskEditingScreen> {
                           // Date picker
                           Flexible(
                             child: BloomMaterialListTile(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              borderRadius: BorderRadius.circular(8),
+                              outerPadding: const EdgeInsets.all(0),
+                              innerPadding: EdgeInsets.all(6),
+                              icon: SizedBox(),
+                              iconLabelSpace: 0,
+                              useSpacer: false,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .secondaryContainer,
+                              borderRadius: BorderRadius.circular(16),
+                              labelStyle: TextStyle(fontSize: 16),
                               label: DateFormat('dd-MM-yyyy').format(taskDate!),
                               textAlign: TextAlign.center,
                               onTap: selectDate,
@@ -256,8 +272,16 @@ class _TaskEditingScreenState extends State<TaskEditingScreen> {
                           // Time picker
                           Flexible(
                             child: BloomMaterialListTile(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              borderRadius: BorderRadius.circular(8),
+                              outerPadding: const EdgeInsets.all(0),
+                              innerPadding: EdgeInsets.all(6),
+                              icon: SizedBox(),
+                              iconLabelSpace: 0,
+                              useSpacer: false,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .secondaryContainer,
+                              borderRadius: BorderRadius.circular(16),
+                              labelStyle: TextStyle(fontSize: 16),
                               label: _taskTime!.format(context),
                               textAlign: TextAlign.center,
                               onTap: selectTime,
@@ -275,13 +299,15 @@ class _TaskEditingScreenState extends State<TaskEditingScreen> {
                           const Spacer(),
                           Flexible(
                             child: Container(
+                              padding: const EdgeInsets.all(8),
                               width: double.maxFinite,
                               decoration: BoxDecoration(
-                                  color:
-                                      Theme.of(context).scaffoldBackgroundColor,
-                                  borderRadius: BorderRadius.circular(8)),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .secondaryContainer,
+                                  borderRadius: BorderRadius.circular(16)),
                               child: PopupMenuButton(
-                                icon: Row(
+                                child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Icon(
@@ -313,27 +339,14 @@ class _TaskEditingScreenState extends State<TaskEditingScreen> {
                                     ),
                                   ],
                                 ),
-                                color:
-                                    Theme.of(context).scaffoldBackgroundColor,
                                 itemBuilder: (context) => [
                                   PopupMenuItem(
                                     value: 'None',
                                     child: Row(
                                       children: [
-                                        const Icon(
-                                          Icons.flag_rounded,
-                                        ),
-                                        const SizedBox(
-                                          width: 4,
-                                        ),
-                                        Text(
-                                          'None',
-                                          style: TextStyle(
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.color),
-                                        ),
+                                        const Icon(Icons.flag_rounded),
+                                        const SizedBox(width: 4),
+                                        Text('None'),
                                       ],
                                     ),
                                     onTap: () => setState(() {
@@ -347,17 +360,11 @@ class _TaskEditingScreenState extends State<TaskEditingScreen> {
                                     value: 'High',
                                     child: const Row(
                                       children: [
-                                        Icon(
-                                          Icons.flag_rounded,
-                                          color: Colors.red,
-                                        ),
-                                        SizedBox(
-                                          width: 4,
-                                        ),
-                                        Text(
-                                          'High',
-                                          style: TextStyle(color: Colors.red),
-                                        ),
+                                        Icon(Icons.flag_rounded,
+                                            color: Colors.red),
+                                        SizedBox(width: 4),
+                                        Text('High',
+                                            style: TextStyle(color: Colors.red))
                                       ],
                                     ),
                                     onTap: () => setState(() {
@@ -371,17 +378,12 @@ class _TaskEditingScreenState extends State<TaskEditingScreen> {
                                     value: 'Min',
                                     child: const Row(
                                       children: [
-                                        Icon(
-                                          Icons.flag_rounded,
-                                          color: Colors.amber,
-                                        ),
-                                        SizedBox(
-                                          width: 4,
-                                        ),
-                                        Text(
-                                          'Min',
-                                          style: TextStyle(color: Colors.amber),
-                                        ),
+                                        Icon(Icons.flag_rounded,
+                                            color: Colors.amber),
+                                        SizedBox(width: 4),
+                                        Text('Min',
+                                            style:
+                                                TextStyle(color: Colors.amber))
                                       ],
                                     ),
                                     onTap: () => setState(() {
@@ -395,17 +397,12 @@ class _TaskEditingScreenState extends State<TaskEditingScreen> {
                                     value: 'Low',
                                     child: const Row(
                                       children: [
-                                        Icon(
-                                          Icons.flag_rounded,
-                                          color: Colors.blue,
-                                        ),
-                                        SizedBox(
-                                          width: 4,
-                                        ),
-                                        Text(
-                                          'Low',
-                                          style: TextStyle(color: Colors.blue),
-                                        ),
+                                        Icon(Icons.flag_rounded,
+                                            color: Colors.blue),
+                                        SizedBox(width: 4),
+                                        Text('Low',
+                                            style:
+                                                TextStyle(color: Colors.blue))
                                       ],
                                     ),
                                     onTap: () => setState(() {
@@ -436,7 +433,7 @@ class _TaskEditingScreenState extends State<TaskEditingScreen> {
                 padding:
                     const EdgeInsets.only(left: 15.0, right: 15.0, top: 8.0),
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(15),
+                  borderRadius: BorderRadius.circular(16),
                   onTap: () async {
                     // Combine the taskDate and _taskTime variables and create one single date
                     DateTime? taskDateTime = taskDate;
@@ -459,7 +456,12 @@ class _TaskEditingScreenState extends State<TaskEditingScreen> {
                     );
                     // Show confirmation that task is added
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
+                      SnackBar(
+                        margin: const EdgeInsets.all(6),
+                        behavior: SnackBarBehavior.floating,
+                        showCloseIcon: true,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                         content: Text('Task succesfully updated!'),
                       ),
                     );
@@ -478,7 +480,9 @@ class _TaskEditingScreenState extends State<TaskEditingScreen> {
                     child: Center(
                       child: Text(
                         'Update task',
-                        style: TextStyle(fontSize: 18),
+                        style: TextStyle(
+                            fontSize: 18,
+                            color: Theme.of(context).colorScheme.onPrimary),
                       ),
                     ),
                   ),

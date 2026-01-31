@@ -34,7 +34,7 @@ class BloomUpdater {
       bool dialogMounted = true;
 
       // Show progress dialog
-      showAdaptiveDialog(
+      showDialog(
         context: context,
         barrierDismissible: false,
         builder: (BuildContext dialogContext) {
@@ -48,7 +48,7 @@ class BloomUpdater {
                   dialogMounted = false;
                   return;
                 },
-                child: AlertDialog.adaptive(
+                child: AlertDialog(
                   icon: const Icon(Icons.download),
                   title: const Text('Downloading Update'),
                   titleTextStyle:

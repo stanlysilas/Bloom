@@ -21,14 +21,7 @@ class _DesktopBodyState extends State<DesktopBody> {
     return WindowBorder(
       color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black,
       child: Scaffold(
-        body: Row(
-          children: [
-            SizedBox(
-              width: sideBarSize,
-              child: const Navigationrail(),
-            ),
-          ],
-        ),
+        body: const Navigationrail(),
       ),
     );
   }

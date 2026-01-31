@@ -1,6 +1,8 @@
 // ignore_for_file: must_be_immutable
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:bloom/audio_services/audio_manager.dart';
+import 'package:bloom/components/delete_confirmation_dialog.dart';
 import 'package:bloom/notifications/notification.dart';
 import 'package:bloom/screens/task_details_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -75,6 +77,10 @@ class _TaskTileState extends State<TaskTile> {
           await subTask.reference.update({'isCompleted': true});
         }
       }
+      // Remove the notificationId from Firestore
+      await _firestore.collection('users').doc(userId).update({
+        'notificationIds': FieldValue.arrayRemove([widget.taskUniqueId])
+      });
     } else {}
   }
 
@@ -91,54 +97,63 @@ class _TaskTileState extends State<TaskTile> {
           Expanded(
             child: InkWell(
               onTap: () async {
-                final user = FirebaseAuth.instance.currentUser;
-                FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(user?.uid)
-                    .collection('tasks')
-                    .doc(widget.taskId)
-                    .delete();
-                NotificationService.cancelNotification(widget.taskUniqueId);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    margin: const EdgeInsets.all(6),
-                    behavior: SnackBarBehavior.floating,
-                    showCloseIcon: true,
-                    backgroundColor: Theme.of(context).primaryColor,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    content: Wrap(
-                      children: [
-                        Text(
-                          'Deleted: ',
-                          style: TextStyle(
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.color),
-                        ),
-                        Text(
-                          widget.taskTitle,
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.color),
-                          overflow: TextOverflow.ellipsis,
-                        )
-                      ],
-                    ),
-                  ),
-                );
+                showDialog(
+                    context: context,
+                    builder: (context) {
+                      return DeleteConfirmationDialog(
+                          onPressed: () async {
+                            final user = FirebaseAuth.instance.currentUser;
+                            await FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(user?.uid)
+                                .collection('tasks')
+                                .doc(widget.taskId)
+                                .delete();
+                            NotificationService.cancelNotification(
+                                widget.taskUniqueId);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                margin: const EdgeInsets.all(6),
+                                behavior: SnackBarBehavior.floating,
+                                showCloseIcon: true,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                content: Wrap(
+                                  children: [
+                                    Text(
+                                      'Deleted: ',
+                                    ),
+                                    Text(
+                                      widget.taskTitle,
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                      overflow: TextOverflow.ellipsis,
+                                    )
+                                  ],
+                                ),
+                              ),
+                            );
+                            // Remove the notificationId from Firestore
+                            await _firestore
+                                .collection('users')
+                                .doc(userId)
+                                .update({
+                              'notificationIds':
+                                  FieldValue.arrayRemove([widget.taskUniqueId])
+                            });
+                            Navigator.of(context).pop();
+                          },
+                          objectName: widget.taskTitle);
+                    });
               },
               child: Container(
-                padding: const EdgeInsets.all(14),
+                padding: EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                    color: Colors.red, borderRadius: BorderRadius.circular(8)),
+                    color: Theme.of(context).colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(8)),
                 child: Icon(
                   Icons.delete_rounded,
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                  color: Theme.of(context).colorScheme.onErrorContainer,
                 ),
               ),
             ),
@@ -188,9 +203,8 @@ class _TaskTileState extends State<TaskTile> {
                             _documentReference, updateData['isCompleted']!);
 
                         if (newValue == true) {
-                          player.setVolume(1);
-                          await player
-                              .play(AssetSource('audio/task_completed.mp3'));
+                          AudioManager()
+                              .playTaskCompleted(); // Play completion Audio
                           NotificationService.cancelNotification(
                               widget.taskUniqueId);
                         }

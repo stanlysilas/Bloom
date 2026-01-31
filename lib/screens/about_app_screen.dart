@@ -2,12 +2,15 @@ import 'dart:convert';
 
 import 'package:bloom/bloom_updater.dart';
 import 'package:bloom/components/bloom_buttons.dart';
+import 'package:bloom/models/changelog_model.dart';
 import 'package:bloom/responsive/dimensions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AboutAppScreen extends StatefulWidget {
   const AboutAppScreen({super.key});
@@ -23,13 +26,33 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
   late BannerAd bannerAd;
   bool isAdLoaded = false;
   bool? isUpdateAvailable;
+  String status = 'unknown';
+  final Uri downloadAndroidApkUri = Uri.parse(
+      'https://github.com/stanlysilas/Bloom/releases/latest/download/Bloom.apk');
+  final Uri visitGitHubRepoUri =
+      Uri.parse('https://github.com/stanlysilas/Bloom');
 
   @override
   void initState() {
     super.initState();
     updateCheck();
     getAppInfo();
+    fetchChangelog();
     // initBannerAd();
+  }
+
+  Future<void> launchDownloadAndroidApkUrl() async {
+    if (!await launchUrl(downloadAndroidApkUri,
+        mode: LaunchMode.externalApplication)) {
+      throw Exception('Could not launch $downloadAndroidApkUri');
+    }
+  }
+
+  Future<void> launchVisitGitHubRepoUrl() async {
+    if (!await launchUrl(visitGitHubRepoUri,
+        mode: LaunchMode.externalApplication)) {
+      throw Exception('Could not launch $visitGitHubRepoUri');
+    }
   }
 
   Future<void> getAppInfo() async {
@@ -51,9 +74,11 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
         if (value.exists && value['buildNumberAndroid'] > buildNumberAndroid) {
           isUpdateAvailable = true;
           newVersion = value['latestAndroidVersion'];
+          status = value['status'];
         } else {
           isUpdateAvailable = false;
           newVersion = currentVersion;
+          status = value['status'];
         }
       });
     });
@@ -100,10 +125,10 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
           // Compare the versions
           if (latestBuildNumberAndroid > buildNumberAndroid) {
             // Show the download and update dialog
-            showAdaptiveDialog(
+            showDialog(
                 context: context,
                 builder: (context) {
-                  return AlertDialog.adaptive(
+                  return AlertDialog(
                     icon: const Icon(Icons.download),
                     title: Text('New Update Available!'),
                     content: Column(
@@ -195,18 +220,36 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // Load the ChangeLog JSON for Android
-    Future<Map<String, dynamic>> loadChangelog() async {
-      final data = await DefaultAssetBundle.of(context)
-          .loadString('lib/required_data/changelog.json');
-      return json.decode(data);
+  Future<List<ChangelogModel>> fetchChangelog() async {
+    final androidUrl = Uri.parse(
+        'https://raw.githubusercontent.com/stanlysilas/bloom_data/refs/heads/main/changelogs/android_changelog.json');
+    http.Response response = await http.get(androidUrl);
+
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      response = await http.get(androidUrl);
     }
 
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(response.body);
+      return data.map((e) => ChangelogModel.fromJson(e)).toList();
+    } else {
+      throw Exception('Failed to load changelog');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('About Bloom'),
+        leading: IconButton(
+            style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.surfaceContainer)),
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Icon(Icons.arrow_back, color: Colors.grey)),
+        title: const Text('About Bloom',
+            style: TextStyle(
+                fontFamily: 'ClashGrotesk', fontWeight: FontWeight.w500)),
       ),
       body: SafeArea(
         child: Padding(
@@ -250,12 +293,16 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                           Text(
                             'Bloom - Productive',
                             style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
+                                fontFamily: 'ClashGrotesk',
+                                fontSize: 20,
+                                fontWeight: FontWeight.w400),
                           ),
                           // Version+BuildNumber
-                          Text("Version $currentVersion+$buildNumberAndroid"),
+                          Text("Version $currentVersion"),
                           // Channel of the app update
-                          Text('Beta Channel')
+                          // Text(!kIsWeb ? 'Beta Channel' : 'Web Client'),
+                          // Stable or which beta iteration
+                          Text("Channel: $status"),
                         ],
                       )
                     ],
@@ -263,68 +310,97 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                 ),
                 const SizedBox(height: 16),
                 // ChangeLog Block
-                FutureBuilder<Map<String, dynamic>>(
-                  future: loadChangelog(),
+                FutureBuilder<List<ChangelogModel>>(
+                  future: fetchChangelog(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(
+                      return Container(
+                          width: double.maxFinite,
+                          margin: EdgeInsets.symmetric(horizontal: 14),
+                          padding: EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(24),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainer),
+                          alignment: Alignment.center,
                           child: CircularProgressIndicator(year2023: false));
                     } else if (snapshot.hasError) {
+                      print(snapshot.error);
                       return const Center(
-                          child: Text("Error loading changelog."));
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Text(
+                            "Couldn't load changelog. Please try again later.",
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      );
                     }
 
-                    final changelog = snapshot.data!;
-                    final versionData = changelog[currentVersion];
-
-                    if (versionData == null) {
-                      return Center(
-                          child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                            'No changelog data available for version: $currentVersion'),
-                      ));
-                    }
-
+                    final changelogs = snapshot.data ?? [];
+                    final currentVersionLog = changelogs.firstWhere(
+                      (log) => log.version == currentVersion,
+                      orElse: () => ChangelogModel(
+                        version: currentVersion,
+                        title: "No changelog available",
+                        date: "",
+                        highlights: [],
+                        notes: "",
+                      ),
+                    );
                     return Container(
-                      margin: EdgeInsets.symmetric(horizontal: 14),
+                      width: double.maxFinite,
+                      margin: const EdgeInsets.symmetric(horizontal: 14),
                       padding: const EdgeInsets.all(14.0),
                       decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surfaceContainer,
-                          borderRadius: BorderRadius.circular(24)),
+                        color: Theme.of(context).colorScheme.surfaceContainer,
+                        borderRadius: BorderRadius.circular(24),
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Title
                           Text(
-                            versionData["title"],
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
+                            currentVersionLog.title,
+                            style: TextStyle(
+                              fontFamily: 'ClashGrotesk',
+                              fontWeight: FontWeight.w400,
                               fontSize: 20,
                             ),
                           ),
-                          ...List.generate(
-                            versionData["features"].length,
-                            (index) => Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 4.0),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  if (versionData['features'] != null)
-                                    const Text(
-                                      "• ",
-                                      style: TextStyle(fontSize: 20),
-                                    ),
-                                  if (versionData['features'] != null)
-                                    Expanded(
-                                      child:
-                                          Text(versionData["features"][index]),
-                                    ),
-                                ],
-                              ),
+                          const SizedBox(height: 8),
+
+                          // Version + Date
+                          currentVersionLog.date.isNotEmpty
+                              ? Text("Released on ${currentVersionLog.date}")
+                              : Text("Changelog unavailable for this version"),
+                          const SizedBox(height: 12),
+                          // Highlights (bullet points)
+                          if (currentVersionLog.highlights.isNotEmpty)
+                            ...currentVersionLog.highlights
+                                .map((item) => Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 2.0),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Text("• "),
+                                          Expanded(child: Text(item)),
+                                        ],
+                                      ),
+                                    )),
+                          // Notes section
+                          if (currentVersionLog.notes.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            Text(
+                              "Notes",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w600, fontSize: 16),
                             ),
-                          ),
+                            Text(currentVersionLog.notes),
+                          ],
                         ],
                       ),
                     );
@@ -332,25 +408,56 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                 ),
                 const SizedBox(height: 16),
                 // Check for updates button for Android
-                if (!kIsWeb)
-                  BloomMaterialListTile(
-                    borderRadius: BorderRadius.circular(24),
-                    icon: const Icon(Icons.download),
-                    label: isUpdateAvailable == true
-                        ? 'Download Update'
-                        : 'Check for Updates',
-                    subLabel: isUpdateAvailable == true
-                        ? "Version $newVersion is live now!"
-                        : 'You are on the latest version',
-                    showTag: isUpdateAvailable,
-                    tagIcon: const Icon(
-                      Icons.new_releases,
-                      size: 14,
-                    ),
-                    tagLabel: 'Update available',
-                    innerPadding: const EdgeInsets.all(12),
-                    onTap: checkForUpdates,
-                  ),
+                kIsWeb == false
+                    ? BloomMaterialListTile(
+                        borderRadius: BorderRadius.circular(24),
+                        icon: const Icon(Icons.download),
+                        label: isUpdateAvailable == true
+                            ? 'Download Update'
+                            : 'Check for Updates',
+                        subLabel: isUpdateAvailable == true
+                            ? "Version $newVersion is live now!"
+                            : 'You are on the latest version',
+                        showTag: isUpdateAvailable,
+                        tagIcon: const Icon(
+                          Icons.new_releases,
+                          size: 14,
+                        ),
+                        tagLabel: 'Update available',
+                        innerPadding: const EdgeInsets.all(12),
+                        onTap: checkForUpdates,
+                      )
+                    : BloomMaterialListTile(
+                        borderRadius: BorderRadius.circular(24),
+                        icon: const Icon(Icons.download),
+                        label: "Download Android APK",
+                        subLabel:
+                            'Download and use the Android version for the full experience',
+                        // showTag: isUpdateAvailable,
+                        // tagIcon: const Icon(
+                        //   Icons.new_releases,
+                        //   size: 14,
+                        // ),
+                        // tagLabel: 'Update available',
+                        innerPadding: const EdgeInsets.all(12),
+                        onTap: launchDownloadAndroidApkUrl,
+                      ),
+                const SizedBox(height: 16),
+                // GitHub repo Button
+                BloomMaterialListTile(
+                  borderRadius: BorderRadius.circular(24),
+                  icon: const Icon(Icons.open_in_browser),
+                  label: 'View on GitHub',
+                  subLabel: 'Visit the GitHub repository for Bloom',
+                  // showTag: isUpdateAvailable,
+                  // tagIcon: const Icon(
+                  //   Icons.new_releases,
+                  //   size: 14,
+                  // ),
+                  // tagLabel: 'Update available',
+                  innerPadding: const EdgeInsets.all(12),
+                  onTap: launchVisitGitHubRepoUrl,
+                )
               ],
             ),
           ),

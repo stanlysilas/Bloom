@@ -57,15 +57,26 @@ class _CustomTemplatesScreenState extends State<CustomTemplatesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Templates'),
+        leading: IconButton(
+            style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.surfaceContainer)),
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Icon(Icons.arrow_back, color: Colors.grey)),
+        title: const Text('Templates',
+            style: TextStyle(
+                fontFamily: 'ClashGrotesk', fontWeight: FontWeight.w500)),
         actions: [
           IconButton(
+            style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.surfaceContainer)),
             onPressed: () {
               setState(() {
                 isSearchEnabled = !isSearchEnabled;
               });
             },
-            icon: const Icon(Icons.search_rounded),
+            icon: const Icon(Icons.search_rounded, color: Colors.grey),
           ),
         ],
         bottom: isSearchEnabled
@@ -181,6 +192,8 @@ class _CustomTemplatesScreenState extends State<CustomTemplatesScreen> {
                       final String templateId = templates['templateId'];
                       final String templateThumbnail =
                           templates['templateThumbnail'];
+                      final String templateThumbnailDark =
+                          templates['templateThumbnail_dark'];
                       final String templateIcon = templates['templateIcon'];
                       final String templateTitle = templates['templateTitle'];
                       final String templateDescription =
@@ -195,6 +208,7 @@ class _CustomTemplatesScreenState extends State<CustomTemplatesScreen> {
                         templateId: templateId,
                         templateType: templateType,
                         templateThumbnail: templateThumbnail,
+                        templateThumbnailDark: templateThumbnailDark,
                         templateIcon: templateIcon,
                         templateTitle: templateTitle,
                         templateDescription: templateDescription,
