@@ -1,0 +1,153 @@
+name: Build APK & Publish Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    env:
+      CHANGELOG_REPO: stanlysilas/bloom_data
+      CHANGELOG_PATH: changelogs/android_changelog.json
+
+    steps:
+    # -------------------------------------------------
+    # 1. Checkout Flutter app repo
+    # -------------------------------------------------
+    - name: Checkout app repo
+      uses: actions/checkout@v4
+
+    # -------------------------------------------------
+    # 2. Setup Java (Android build requirement)
+    # -------------------------------------------------
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+
+    # -------------------------------------------------
+    # 3. Setup Flutter (PIN VERSION – DO NOT USE "stable")
+    # -------------------------------------------------
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.22.3'
+        channel: ''
+
+    # -------------------------------------------------
+    # 4. Install dependencies
+    # -------------------------------------------------
+    - name: Upgrade Flutter packages
+      run: flutter pub upgrade
+
+    - name: Flutter pub get
+      run: flutter pub get
+
+    # -------------------------------------------------
+    # 5. Build release APK
+    # -------------------------------------------------
+    - name: Build APK
+      run: flutter build apk --release
+
+    # -------------------------------------------------
+    # 6. Rename APK to Bloom.apk (updater contract)
+    # -------------------------------------------------
+    - name: Rename APK
+      run: |
+        mv build/app/outputs/flutter-apk/app-release.apk \
+           build/app/outputs/flutter-apk/Bloom.apk
+
+    # -------------------------------------------------
+    # 7. Ensure APK exists (fail fast)
+    # -------------------------------------------------
+    - name: Verify Bloom.apk exists
+      run: test -f build/app/outputs/flutter-apk/Bloom.apk
+
+    # -------------------------------------------------
+    # 8. Checkout changelog repo
+    # -------------------------------------------------
+    - name: Checkout changelog repo
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ env.CHANGELOG_REPO }}
+        token: ${{ secrets.RELEASE_TOKEN }}
+        path: changelog-repo
+
+    # -------------------------------------------------
+    # 9. Parse changelog.json
+    # -------------------------------------------------
+    - name: Parse changelog
+      id: changelog
+      run: |
+        VERSION=$(jq -r '.version' changelog-repo/${{ env.CHANGELOG_PATH }})
+        DATE=$(jq -r '.date' changelog-repo/${{ env.CHANGELOG_PATH }})
+        NOTES=$(jq -r '.changes[]' changelog-repo/${{ env.CHANGELOG_PATH }} | sed 's/^/- /')
+
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "date=$DATE" >> $GITHUB_OUTPUT
+        echo "notes<<EOF" >> $GITHUB_OUTPUT
+        echo "$NOTES" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    # -------------------------------------------------
+    # 10. Check if GitHub Release already exists
+    # -------------------------------------------------
+    - name: Check if release exists
+      id: release_check
+      run: |
+        TAG="v${{ steps.changelog.outputs.version }}"
+        if gh release view "$TAG" >/dev/null 2>&1; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+
+    # -------------------------------------------------
+    # 11. Create release (ONLY if it does not exist)
+    # -------------------------------------------------
+    - name: Create GitHub Release
+      if: steps.release_check.outputs.exists == 'false'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v${{ steps.changelog.outputs.version }}
+        name: Release v${{ steps.changelog.outputs.version }}
+        body: |
+          📅 Release Date: ${{ steps.changelog.outputs.date }}
+
+          ## 🚀 Changes
+          ${{ steps.changelog.outputs.notes }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+
+    # -------------------------------------------------
+    # 12. Delete existing Bloom.apk (hotfix support)
+    # -------------------------------------------------
+    - name: Remove existing Bloom.apk if present
+      run: |
+        TAG="v${{ steps.changelog.outputs.version }}"
+        ASSET_ID=$(gh release view "$TAG" --json assets \
+          --jq '.assets[] | select(.name=="Bloom.apk") | .id')
+
+        if [ -n "$ASSET_ID" ]; then
+          gh api -X DELETE /repos/${{ github.repository }}/releases/assets/$ASSET_ID
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+
+    # -------------------------------------------------
+    # 13. Upload canonical Bloom.apk
+    # -------------------------------------------------
+    - name: Upload Bloom.apk
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v${{ steps.changelog.outputs.version }}
+        files: |
+          build/app/outputs/flutter-apk/Bloom.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
