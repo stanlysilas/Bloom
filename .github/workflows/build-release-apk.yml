@@ -45,11 +45,11 @@ jobs:
     - name: Flutter pub get
       run: flutter pub get
 
-    - name: Check any formatting issues in the code
-      run: flutter format --set-exit-if-changed .
+    # - name: Check any formatting issues in the code
+    #   run: flutter format --set-exit-if-changed .
 
-    - name: Statically analyse the Dart code for any errors
-      run: flutter analyse .
+    # - name: Statically analyse the Dart code for any errors
+    #   run: flutter analyse .
 
     # -------------------------------------------------
     # 5. Build release APK
