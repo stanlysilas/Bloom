@@ -24,19 +24,17 @@ jobs:
     # 2. Setup Java (Android build requirement)
     # -------------------------------------------------
     - name: Set up JDK
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v1
       with:
-        distribution: temurin
-        java-version: 17
+        java-version: '12.x'
 
     # -------------------------------------------------
     # 3. Setup Flutter (PIN VERSION – DO NOT USE "stable")
     # -------------------------------------------------
     - name: Setup Flutter
-      uses: subosito/flutter-action@v2
+      uses: subosito/flutter-action@v1
       with:
-        flutter-version: '3.22.3'
-        channel: ''
+        channel: 'beta'
 
     # -------------------------------------------------
     # 4. Install dependencies
@@ -46,6 +44,12 @@ jobs:
 
     - name: Flutter pub get
       run: flutter pub get
+
+    - name: Check any formatting issues in the code
+      run: flutter format --set-exit-if-changed .
+
+    - name: Statically analyse the Dart code for any errors
+      run: flutter analyse .
 
     # -------------------------------------------------
     # 5. Build release APK
