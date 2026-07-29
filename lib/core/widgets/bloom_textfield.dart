@@ -1,0 +1,71 @@
+import 'package:flutter/material.dart';
+
+class BloomTextfield extends StatelessWidget {
+  final TextEditingController controller;
+  final String hintText;
+  final bool obscureText;
+  final bool autoFocus;
+  final Widget? suffixIcon;
+  final int? minLines;
+  final int? maxLines;
+  final TextInputType textInputType;
+  final Icon? prefixIcon;
+  final FocusNode focusNode;
+  final int? maxLength;
+  const BloomTextfield({
+    super.key,
+    required this.controller,
+    required this.hintText,
+    required this.obscureText,
+    this.suffixIcon,
+    required this.textInputType,
+    required this.autoFocus,
+    this.minLines,
+    this.maxLines,
+    this.prefixIcon,
+    required this.focusNode,
+    this.maxLength,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      focusNode: focusNode,
+      minLines: minLines,
+      maxLines: maxLines,
+      maxLength: maxLength,
+      onTapOutside: (event) {
+        focusNode.unfocus();
+      },
+      controller: controller,
+      keyboardType: textInputType,
+      obscureText: obscureText,
+      autofocus: autoFocus,
+      decoration: InputDecoration(
+        prefixIcon: prefixIcon,
+        fillColor: Theme.of(context).colorScheme.surfaceContainer,
+        filled: true,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(
+          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        suffixIcon: suffixIcon,
+        hintText: hintText,
+        hintStyle: const TextStyle(
+          fontWeight: FontWeight.normal,
+          color: Colors.grey,
+        ),
+        hintFadeDuration: const Duration(milliseconds: 400),
+        // labelText: "hintText",
+      ),
+    );
+  }
+}

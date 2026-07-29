@@ -1,14 +1,13 @@
 import 'dart:async';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
-import 'package:bloom/authentication_screens/authenticateuser.dart';
+import 'package:bloom/features/auth/authenticate_user.dart';
 import 'package:bloom/firebase_options.dart';
-import 'package:bloom/loading_animation.dart';
-import 'package:bloom/models/note_layout.dart';
-import 'package:bloom/notifications/notification.dart';
-import 'package:bloom/screens/pomodoro_timer.dart';
-import 'package:bloom/theme/color_scheme_provider.dart';
-import 'package:bloom/theme/theme_provider.dart';
-import 'package:bloom/windows_components/navigationrail.dart';
+import 'package:bloom/core/utils/loading_animation.dart';
+import 'package:bloom/features/objects/notes/note_layout.dart';
+import 'package:bloom/services/firebase/notification.dart';
+import 'package:bloom/features/goals/pomodoro/screens/pomodoro_timer.dart';
+import 'package:bloom/core/theme/color_scheme_provider.dart';
+import 'package:bloom/core/theme/theme_provider.dart';
 import 'package:calendar_view/calendar_view.dart';
 import 'package:feedback/feedback.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -22,7 +21,6 @@ import 'package:timezone/data/latest.dart' as tz;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase first (needed before runApp)
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(const BloomApp());
@@ -56,6 +54,8 @@ class BloomApp extends StatefulWidget {
 
 class _BloomAppState extends State<BloomApp> {
   late Future<bool> _loadPrefsFuture;
+  final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
 
   @override
   void initState() {
@@ -73,7 +73,6 @@ class _BloomAppState extends State<BloomApp> {
     return FutureBuilder<bool>(
       future: _loadPrefsFuture,
       builder: (context, snapshot) {
-        // Show splash/loader while waiting
         if (!snapshot.hasData) {
           return MaterialApp(
             color: Theme.of(context).colorScheme.surface,
@@ -86,10 +85,9 @@ class _BloomAppState extends State<BloomApp> {
           providers: [
             ChangeNotifierProvider(create: (_) => ThemeProvider()),
             ChangeNotifierProvider(create: (_) => ColorSchemeProvider()),
-            ChangeNotifierProvider(create: (_) => BackgroundImageNotifier()),
-            ChangeNotifierProvider(create: (_) => EmojiNotifier()),
-            ChangeNotifierProvider(create: (_) => PomodoroTimerProvider()),
-            ChangeNotifierProvider(create: (_) => NavigationrailProvider()),
+            ChangeNotifierProvider(
+              create: (_) => PomodoroTimerProvider(),
+            ),
             ChangeNotifierProvider(create: (_) => EditorFocusProvider()),
           ],
           child: Consumer<ThemeProvider>(

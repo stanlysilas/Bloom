@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "286072090024-msh034jpr7h7ute8m1sapgjm2tlvp7jk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bloomproductive.bloom",
+            "certificate_hash": "98b3de17768184598833fcf62068dead72f01482"
+          }
+        },
+        {
           "client_id": "286072090024-pis2e4hp1kcd6q89p5rkibpn1mpsrsh4.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

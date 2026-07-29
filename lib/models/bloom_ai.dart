@@ -1,5 +1,5 @@
 // This is the BloomAI inside the note_layout.dart model for an entry
-import 'package:bloom/components/textfield_nobackground.dart';
+import 'package:bloom/features/objects/notes/widgets/textfield_nobackground.dart';
 import 'package:firebase_ai/firebase_ai.dart';
 import 'package:flutter/material.dart';
 
