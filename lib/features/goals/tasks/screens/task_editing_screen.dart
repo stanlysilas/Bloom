@@ -156,11 +156,10 @@ class _TaskEditingScreenState extends State<TaskEditingScreen> {
             style: TextStyle(
                 fontFamily: 'ClashGrotesk', fontWeight: FontWeight.w500)),
       ),
-      body: SafeArea(
+      body: Align(
+        alignment: Alignment.center,
         child: SizedBox(
-          height: MediaQuery.of(context).size.width > mobileWidth
-              ? MediaQuery.of(context).size.width * 0.7
-              : MediaQuery.of(context).size.height * 0.9,
+          width: MediaQuery.of(context).size.width > mobileWidth ? 650 : null,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,

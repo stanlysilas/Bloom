@@ -10,7 +10,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+// import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MoreOptionsScreen extends StatefulWidget {
@@ -28,7 +28,7 @@ class _MoreOptionsScreenState extends State<MoreOptionsScreen> {
   String? userName;
   String? font;
   bool? isImageNetwork;
-  late BannerAd bannerAd;
+  // late BannerAd bannerAd;
   bool isAdLoaded = false;
   bool? didRateApp = true;
   String? subscriptionPlan;
@@ -51,36 +51,36 @@ class _MoreOptionsScreenState extends State<MoreOptionsScreen> {
   }
 
 // Banner ADs initialization method
-  void initBannerAd() {
-    bannerAd = BannerAd(
-      size: AdSize.banner,
-      adUnitId: "ca-app-pub-5607290715305671/2817997384",
-      listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          setState(() {
-            isAdLoaded = true;
-          });
-        },
-        onAdFailedToLoad: (ad, error) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              margin: const EdgeInsets.all(6),
-              behavior: SnackBarBehavior.floating,
-              showCloseIcon: true,
-              backgroundColor: Theme.of(context).primaryColor,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              content: Text(
-                'Failed to load the Ad. ${error.message}',
-                style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyMedium?.color),
-              )));
-        },
-      ),
-      request: const AdRequest(),
-    );
+  // void initBannerAd() {
+  //   bannerAd = BannerAd(
+  //     size: AdSize.banner,
+  //     adUnitId: "ca-app-pub-5607290715305671/2817997384",
+  //     listener: BannerAdListener(
+  //       onAdLoaded: (ad) {
+  //         setState(() {
+  //           isAdLoaded = true;
+  //         });
+  //       },
+  //       onAdFailedToLoad: (ad, error) {
+  //         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+  //             margin: const EdgeInsets.all(6),
+  //             behavior: SnackBarBehavior.floating,
+  //             showCloseIcon: true,
+  //             backgroundColor: Theme.of(context).primaryColor,
+  //             shape: RoundedRectangleBorder(
+  //                 borderRadius: BorderRadius.circular(12)),
+  //             content: Text(
+  //               'Failed to load the Ad. ${error.message}',
+  //               style: TextStyle(
+  //                   color: Theme.of(context).textTheme.bodyMedium?.color),
+  //             )));
+  //       },
+  //     ),
+  //     request: const AdRequest(),
+  //   );
 
-    bannerAd.load();
-  }
+  //   bannerAd.load();
+  // }
 
   /// Check if the user has rated the app or not
   void checkUserRating() async {
@@ -457,15 +457,6 @@ class _MoreOptionsScreenState extends State<MoreOptionsScreen> {
           ),
         ),
       ),
-      bottomSheet:
-          // Display and AD in between the events tile and tasks tile (testing)
-          isAdLoaded
-              ? SizedBox(
-                  height: bannerAd.size.height.toDouble(),
-                  width: bannerAd.size.width.toDouble(),
-                  child: Center(child: AdWidget(ad: bannerAd)),
-                )
-              : const SizedBox(),
     );
   }
 }

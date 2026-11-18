@@ -1,3 +1,4 @@
+import 'package:bloom/core/responsive/dimensions.dart';
 import 'package:bloom/features/goals/events/screens/eventstabview.dart';
 import 'package:bloom/features/goals/habits/screens/habitstabview.dart';
 import 'package:bloom/features/goals/tasks/screens/taskstabview.dart';
@@ -92,14 +93,21 @@ class _GoalsScreenState extends State<GoalsScreen>
             final habits = data.whereType<HabitModel>().toList();
             final events = data.whereType<EventModel>().toList();
 
-            return TabBarView(
-              controller: tabController,
-              children: [
-                Taskstabview(tasks: tasks),
-                Habitstabview(habits: habits),
-                SchedulesScreen(events: events),
-              ],
-            );
+            return Align(
+                alignment: Alignment.center,
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width > mobileWidth
+                      ? 650
+                      : null,
+                  child: TabBarView(
+                    controller: tabController,
+                    children: [
+                      Taskstabview(tasks: tasks),
+                      Habitstabview(habits: habits),
+                      SchedulesScreen(events: events),
+                    ],
+                  ),
+                ));
           }),
     );
   }

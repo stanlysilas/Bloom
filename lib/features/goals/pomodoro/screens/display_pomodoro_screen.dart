@@ -7,7 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+// import 'package:google_mobile_ads/google_mobile_ads.dart';
 // import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -23,7 +23,7 @@ class DisplayPomodoroScreen extends StatefulWidget {
 class _DisplayPomodoroScreenState extends State<DisplayPomodoroScreen> {
   // Required vars
   final user = FirebaseAuth.instance.currentUser;
-  late BannerAd bannerAd;
+  // late BannerAd bannerAd;
   bool isAdLoaded = false;
   bool toggleDayView = false;
   var _focusedDay = DateTime.now();
@@ -38,36 +38,36 @@ class _DisplayPomodoroScreenState extends State<DisplayPomodoroScreen> {
   }
 
   // Banner ADs initialization method
-  void initBannerAd() {
-    bannerAd = BannerAd(
-      size: AdSize.banner,
-      adUnitId: "ca-app-pub-5607290715305671/4836853736",
-      listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          setState(() {
-            isAdLoaded = true;
-          });
-        },
-        onAdFailedToLoad: (ad, error) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              margin: const EdgeInsets.all(6),
-              behavior: SnackBarBehavior.floating,
-              showCloseIcon: true,
-              backgroundColor: Theme.of(context).primaryColor,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              content: Text(
-                'Failed to load the Ad. ${error.message}',
-                style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyMedium?.color),
-              )));
-        },
-      ),
-      request: const AdRequest(),
-    );
+  // void initBannerAd() {
+  //   bannerAd = BannerAd(
+  //     size: AdSize.banner,
+  //     adUnitId: "ca-app-pub-5607290715305671/4836853736",
+  //     listener: BannerAdListener(
+  //       onAdLoaded: (ad) {
+  //         setState(() {
+  //           isAdLoaded = true;
+  //         });
+  //       },
+  //       onAdFailedToLoad: (ad, error) {
+  //         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+  //             margin: const EdgeInsets.all(6),
+  //             behavior: SnackBarBehavior.floating,
+  //             showCloseIcon: true,
+  //             backgroundColor: Theme.of(context).primaryColor,
+  //             shape: RoundedRectangleBorder(
+  //                 borderRadius: BorderRadius.circular(12)),
+  //             content: Text(
+  //               'Failed to load the Ad. ${error.message}',
+  //               style: TextStyle(
+  //                   color: Theme.of(context).textTheme.bodyMedium?.color),
+  //             )));
+  //       },
+  //     ),
+  //     request: const AdRequest(),
+  //   );
 
-    bannerAd.load();
-  }
+  //   bannerAd.load();
+  // }
 
   void onDaySelected(DateTime selectedDay, DateTime focusedDay) {
     setState(() {

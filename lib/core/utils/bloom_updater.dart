@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:bloom/core/utils/bloom_snackbars.dart';
 import 'package:bloom/services/permissions/storage_permission.dart';
 import 'package:flutter/material.dart';
-import 'package:app_installer/app_installer.dart';
+import 'package:flutter_app_installer/flutter_app_installer.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 
@@ -103,7 +103,8 @@ class BloomUpdater {
         Navigator.of(context, rootNavigator: true).pop();
       }
 
-      AppInstaller.installApk(filePath);
+      final FlutterAppInstaller flutterAppInstaller = FlutterAppInstaller();
+      flutterAppInstaller.installApk(filePath: filePath);
 
       bloomSnackBars.showSuccessSnackBar(
           'Downloaded update. Please install to continue.');

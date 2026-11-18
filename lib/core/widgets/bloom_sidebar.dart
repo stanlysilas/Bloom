@@ -133,7 +133,7 @@ class _BloomSidebarState extends State<BloomSidebar> {
                   child: BloomIconButton(
                     onTap: () => _openCreateModal(),
                     icon: Icon(
-                      Icons.create,
+                      Icons.add,
                       size: 20,
                     ),
                   ),

@@ -11,7 +11,7 @@ class ActionObjectFactory {
 
     switch (type) {
       case 'task':
-        return TaskModel.fromFirestore(data);
+        return TaskModel.fromFirestore(data, []);
       case 'habit':
         return HabitModel.fromFirestore(data);
       case 'event':

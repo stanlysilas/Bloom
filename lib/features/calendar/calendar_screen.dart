@@ -1,3 +1,4 @@
+import 'package:bloom/core/responsive/dimensions.dart';
 import 'package:bloom/features/objects/notes/note_layout.dart';
 import 'package:bloom/features/goals/events/screens/event_details_screen.dart';
 import 'package:bloom/features/goals/habits/screens/habits_details_screen.dart';
@@ -193,311 +194,331 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
       body: ValueListenableBuilder(
           valueListenable: selectedDateNotifier,
           builder: (context, date, _) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  height: MediaQuery.of(context).size.height,
-                  child: DayView(
-                    controller: calendarViewEventController,
-                    backgroundColor: Theme.of(context).colorScheme.surface,
-                    headerStyle: HeaderStyle(
-                        headerPadding: EdgeInsets.symmetric(horizontal: 6),
-                        decoration: BoxDecoration(
-                            color:
-                                Theme.of(context).appBarTheme.backgroundColor),
-                        titleAlign: TextAlign.left,
-                        headerTextStyle: TextStyle(
-                            fontFamily: 'ClashGrotesk',
-                            fontWeight: FontWeight.w500,
-                            fontSize: 18),
-                        rightIconConfig: IconDataConfig(
-                          icon: (context) {
-                            return Row(
-                              children: [
-                                // Loading indicator for the CalendarEvents
-                                if (isLoadingEvents == true)
-                                  CircularProgressIndicator(
-                                    year2023: false,
-                                    constraints: BoxConstraints(
-                                        minHeight: 28,
-                                        minWidth: 28,
-                                        maxHeight: 28,
-                                        maxWidth: 28),
-                                  ),
-                                // Button for more options
-                                // PopupMenuButton(
-                                //   color: Theme.of(context).primaryColorLight,
-                                //   popUpAnimationStyle: AnimationStyle(
-                                //       duration: const Duration(milliseconds: 500)),
-                                //   itemBuilder: (context) => [
-                                //     PopupMenuItem(
-                                //       value: 'change_colors',
-                                //       child: Text(
-                                //         'Change colors',
-                                //         style: TextStyle(
-                                //             color: Theme.of(context)
-                                //                 .textTheme
-                                //                 .bodyMedium
-                                //                 ?.color),
-                                //       ),
-                                //       onTap: () async {
-                                //         // Navigate to settings screen to change the color preferences of the user in CalendarView
-                                //         Navigator.of(context).push(MaterialPageRoute(
-                                //             builder: (context) => SettingsPage()));
-                                //       },
-                                //     ),
-                                //   ],
-                                // ),
-                              ],
-                            );
-                          },
-                        )),
-                    minDay: DateTime(2000),
-                    maxDay: DateTime(2101),
-                    initialDay: selectedDateNotifier.value,
-                    heightPerMinute: 1,
-                    eventArranger: SideEventArranger(includeEdges: true),
-                    keepScrollOffset: true,
-                    eventTileBuilder:
-                        (date, events, boundary, startDuration, endDuration) {
-                      // Show all events stacked vertically if there are multiple on the same slot
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: events.map((event) {
-                          final eventColor = event.color;
-                          final title = event.title;
-                          final Map<String, dynamic> extraData =
-                              event.event as Map<String, dynamic>;
-                          final String type = extraData['type'] ?? '';
-                          final String objectId = extraData['uid'] ?? '';
-
-                          return InkWell(
-                            onTap: () async {
-                              if (type == 'tasks') {
-                                bool? isCompleted;
-                                int taskUniqueId = 0;
-                                List taskGroups = [];
-                                DateTime taskDateTime = DateTime.now();
-                                int priorityLevel = 3;
-                                String priorityLevelString = 'Low';
-                                DateTime addedOn = DateTime.now();
-                                String taskMode = 'MainTask';
-                                // Retrieve the Task details using the uid from events
-                                await FirebaseFirestore.instance
-                                    .collection('users')
-                                    .doc(user?.uid)
-                                    .collection(type)
-                                    .doc(objectId)
-                                    .get()
-                                    .then((value) {
-                                  isCompleted = value['isCompleted'];
-                                  taskUniqueId = value['taskUniqueId'];
-                                  taskGroups = value['taskGroups'];
-                                  Timestamp timestamp = value['taskDateTime'];
-                                  taskDateTime = timestamp.toDate();
-                                  priorityLevel = value['priorityLevel'];
-                                  priorityLevelString =
-                                      value['priorityLevelString'];
-                                  Timestamp timeStamp = value['addedOn'];
-                                  addedOn = timeStamp.toDate();
-                                  taskMode = value['taskMode'];
-                                });
-                                final taskModel = TaskModel(
-                                  objectId: objectId,
-                                  addedOn: addedOn,
-                                  name: title,
-                                  description: event.description,
-                                  isCompleted: isCompleted ?? false,
-                                  dateTime: taskDateTime,
-                                  uniqueNotificationId: taskUniqueId,
-                                  groups: taskGroups as List<String>,
-                                  priorityLevel: priorityLevel,
-                                  priorityLevelString: priorityLevelString,
+            return Align(
+              alignment: Alignment.center,
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width > mobileWidth
+                    ? 650
+                    : null,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height,
+                      child: DayView(
+                        controller: calendarViewEventController,
+                        backgroundColor: Theme.of(context).colorScheme.surface,
+                        headerStyle: HeaderStyle(
+                            headerPadding: EdgeInsets.symmetric(horizontal: 6),
+                            decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .appBarTheme
+                                    .backgroundColor),
+                            titleAlign: TextAlign.left,
+                            headerTextStyle: TextStyle(
+                                fontFamily: 'ClashGrotesk',
+                                fontWeight: FontWeight.w500,
+                                fontSize: 18),
+                            rightIconConfig: IconDataConfig(
+                              icon: (context) {
+                                return Row(
+                                  children: [
+                                    // Loading indicator for the CalendarEvents
+                                    if (isLoadingEvents == true)
+                                      CircularProgressIndicator(
+                                        year2023: false,
+                                        constraints: BoxConstraints(
+                                            minHeight: 28,
+                                            minWidth: 28,
+                                            maxHeight: 28,
+                                            maxWidth: 28),
+                                      ),
+                                    // Button for more options
+                                    // PopupMenuButton(
+                                    //   color: Theme.of(context).primaryColorLight,
+                                    //   popUpAnimationStyle: AnimationStyle(
+                                    //       duration: const Duration(milliseconds: 500)),
+                                    //   itemBuilder: (context) => [
+                                    //     PopupMenuItem(
+                                    //       value: 'change_colors',
+                                    //       child: Text(
+                                    //         'Change colors',
+                                    //         style: TextStyle(
+                                    //             color: Theme.of(context)
+                                    //                 .textTheme
+                                    //                 .bodyMedium
+                                    //                 ?.color),
+                                    //       ),
+                                    //       onTap: () async {
+                                    //         // Navigate to settings screen to change the color preferences of the user in CalendarView
+                                    //         Navigator.of(context).push(MaterialPageRoute(
+                                    //             builder: (context) => SettingsPage()));
+                                    //       },
+                                    //     ),
+                                    //   ],
+                                    // ),
+                                  ],
                                 );
-                                // Show a modal bottom sheet with the details of the tasks
-                                showModalBottomSheet(
-                                    context: context,
-                                    showDragHandle: true,
-                                    isScrollControlled: true,
-                                    useSafeArea: true,
-                                    backgroundColor:
-                                        Theme.of(context).colorScheme.surface,
-                                    builder: (context) {
-                                      return ShowTaskDetailsScreen(
-                                          taskModel: taskModel);
+                              },
+                            )),
+                        minDay: DateTime(2000),
+                        maxDay: DateTime(2101),
+                        initialDay: selectedDateNotifier.value,
+                        heightPerMinute: 1,
+                        eventArranger: SideEventArranger(includeEdges: true),
+                        keepScrollOffset: true,
+                        eventTileBuilder: (date, events, boundary,
+                            startDuration, endDuration) {
+                          // Show all events stacked vertically if there are multiple on the same slot
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: events.map((event) {
+                              final eventColor = event.color;
+                              final title = event.title;
+                              final Map<String, dynamic> extraData =
+                                  event.event as Map<String, dynamic>;
+                              final String type = extraData['type'] ?? '';
+                              final String objectId = extraData['uid'] ?? '';
+
+                              return InkWell(
+                                onTap: () async {
+                                  if (type == 'tasks') {
+                                    bool? isCompleted;
+                                    int taskUniqueId = 0;
+                                    List taskGroups = [];
+                                    DateTime taskDateTime = DateTime.now();
+                                    int priorityLevel = 3;
+                                    String priorityLevelString = 'Low';
+                                    DateTime addedOn = DateTime.now();
+                                    String taskMode = 'MainTask';
+                                    // Retrieve the Task details using the uid from events
+                                    await FirebaseFirestore.instance
+                                        .collection('users')
+                                        .doc(user?.uid)
+                                        .collection(type)
+                                        .doc(objectId)
+                                        .get()
+                                        .then((value) {
+                                      isCompleted = value['isCompleted'];
+                                      taskUniqueId = value['taskUniqueId'];
+                                      taskGroups = value['taskGroups'];
+                                      Timestamp timestamp =
+                                          value['taskDateTime'];
+                                      taskDateTime = timestamp.toDate();
+                                      priorityLevel = value['priorityLevel'];
+                                      priorityLevelString =
+                                          value['priorityLevelString'];
+                                      Timestamp timeStamp = value['addedOn'];
+                                      addedOn = timeStamp.toDate();
+                                      taskMode = value['taskMode'];
                                     });
-                              } else if (type == 'events') {
-                                bool? isAttended;
-                                int eventUniqueId = 0;
-                                String color;
-                                Color eventColorCode =
-                                    Theme.of(context).colorScheme.primary;
-                                // Retrieve the details of the event from FirebaseFirestore
-                                await FirebaseFirestore.instance
-                                    .collection('users')
-                                    .doc(user?.uid)
-                                    .collection(type)
-                                    .doc(objectId)
-                                    .get()
-                                    .then((value) {
-                                  isAttended = value['isAttended'];
-                                  eventUniqueId = value['eventUniqueId'];
-                                  color = value['eventColorCode'];
-                                  eventColorCode = Color(
-                                      int.parse(color, radix: 16) + 0xFF000000);
-                                });
-                                // Show a modal bottom sheet with the details of the events
-                                showModalBottomSheet(
-                                    context: context,
-                                    showDragHandle: true,
-                                    isScrollControlled: true,
-                                    useSafeArea: true,
-                                    backgroundColor:
-                                        Theme.of(context).colorScheme.surface,
-                                    builder: (context) {
-                                      return EventDetailsScreen(
-                                          eventName: event.title,
-                                          eventNotes: event.description ?? '',
-                                          eventId: objectId,
-                                          eventStartDateTime: event.startTime!,
-                                          eventEndDateTime: event.endTime,
-                                          eventColorCode: eventColorCode,
-                                          eventUniqueId: eventUniqueId,
-                                          appBarLeading: Icons.close,
-                                          isAttended: isAttended ?? false);
+                                    final taskModel = TaskModel(
+                                      objectId: objectId,
+                                      addedOn: addedOn,
+                                      name: title,
+                                      description: event.description,
+                                      isCompleted: isCompleted ?? false,
+                                      dateTime: taskDateTime,
+                                      uniqueNotificationId: taskUniqueId,
+                                      groups: taskGroups as List<String>,
+                                      priorityLevel: priorityLevel,
+                                      priorityLevelString: priorityLevelString,
+                                    );
+                                    // Show a modal bottom sheet with the details of the tasks
+                                    showModalBottomSheet(
+                                        context: context,
+                                        showDragHandle: true,
+                                        isScrollControlled: true,
+                                        useSafeArea: true,
+                                        backgroundColor: Theme.of(context)
+                                            .colorScheme
+                                            .surface,
+                                        builder: (context) {
+                                          return ShowTaskDetailsScreen(
+                                              taskModel: taskModel);
+                                        });
+                                  } else if (type == 'events') {
+                                    bool? isAttended;
+                                    int eventUniqueId = 0;
+                                    String color;
+                                    Color eventColorCode =
+                                        Theme.of(context).colorScheme.primary;
+                                    // Retrieve the details of the event from FirebaseFirestore
+                                    await FirebaseFirestore.instance
+                                        .collection('users')
+                                        .doc(user?.uid)
+                                        .collection(type)
+                                        .doc(objectId)
+                                        .get()
+                                        .then((value) {
+                                      isAttended = value['isAttended'];
+                                      eventUniqueId = value['eventUniqueId'];
+                                      color = value['eventColorCode'];
+                                      eventColorCode = Color(
+                                          int.parse(color, radix: 16) +
+                                              0xFF000000);
                                     });
-                              } else if (type == 'entries') {
-                                bool? hasChildren;
-                                DateTime dateTime = DateTime.now();
-                                DateTime addedOn = DateTime.now();
-                                bool? isEntryLocked;
-                                String emoji = '';
-                                bool? isFavorite;
-                                String backgroundImageUrl = '';
-                                // Retrieve the details of the entry from FirebaseFirestore
-                                await FirebaseFirestore.instance
-                                    .collection('users')
-                                    .doc(user?.uid)
-                                    .collection(type)
-                                    .doc(objectId)
-                                    .get()
-                                    .then((value) {
-                                  hasChildren = value['hasChildren'];
-                                  Timestamp timestamp = value['dateTime'];
-                                  Timestamp createdAt = value['addedOn'];
-                                  addedOn = createdAt.toDate();
-                                  dateTime = timestamp.toDate();
-                                  isEntryLocked = value['isEntryLocked'];
-                                  isFavorite = value['isFavorite'];
-                                  emoji = value['mainEntryEmoji'];
-                                  backgroundImageUrl =
-                                      value['backgroundImageUrl'];
-                                });
-                                final noteModel = NoteModel(
-                                    parentId: null,
-                                    objectId: objectId,
-                                    title: event.title,
-                                    content: event.description ?? '',
-                                    icon: emoji,
-                                    addedOn: addedOn,
-                                    dateTime: dateTime,
-                                    isFavorite: isFavorite ?? false,
-                                    isLocked: isEntryLocked ?? false,
-                                    backgroundImageUrl: backgroundImageUrl,
-                                    attachments: [],
-                                    children: [],
-                                    hasChildren: hasChildren ?? false,
-                                    type: 'note',
-                                    isSyncing: true);
-                                // Navigate to the Notes screen with the details of the entry
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    fullscreenDialog: true,
-                                    barrierDismissible: true,
-                                    builder: (context) => NoteLayout(
-                                          mode: NoteMode.display,
-                                          noteModel: noteModel,
-                                        )));
-                              } else if (type == 'habits') {
-                                List habitGroups = [];
-                                int habitUniqueId = 0;
-                                List daysOfWeek = [];
-                                List completedDaysOfWeek = [];
-                                DateTime addedOn = DateTime.now();
-                                List completedDates = [];
-                                // Retreive the details of the habit from FirebaseFirestore
-                                await FirebaseFirestore.instance
-                                    .collection('users')
-                                    .doc(user?.uid)
-                                    .collection(type)
-                                    .doc(objectId)
-                                    .get()
-                                    .then((value) {
-                                  habitGroups = value['habitGroups'];
-                                  habitUniqueId = value['habitUniqueId'];
-                                  daysOfWeek = value['daysOfWeek'];
-                                  completedDaysOfWeek =
-                                      value['completedDaysOfWeek'];
-                                  Timestamp timestamp = value['addedOn'];
-                                  addedOn = timestamp.toDate();
-                                  completedDates = value['completedDates'];
-                                });
-                                // Show a modal bottom sheet with the details of the habit
-                                showModalBottomSheet(
-                                    context: context,
-                                    showDragHandle: true,
-                                    isScrollControlled: true,
-                                    useSafeArea: true,
-                                    backgroundColor:
-                                        Theme.of(context).colorScheme.surface,
-                                    builder: (context) => HabitsDetailsScreen(
-                                        habitName: event.title,
-                                        habitNotes: event.description ?? '',
-                                        habitDateTime: event.date,
-                                        habitGroups: habitGroups,
-                                        habitId: objectId,
-                                        habitUniqueId: habitUniqueId,
-                                        daysOfWeek: daysOfWeek,
+                                    // Show a modal bottom sheet with the details of the events
+                                    showModalBottomSheet(
+                                        context: context,
+                                        showDragHandle: true,
+                                        isScrollControlled: true,
+                                        useSafeArea: true,
+                                        backgroundColor: Theme.of(context)
+                                            .colorScheme
+                                            .surface,
+                                        builder: (context) {
+                                          return EventDetailsScreen(
+                                              eventName: event.title,
+                                              eventNotes:
+                                                  event.description ?? '',
+                                              eventId: objectId,
+                                              eventStartDateTime:
+                                                  event.startTime!,
+                                              eventEndDateTime: event.endTime,
+                                              eventColorCode: eventColorCode,
+                                              eventUniqueId: eventUniqueId,
+                                              appBarLeading: Icons.close,
+                                              isAttended: isAttended ?? false);
+                                        });
+                                  } else if (type == 'entries') {
+                                    bool? hasChildren;
+                                    DateTime dateTime = DateTime.now();
+                                    DateTime addedOn = DateTime.now();
+                                    bool? isEntryLocked;
+                                    String emoji = '';
+                                    bool? isFavorite;
+                                    String backgroundImageUrl = '';
+                                    // Retrieve the details of the entry from FirebaseFirestore
+                                    await FirebaseFirestore.instance
+                                        .collection('users')
+                                        .doc(user?.uid)
+                                        .collection(type)
+                                        .doc(objectId)
+                                        .get()
+                                        .then((value) {
+                                      hasChildren = value['hasChildren'];
+                                      Timestamp timestamp = value['dateTime'];
+                                      Timestamp createdAt = value['addedOn'];
+                                      addedOn = createdAt.toDate();
+                                      dateTime = timestamp.toDate();
+                                      isEntryLocked = value['isEntryLocked'];
+                                      isFavorite = value['isFavorite'];
+                                      emoji = value['mainEntryEmoji'];
+                                      backgroundImageUrl =
+                                          value['backgroundImageUrl'];
+                                    });
+                                    final noteModel = NoteModel(
+                                        parentId: null,
+                                        objectId: objectId,
+                                        title: event.title,
+                                        content: event.description ?? '',
+                                        icon: emoji,
                                         addedOn: addedOn,
-                                        appBarLeading: Icons.close,
-                                        completedDates: completedDates));
-                              }
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(
-                                  vertical: 2, horizontal: 4),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: eventColor.withAlpha(120),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                title,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 2,
-                                style: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.color),
-                              ),
-                            ),
+                                        dateTime: dateTime,
+                                        isFavorite: isFavorite ?? false,
+                                        isLocked: isEntryLocked ?? false,
+                                        backgroundImageUrl: backgroundImageUrl,
+                                        attachments: [],
+                                        children: [],
+                                        hasChildren: hasChildren ?? false,
+                                        type: 'note',
+                                        isSyncing: true);
+                                    // Navigate to the Notes screen with the details of the entry
+                                    Navigator.of(context)
+                                        .push(MaterialPageRoute(
+                                            fullscreenDialog: true,
+                                            barrierDismissible: true,
+                                            builder: (context) => NoteLayout(
+                                                  mode: NoteMode.display,
+                                                  noteModel: noteModel,
+                                                )));
+                                  } else if (type == 'habits') {
+                                    List habitGroups = [];
+                                    int habitUniqueId = 0;
+                                    List daysOfWeek = [];
+                                    List completedDaysOfWeek = [];
+                                    DateTime addedOn = DateTime.now();
+                                    List completedDates = [];
+                                    // Retreive the details of the habit from FirebaseFirestore
+                                    await FirebaseFirestore.instance
+                                        .collection('users')
+                                        .doc(user?.uid)
+                                        .collection(type)
+                                        .doc(objectId)
+                                        .get()
+                                        .then((value) {
+                                      habitGroups = value['habitGroups'];
+                                      habitUniqueId = value['habitUniqueId'];
+                                      daysOfWeek = value['daysOfWeek'];
+                                      completedDaysOfWeek =
+                                          value['completedDaysOfWeek'];
+                                      Timestamp timestamp = value['addedOn'];
+                                      addedOn = timestamp.toDate();
+                                      completedDates = value['completedDates'];
+                                    });
+                                    // Show a modal bottom sheet with the details of the habit
+                                    showModalBottomSheet(
+                                        context: context,
+                                        showDragHandle: true,
+                                        isScrollControlled: true,
+                                        useSafeArea: true,
+                                        backgroundColor: Theme.of(context)
+                                            .colorScheme
+                                            .surface,
+                                        builder: (context) =>
+                                            HabitsDetailsScreen(
+                                                habitName: event.title,
+                                                habitNotes:
+                                                    event.description ?? '',
+                                                habitDateTime: event.date,
+                                                habitGroups: habitGroups,
+                                                habitId: objectId,
+                                                habitUniqueId: habitUniqueId,
+                                                daysOfWeek: daysOfWeek,
+                                                addedOn: addedOn,
+                                                appBarLeading: Icons.close,
+                                                completedDates:
+                                                    completedDates));
+                                  }
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.symmetric(
+                                      vertical: 2, horizontal: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: eventColor.withAlpha(120),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    title,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 2,
+                                    style: TextStyle(
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.color),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           );
-                        }).toList(),
-                      );
-                    },
-                    onPageChange: (newDate, page) {
-                      setState(() {
-                        selectedDateNotifier.value = newDate;
-                      });
-                      calendarViewEventController.removeAll(
-                          allEvents); // Clear the calendarViewEventController to avoid redundancy
-                      loadAllEvents();
-                    },
-                  ),
+                        },
+                        onPageChange: (newDate, page) {
+                          setState(() {
+                            selectedDateNotifier.value = newDate;
+                          });
+                          calendarViewEventController.removeAll(
+                              allEvents); // Clear the calendarViewEventController to avoid redundancy
+                          loadAllEvents();
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             );
           }),
     );

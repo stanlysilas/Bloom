@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:bloom/core/responsive/dimensions.dart';
 import 'package:bloom/models/background_model.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -72,90 +73,100 @@ class _EntriesBackgroundImagesState extends State<EntriesBackgroundImages> {
         ],
       ),
       body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            FutureBuilder<Map<String, List<BackgroundModel>>>(
-              future: fetchBackgrounds(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                      child: CircularProgressIndicator(
-                    year2023: false,
-                  ));
-                } else if (snapshot.hasError) {
-                  return const Center(
-                      child: Text("Failed to load backgrounds"));
-                }
+        child: Align(
+          alignment: Alignment.center,
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width > mobileWidth ? 650 : null,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FutureBuilder<Map<String, List<BackgroundModel>>>(
+                  future: fetchBackgrounds(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                          child: CircularProgressIndicator(
+                        year2023: false,
+                      ));
+                    } else if (snapshot.hasError) {
+                      return const Center(
+                          child: Text("Failed to load backgrounds"));
+                    }
 
-                final data = snapshot.data ?? {};
-                if (data.isEmpty) {
-                  return const Center(child: Text("No backgrounds available"));
-                }
+                    final data = snapshot.data ?? {};
+                    if (data.isEmpty) {
+                      return const Center(
+                          child: Text("No backgrounds available"));
+                    }
 
-                return ListView(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  padding: EdgeInsets.symmetric(vertical: 8.0),
-                  children: data.entries.map((entry) {
-                    final category = entry.key;
-                    final images = entry.value;
+                    return ListView(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      children: data.entries.map((entry) {
+                        final category = entry.key;
+                        final images = entry.value;
 
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                          child: Text(
-                            category,
-                            style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                          child: GridView.builder(
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 3,
-                                    crossAxisSpacing: 8,
-                                    mainAxisSpacing: 8,
-                                    childAspectRatio: 1.5),
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemCount: images.length,
-                            itemBuilder: (context, index) {
-                              final bg = images[index];
-                              return InkWell(
-                                borderRadius: BorderRadius.circular(16),
-                                onTap: () async {
-                                  Navigator.pop(context, bg.url);
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 24.0),
+                              child: Text(
+                                category,
+                                style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.primary),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 14.0),
+                              child: GridView.builder(
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: 3,
+                                        crossAxisSpacing: 8,
+                                        mainAxisSpacing: 8,
+                                        childAspectRatio: 1.5),
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: images.length,
+                                itemBuilder: (context, index) {
+                                  final bg = images[index];
+                                  return InkWell(
+                                    borderRadius: BorderRadius.circular(16),
+                                    onTap: () async {
+                                      Navigator.pop(context, bg.url);
+                                    },
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: CachedNetworkImage(
+                                          filterQuality: FilterQuality.low,
+                                          imageUrl: bg.url,
+                                          fit: BoxFit.fill,
+                                          errorWidget: (_, __, ___) => Icon(
+                                              Icons.error,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .error)),
+                                    ),
+                                  );
                                 },
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: CachedNetworkImage(
-                                      filterQuality: FilterQuality.low,
-                                      imageUrl: bg.url,
-                                      fit: BoxFit.fill,
-                                      errorWidget: (_, __, ___) => Icon(
-                                          Icons.error,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .error)),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        Divider(),
-                      ],
+                              ),
+                            ),
+                            Divider(),
+                          ],
+                        );
+                      }).toList(),
                     );
-                  }).toList(),
-                );
-              },
+                  },
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

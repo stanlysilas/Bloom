@@ -243,61 +243,17 @@ class _NoteLayoutState extends State<NoteLayout> {
                 ),
                 noteModel.icon.isEmpty
                     ? const SizedBox()
-                    : Padding(
-                        padding: MediaQuery.of(context).size.width < mobileWidth
-                            ? const EdgeInsets.symmetric(horizontal: 8)
-                            : const EdgeInsets.symmetric(horizontal: 250),
-                        child: Material(
-                          borderRadius: BorderRadius.circular(24),
-                          color: Theme.of(context).colorScheme.surfaceContainer,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(24),
-                            onTap: () async {
-                              final newIcon = await Navigator.push<String>(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => EntriesIconPicker(
-                                    icon: noteModel.icon,
-                                  ),
-                                ),
-                              );
-
-                              if (newIcon != null) {
-                                setState(() {
-                                  noteModel = noteModel.copyWith(icon: newIcon);
-                                });
-                                onDataChanged();
-                              }
-                            },
-                            child: Container(
-                              height: 70,
-                              width: 70,
-                              alignment: Alignment.center,
-                              child: Text(
-                                noteModel.icon,
-                                style: const TextStyle(fontSize: 45),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-              ],
-            ),
-            Padding(
-              padding: MediaQuery.of(context).size.width < mobileWidth
-                  ? const EdgeInsets.all(0)
-                  : const EdgeInsets.symmetric(horizontal: 250),
-              child: Row(
-                children: [
-                  noteModel.icon.isEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.only(left: 8.0, top: 2),
+                    : Align(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                          padding: MediaQuery.of(context).size.width < mobileWidth
+                              ? const EdgeInsets.symmetric(horizontal: 8)
+                              : const EdgeInsets.symmetric(horizontal: 250),
                           child: Material(
-                            borderRadius: BorderRadius.circular(4),
-                            color:
-                                Theme.of(context).colorScheme.surfaceContainer,
+                            borderRadius: BorderRadius.circular(24),
+                            color: Theme.of(context).colorScheme.surfaceContainer,
                             child: InkWell(
-                              borderRadius: BorderRadius.circular(4),
+                              borderRadius: BorderRadius.circular(24),
                               onTap: () async {
                                 final newIcon = await Navigator.push<String>(
                                   context,
@@ -307,69 +263,125 @@ class _NoteLayoutState extends State<NoteLayout> {
                                     ),
                                   ),
                                 );
-
+                      
                                 if (newIcon != null) {
                                   setState(() {
-                                    noteModel =
-                                        noteModel.copyWith(icon: newIcon);
+                                    noteModel = noteModel.copyWith(icon: newIcon);
                                   });
                                   onDataChanged();
                                 }
                               },
-                              child: Padding(
-                                  padding: const EdgeInsets.all(4),
-                                  child: Text(
-                                    'Add icon',
-                                    style: TextStyle(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant),
-                                  )),
+                              child: Container(
+                                height: 70,
+                                width: 70,
+                                alignment: Alignment.center,
+                                child: Text(
+                                  noteModel.icon,
+                                  style: const TextStyle(fontSize: 45),
+                                ),
+                              ),
                             ),
                           ),
-                        )
-                      : const SizedBox(),
-                ],
+                        ),
+                    ),
+              ],
+            ),
+            Align(
+              alignment: Alignment.center,
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width > mobileWidth
+                    ? 650
+                    : null,
+                child: Row(
+                  children: [
+                    noteModel.icon.isEmpty
+                        ? Padding(
+                            padding: const EdgeInsets.only(left: 8.0, top: 2),
+                            child: Material(
+                              borderRadius: BorderRadius.circular(4),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainer,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(4),
+                                onTap: () async {
+                                  final newIcon = await Navigator.push<String>(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => EntriesIconPicker(
+                                        icon: noteModel.icon,
+                                      ),
+                                    ),
+                                  );
+
+                                  if (newIcon != null) {
+                                    setState(() {
+                                      noteModel =
+                                          noteModel.copyWith(icon: newIcon);
+                                    });
+                                    onDataChanged();
+                                  }
+                                },
+                                child: Padding(
+                                    padding: const EdgeInsets.all(4),
+                                    child: Text(
+                                      'Add icon',
+                                      style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant),
+                                    )),
+                              ),
+                            ),
+                          )
+                        : const SizedBox(),
+                  ],
+                ),
               ),
             ),
-            Padding(
-              padding: MediaQuery.of(context).size.width < mobileWidth
-                  ? const EdgeInsets.symmetric(horizontal: 8)
-                  : const EdgeInsets.symmetric(horizontal: 250),
-              child: MyTextfieldNobackground(
-                readOnly: false,
-                controller: titleController,
-                focusNode: titleFocusNode,
-                maxLines: 1,
-                autoFocus: false,
-                hintText: 'Title',
-                style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.bodyMedium?.color),
+            Align(
+              alignment: Alignment.center,
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width > mobileWidth
+                    ? 650
+                    : null,
+                child: MyTextfieldNobackground(
+                  readOnly: false,
+                  controller: titleController,
+                  focusNode: titleFocusNode,
+                  maxLines: 1,
+                  autoFocus: false,
+                  hintText: 'Title',
+                  style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.bodyMedium?.color),
+                ),
               ),
             ),
             const SizedBox(
               height: 10,
             ),
-            Container(
-              width: MediaQuery.of(context).size.width,
-              padding: MediaQuery.of(context).size.width < mobileWidth
-                  ? const EdgeInsets.all(0)
-                  : const EdgeInsets.symmetric(horizontal: 250),
-              child: QuillEditor(
-                focusNode: focusProvider.editorFocusNode,
-                scrollController: ScrollController(),
-                controller: descriptionController,
-                config: QuillEditorConfig(
-                    padding:
-                        const EdgeInsets.only(left: 12, right: 12, bottom: 10),
-                    scrollable: false,
-                    requestKeyboardFocusOnCheckListChanged: true,
-                    placeholder: 'Start typing here',
-                    enableScribble: true,
-                    onTapOutsideEnabled: true,
-                    scrollBottomInset: 100),
+            Align(
+              alignment: Alignment.center,
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width > mobileWidth
+                    ? 660
+                    : null,
+                child: QuillEditor(
+                  focusNode: focusProvider.editorFocusNode,
+                  scrollController: ScrollController(),
+                  controller: descriptionController,
+                  config: QuillEditorConfig(
+                      padding: const EdgeInsets.only(
+                          left: 12, right: 12, bottom: 10),
+                      scrollable: false,
+                      requestKeyboardFocusOnCheckListChanged: true,
+                      placeholder: 'Start typing here',
+                      enableScribble: true,
+                      onTapOutsideEnabled: true,
+                      scrollBottomInset: 100),
+                ),
               ),
             ),
             const SizedBox(

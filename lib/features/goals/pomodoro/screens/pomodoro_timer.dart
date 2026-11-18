@@ -7,7 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+// import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 
 class PomodoroTimerScreen extends StatefulWidget {
@@ -29,7 +29,7 @@ class PomodoroTimerScreen extends StatefulWidget {
 class _PomodoroTimerScreenState extends State<PomodoroTimerScreen> {
   // Required variables
   final user = FirebaseAuth.instance.currentUser;
-  late BannerAd bannerAd;
+  // late BannerAd bannerAd;
   bool isAdLoaded = false;
   bool isRunning = false;
 
@@ -59,36 +59,36 @@ class _PomodoroTimerScreenState extends State<PomodoroTimerScreen> {
   }
 
   // Banner ADs initialization method
-  void initBannerAd() {
-    bannerAd = BannerAd(
-      size: AdSize.banner,
-      adUnitId: "ca-app-pub-5607290715305671/1570163196",
-      listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          setState(() {
-            isAdLoaded = true;
-          });
-        },
-        onAdFailedToLoad: (ad, error) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              margin: const EdgeInsets.all(6),
-              behavior: SnackBarBehavior.floating,
-              showCloseIcon: true,
-              backgroundColor: Theme.of(context).primaryColor,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              content: Text(
-                'Failed to load the Ad. ${error.message}',
-                style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyMedium?.color),
-              )));
-        },
-      ),
-      request: const AdRequest(),
-    );
+  // void initBannerAd() {
+  //   bannerAd = BannerAd(
+  //     size: AdSize.banner,
+  //     adUnitId: "ca-app-pub-5607290715305671/1570163196",
+  //     listener: BannerAdListener(
+  //       onAdLoaded: (ad) {
+  //         setState(() {
+  //           isAdLoaded = true;
+  //         });
+  //       },
+  //       onAdFailedToLoad: (ad, error) {
+  //         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+  //             margin: const EdgeInsets.all(6),
+  //             behavior: SnackBarBehavior.floating,
+  //             showCloseIcon: true,
+  //             backgroundColor: Theme.of(context).primaryColor,
+  //             shape: RoundedRectangleBorder(
+  //                 borderRadius: BorderRadius.circular(12)),
+  //             content: Text(
+  //               'Failed to load the Ad. ${error.message}',
+  //               style: TextStyle(
+  //                   color: Theme.of(context).textTheme.bodyMedium?.color),
+  //             )));
+  //       },
+  //     ),
+  //     request: const AdRequest(),
+  //   );
 
-    bannerAd.load();
-  }
+  //   bannerAd.load();
+  // }
 
   @override
   Widget build(BuildContext context) {

@@ -1,3 +1,4 @@
+import 'package:bloom/core/responsive/dimensions.dart';
 import 'package:bloom/core/widgets/bloom_sidebar.dart';
 import 'package:bloom/features/calendar/calendar_screen.dart';
 import 'package:bloom/features/home/dashboard_screen.dart';
@@ -38,9 +39,17 @@ class _NavigationrailState extends State<Navigationrail> {
             selectedIndex: _currentPageIndex,
           ),
           Expanded(
-            child: IndexedStack(
-              index: _currentPageIndex,
-              children: _screens,
+            child: Align(
+              alignment: Alignment.center,
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width > mobileWidth
+                    ? 650
+                    : null,
+                child: IndexedStack(
+                  index: _currentPageIndex,
+                  children: _screens,
+                ),
+              ),
             ),
           ),
         ],

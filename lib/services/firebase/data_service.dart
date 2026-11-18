@@ -386,7 +386,7 @@ class DataService {
               (rawDate is Timestamp) ? rawDate.toDate() : rawDate;
 
           if (dateTime.isAfter(dayStart) && dateTime.isBefore(dayEnd)) {
-            all.add(TaskModel.fromFirestore(data));
+            all.add(TaskModel.fromFirestore(data, []));
           }
         }
 

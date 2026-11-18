@@ -7,7 +7,7 @@ class BloomSnackBars {
       BuildContext context, FirebaseAuthException exception) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        margin: const EdgeInsets.all(6),
+        width: 300,
         behavior: SnackBarBehavior.floating,
         showCloseIcon: true,
         closeIconColor: Theme.of(context).colorScheme.onError,
@@ -26,7 +26,7 @@ class BloomSnackBars {
   void showGenericSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        margin: const EdgeInsets.all(6),
+        width: 300,
         behavior: SnackBarBehavior.floating,
         showCloseIcon: true,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -41,7 +41,7 @@ class BloomSnackBars {
   void showGenericErrorSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        margin: const EdgeInsets.all(6),
+        width: 300,
         behavior: SnackBarBehavior.floating,
         showCloseIcon: true,
         closeIconColor: Theme.of(context).colorScheme.onError,
@@ -64,7 +64,7 @@ class BloomSnackBars {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        margin: const EdgeInsets.all(6),
+        width: 300,
         behavior: SnackBarBehavior.floating,
         showCloseIcon: true,
         shape: RoundedRectangleBorder(

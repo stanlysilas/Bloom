@@ -1,3 +1,4 @@
+import 'package:bloom/core/responsive/dimensions.dart';
 import 'package:bloom/features/settings/screens/theme/widgets/color_picker_panel.dart';
 import 'package:bloom/core/theme/theme_provider.dart';
 import 'package:flutter/material.dart';
@@ -56,90 +57,100 @@ class _ThemeAndColorsScreenState extends State<ThemeAndColorsScreen> {
             style: TextStyle(
                 fontFamily: 'ClashGrotesk', fontWeight: FontWeight.w500)),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 14),
-          // Title of Theme Buttons
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Text(
-              'Theme Mode',
-              style: TextStyle(color: Theme.of(context).colorScheme.primary),
-            ),
-          ),
-          const SizedBox(height: 6),
-          // Theme Changing Button
-          Container(
-            margin: EdgeInsets.symmetric(horizontal: 14),
-            padding: EdgeInsets.all(12),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(24),
-                    topRight: Radius.circular(24),
-                    bottomLeft: Radius.circular(24),
-                    bottomRight: Radius.circular(24)),
-                color: Theme.of(context).colorScheme.surfaceContainer),
-            width: double.maxFinite,
-            alignment: Alignment.center,
-            child: SegmentedButton<int>(
-              selected: <int>{themeSchemeValue ?? 2},
-              showSelectedIcon: true,
-              segments: [
-                ButtonSegment(
-                    value: 0, icon: Icon(Icons.sunny), label: Text('Light')),
-                ButtonSegment(
-                    value: 1,
-                    icon: Icon(Icons.mode_night_rounded),
-                    label: Text('Dark')),
-                ButtonSegment(
-                    value: 2,
-                    icon: Icon(Icons.phone_android_rounded),
-                    label: Text('System')),
-              ],
-              onSelectionChanged: (value) {
-                setState(() {
-                  themeSchemeValue = value.first;
-                });
+      body: Align(
+        alignment: Alignment.center,
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width > mobileWidth ? 650 : null,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 14),
+              // Title of Theme Buttons
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Text(
+                  'Theme Mode',
+                  style:
+                      TextStyle(color: Theme.of(context).colorScheme.primary),
+                ),
+              ),
+              const SizedBox(height: 6),
+              // Theme Changing Button
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 14),
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(24),
+                        topRight: Radius.circular(24),
+                        bottomLeft: Radius.circular(24),
+                        bottomRight: Radius.circular(24)),
+                    color: Theme.of(context).colorScheme.surfaceContainer),
+                width: double.maxFinite,
+                alignment: Alignment.center,
+                child: SegmentedButton<int>(
+                  selected: <int>{themeSchemeValue ?? 2},
+                  showSelectedIcon: true,
+                  segments: [
+                    ButtonSegment(
+                        value: 0,
+                        icon: Icon(Icons.sunny),
+                        label: Text('Light')),
+                    ButtonSegment(
+                        value: 1,
+                        icon: Icon(Icons.mode_night_rounded),
+                        label: Text('Dark')),
+                    ButtonSegment(
+                        value: 2,
+                        icon: Icon(Icons.phone_android_rounded),
+                        label: Text('System')),
+                  ],
+                  onSelectionChanged: (value) {
+                    setState(() {
+                      themeSchemeValue = value.first;
+                    });
 
-                final themeProvider =
-                    Provider.of<ThemeProvider>(context, listen: false);
+                    final themeProvider =
+                        Provider.of<ThemeProvider>(context, listen: false);
 
-                if (themeSchemeValue == 0) {
-                  themeProvider.setTheme('light');
-                } else if (themeSchemeValue == 1) {
-                  themeProvider.setTheme('dark');
-                } else {
-                  themeProvider.setTheme('system');
-                }
-              },
-            ),
+                    if (themeSchemeValue == 0) {
+                      themeProvider.setTheme('light');
+                    } else if (themeSchemeValue == 1) {
+                      themeProvider.setTheme('dark');
+                    } else {
+                      themeProvider.setTheme('system');
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Title of the ColorPickerPanel Buttons
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Text(
+                  'Color Scheme',
+                  style:
+                      TextStyle(color: Theme.of(context).colorScheme.primary),
+                ),
+              ),
+              const SizedBox(height: 6),
+              // ColorScheme Changing Block
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 14),
+                padding: EdgeInsets.all(12),
+                width: double.maxFinite,
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(24),
+                        topRight: Radius.circular(24),
+                        bottomLeft: Radius.circular(24),
+                        bottomRight: Radius.circular(24)),
+                    color: Theme.of(context).colorScheme.surfaceContainer),
+                child: ColorPickerPanel(),
+              )
+            ],
           ),
-          const SizedBox(height: 16),
-          // Title of the ColorPickerPanel Buttons
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Text(
-              'Color Scheme',
-              style: TextStyle(color: Theme.of(context).colorScheme.primary),
-            ),
-          ),
-          const SizedBox(height: 6),
-          // ColorScheme Changing Block
-          Container(
-            margin: EdgeInsets.symmetric(horizontal: 14),
-            padding: EdgeInsets.all(12),
-            width: double.maxFinite,
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(24),
-                    topRight: Radius.circular(24),
-                    bottomLeft: Radius.circular(24),
-                    bottomRight: Radius.circular(24)),
-                color: Theme.of(context).colorScheme.surfaceContainer),
-            child: ColorPickerPanel(),
-          )
-        ],
+        ),
       ),
     );
   }

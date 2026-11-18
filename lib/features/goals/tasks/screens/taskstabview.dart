@@ -60,10 +60,13 @@ class _TaskstabviewState extends State<Taskstabview> {
     } else if (sortValue == 'today') {
       list = list.where((t) {
         final d = t.dateTime;
-        return d.year == now.year &&
-            d.month == now.month &&
-            d.day == now.day &&
-            t.isCompleted == false;
+
+        final isToday =
+            d.year == now.year && d.month == now.month && d.day == now.day;
+
+        final isOverdueIncomplete = d.isBefore(now) && !t.isCompleted;
+
+        return !t.isCompleted && (isToday || isOverdueIncomplete);
       }).toList();
     }
 

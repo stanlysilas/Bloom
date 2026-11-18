@@ -37,7 +37,7 @@ class ThemeProvider with ChangeNotifier {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: colorScheme.surface,
       fontFamily: 'Nunito',
-      fontFamilyFallback: ['AppleEmoji'],
+      // fontFamilyFallback: ['AppleEmoji'],
     );
     notifyListeners();
   }

@@ -267,351 +267,355 @@ class _HabitsDetailsScreenState extends State<HabitsDetailsScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: MediaQuery.of(context).size.width < mobileWidth
-              ? const EdgeInsets.all(0)
-              : const EdgeInsets.symmetric(horizontal: 250),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Name of the habit
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                    child: Text(
-                      widget.habitName,
-                      style: const TextStyle(
-                          fontSize: 20, overflow: TextOverflow.clip),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 5,
-                  ),
-                  // Notes of the habit
-                  if (widget.habitNotes.isNotEmpty)
+        child: Align(
+          alignment: Alignment.center,
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width > mobileWidth ? 650 : null,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Name of the habit
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 14.0),
                       child: Text(
-                        widget.habitNotes,
-                        style: const TextStyle(color: Colors.grey),
+                        widget.habitName,
+                        style: const TextStyle(
+                            fontSize: 20, overflow: TextOverflow.clip),
                       ),
                     ),
-                  const SizedBox(
-                    height: 14,
-                  ),
-                  // Time of the habit
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.access_time_filled_rounded),
-                        const SizedBox(
-                          width: 8,
-                        ),
-                        Text(
-                          "At ${DateFormat('h:mm a').format(widget.habitDateTime)}",
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    const SizedBox(
+                      height: 5,
                     ),
-                  ),
+                    // Notes of the habit
+                    if (widget.habitNotes.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                        child: Text(
+                          widget.habitNotes,
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                      ),
+                    const SizedBox(
+                      height: 14,
+                    ),
+                    // Time of the habit
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.access_time_filled_rounded),
+                          const SizedBox(
+                            width: 8,
+                          ),
+                          Text(
+                            "At ${DateFormat('h:mm a').format(widget.habitDateTime)}",
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
 
-                  const SizedBox(height: 10),
-                  const Divider(),
-                  const SizedBox(height: 10),
-                  // Display the Current streak, best streak, average streak(if possible or needed) and
-                  Card(
-                    color: Theme.of(context).colorScheme.surfaceContainer,
-                    margin: const EdgeInsets.symmetric(horizontal: 14),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 24.0, horizontal: 8),
-                      // IntrinsicHeight allows the VerticalDivider to expand to the height of the Text
-                      child: IntrinsicHeight(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    const SizedBox(height: 10),
+                    const Divider(),
+                    const SizedBox(height: 10),
+                    // Display the Current streak, best streak, average streak(if possible or needed) and
+                    Card(
+                      color: Theme.of(context).colorScheme.surfaceContainer,
+                      margin: const EdgeInsets.symmetric(horizontal: 14),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 24.0, horizontal: 8),
+                        // IntrinsicHeight allows the VerticalDivider to expand to the height of the Text
+                        child: IntrinsicHeight(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Text(
+                                    "$yearPercentage%",
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                  CircularProgressIndicator(
+                                    year2023: false,
+                                    value: yearProgressValue,
+                                  ),
+                                ],
+                              ),
+                              VerticalDivider(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .outlineVariant, // Better contrast than white
+                                width: 20,
+                                thickness: 1,
+                                indent: 4,
+                                endIndent: 4,
+                              ),
+                              Column(
+                                children: [
+                                  Text('Current'),
+                                  Text(
+                                    '$currentStreak days',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              VerticalDivider(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .outlineVariant, // Better contrast than white
+                                width: 20,
+                                thickness: 1,
+                                indent: 4,
+                                endIndent: 4,
+                              ),
+                              Column(
+                                children: [
+                                  Text('Best'),
+                                  Text(
+                                    '$bestStreak days',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              VerticalDivider(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .outlineVariant,
+                                width: 20,
+                                thickness: 1,
+                                indent: 4,
+                                endIndent: 4,
+                              ),
+                              Column(
+                                children: [
+                                  Text('Average'),
+                                  Text(
+                                    '${averageStreak.toInt()} days',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // const Divider(),
+                    const SizedBox(height: 10),
+                    // Habit Completion Calendar
+                    // Calendar for showing completedDates
+                    Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 14.0),
+                      color: Theme.of(context).colorScheme.surfaceContainer,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 24.0, horizontal: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Text(
-                                  "$yearPercentage%",
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                                CircularProgressIndicator(
-                                  year2023: false,
-                                  value: yearProgressValue,
-                                ),
-                              ],
+                            const Text("Habit Heatmap",
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                            Text(
+                                "Since ${DateFormat('MMM, dd, yyyy').format(widget.addedOn)}"),
+                            const SizedBox(
+                              height: 10,
                             ),
-                            VerticalDivider(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .outlineVariant, // Better contrast than white
-                              width: 20,
-                              thickness: 1,
-                              indent: 4,
-                              endIndent: 4,
-                            ),
-                            Column(
-                              children: [
-                                Text('Current'),
-                                Text(
-                                  '$currentStreak days',
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                            VerticalDivider(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .outlineVariant, // Better contrast than white
-                              width: 20,
-                              thickness: 1,
-                              indent: 4,
-                              endIndent: 4,
-                            ),
-                            Column(
-                              children: [
-                                Text('Best'),
-                                Text(
-                                  '$bestStreak days',
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                            VerticalDivider(
-                              color:
-                                  Theme.of(context).colorScheme.outlineVariant,
-                              width: 20,
-                              thickness: 1,
-                              indent: 4,
-                              endIndent: 4,
-                            ),
-                            Column(
-                              children: [
-                                Text('Average'),
-                                Text(
-                                  '${averageStreak.toInt()} days',
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ],
+                            HeatMap(
+                              colorsets: {
+                                1: Theme.of(context).colorScheme.primary
+                              },
+                              showColorTip: false,
+                              showText: false,
+                              scrollable: true,
+                              colorMode: ColorMode.color,
+                              datasets: heatMapDates(),
+                              defaultColor:
+                                  Theme.of(context).colorScheme.surface,
+                              // focusedDay: DateTime.now(),
+                              // headerStyle: HeaderStyle(formatButtonVisible: false),
+                              // calendarStyle:
+                              //     const CalendarStyle(isTodayHighlighted: false),
+                              // calendarBuilders: CalendarBuilders(
+                              //   prioritizedBuilder: (context, date, _) {
+                              //     final isDone = _isCompleted(date);
+                              //     return Container(
+                              //       margin: const EdgeInsets.all(8.0),
+                              //       decoration: BoxDecoration(
+                              //         color: isDone
+                              //             ? Theme.of(context).colorScheme.primary
+                              //             : null,
+                              //         borderRadius: BorderRadius.circular(12),
+                              //       ),
+                              //       alignment: Alignment.center,
+                              //       child: Text(
+                              //         '${date.day}',
+                              //         style: TextStyle(
+                              //           color: isDone
+                              //               ? Theme.of(context)
+                              //                   .colorScheme
+                              //                   .onPrimary
+                              //               : null,
+                              //         ),
+                              //       ),
+                              //     );
+                              //   },
+                              //   defaultBuilder: (context, date, _) {
+                              //     final isDone = _isCompleted(date);
+                              //     return Container(
+                              //       margin: const EdgeInsets.all(8.0),
+                              //       decoration: BoxDecoration(
+                              //         color: isDone
+                              //             ? Theme.of(context).colorScheme.primary
+                              //             : Colors.transparent,
+                              //         borderRadius: BorderRadius.circular(12),
+                              //       ),
+                              //       alignment: Alignment.center,
+                              //       child: Text(
+                              //         '${date.day}',
+                              //         style: TextStyle(
+                              //           color: isDone
+                              //               ? Theme.of(context)
+                              //                   .colorScheme
+                              //                   .onPrimary
+                              //               : null,
+                              //         ),
+                              //       ),
+                              //     );
+                              //   },
+                              // ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  // const Divider(),
-                  const SizedBox(height: 10),
-                  // Habit Completion Calendar
-                  // Calendar for showing completedDates
-                  Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 14.0),
-                    color: Theme.of(context).colorScheme.surfaceContainer,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 24.0, horizontal: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text("Habit Heatmap",
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
-                          Text(
-                              "Since ${DateFormat('MMM, dd, yyyy').format(widget.addedOn)}"),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          HeatMap(
-                            colorsets: {
-                              1: Theme.of(context).colorScheme.primary
-                            },
-                            showColorTip: false,
-                            showText: false,
-                            scrollable: true,
-                            colorMode: ColorMode.color,
-                            datasets: heatMapDates(),
-                            defaultColor: Theme.of(context).colorScheme.surface,
-                            // focusedDay: DateTime.now(),
-                            // headerStyle: HeaderStyle(formatButtonVisible: false),
-                            // calendarStyle:
-                            //     const CalendarStyle(isTodayHighlighted: false),
-                            // calendarBuilders: CalendarBuilders(
-                            //   prioritizedBuilder: (context, date, _) {
-                            //     final isDone = _isCompleted(date);
-                            //     return Container(
-                            //       margin: const EdgeInsets.all(8.0),
-                            //       decoration: BoxDecoration(
-                            //         color: isDone
-                            //             ? Theme.of(context).colorScheme.primary
-                            //             : null,
-                            //         borderRadius: BorderRadius.circular(12),
-                            //       ),
-                            //       alignment: Alignment.center,
-                            //       child: Text(
-                            //         '${date.day}',
-                            //         style: TextStyle(
-                            //           color: isDone
-                            //               ? Theme.of(context)
-                            //                   .colorScheme
-                            //                   .onPrimary
-                            //               : null,
-                            //         ),
-                            //       ),
-                            //     );
-                            //   },
-                            //   defaultBuilder: (context, date, _) {
-                            //     final isDone = _isCompleted(date);
-                            //     return Container(
-                            //       margin: const EdgeInsets.all(8.0),
-                            //       decoration: BoxDecoration(
-                            //         color: isDone
-                            //             ? Theme.of(context).colorScheme.primary
-                            //             : Colors.transparent,
-                            //         borderRadius: BorderRadius.circular(12),
-                            //       ),
-                            //       alignment: Alignment.center,
-                            //       child: Text(
-                            //         '${date.day}',
-                            //         style: TextStyle(
-                            //           color: isDone
-                            //               ? Theme.of(context)
-                            //                   .colorScheme
-                            //                   .onPrimary
-                            //               : null,
-                            //         ),
-                            //       ),
-                            //     );
-                            //   },
-                            // ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  // const Divider(),
-                  const SizedBox(height: 10),
-                  Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 14.0),
-                    color: Theme.of(context).colorScheme.surfaceContainer,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 24.0, horizontal: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text("This Year's Progress",
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          SizedBox(
-                            height: 150, // LineChart needs a fixed height
-                            child: LineChart(
-                              LineChartData(
-                                gridData: const FlGridData(show: false),
-                                titlesData: FlTitlesData(
-                                  topTitles: const AxisTitles(
-                                      sideTitles:
-                                          SideTitles(showTitles: false)),
-                                  rightTitles: const AxisTitles(
-                                      sideTitles:
-                                          SideTitles(showTitles: false)),
-                                  // Show Left Titles for 0-100%
-                                  leftTitles: AxisTitles(
-                                    sideTitles: SideTitles(
-                                      showTitles: true,
-                                      reservedSize: 30,
-                                      getTitlesWidget: (value, meta) => Text(
-                                          '${value.toInt()}%',
-                                          style: const TextStyle(fontSize: 10)),
-                                    ),
-                                  ),
-                                  bottomTitles: AxisTitles(
-                                    sideTitles: SideTitles(
-                                      showTitles: true,
-                                      getTitlesWidget: (value, meta) {
-                                        const months = [
-                                          'Jan',
-                                          'Feb',
-                                          'Mar',
-                                          'Apr',
-                                          'May',
-                                          'Jun',
-                                          'Jul',
-                                          'Aug',
-                                          'Sep',
-                                          'Oct',
-                                          'Nov',
-                                          'Dec'
-                                        ];
-                                        int index = value.toInt() - 1;
-                                        if (index >= 0 && index < 12) {
-                                          // Show only every 2nd month to avoid crowding on mobile
-                                          return Text(months[index],
-                                              style: const TextStyle(
-                                                  fontSize: 10));
-                                        }
-                                        return const SizedBox();
-                                      },
-                                    ),
-                                  ),
-                                ),
-                                borderData: FlBorderData(show: false),
-                                minX: 1,
-                                maxX: 12,
-                                minY: 0,
-                                maxY: 100, // Y-axis is now 0% to 100%
-                                lineBarsData: [
-                                  LineChartBarData(
-                                    spots: _generateYearlySpots(),
-                                    isCurved: true,
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
-                                    barWidth: 4,
-                                    isStrokeCapRound: true,
-                                    dotData: const FlDotData(
-                                        show:
-                                            false), // Clean look for 12 points
-                                    belowBarData: BarAreaData(
-                                      show: true,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary
-                                          .withValues(alpha: 0.1),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                    const SizedBox(height: 10),
+                    // const Divider(),
+                    const SizedBox(height: 10),
+                    Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 14.0),
+                      color: Theme.of(context).colorScheme.surfaceContainer,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 24.0, horizontal: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text("This Year's Progress",
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                            const SizedBox(
+                              height: 10,
                             ),
-                          )
-                        ],
+                            SizedBox(
+                              height: 150, // LineChart needs a fixed height
+                              child: LineChart(
+                                LineChartData(
+                                  gridData: const FlGridData(show: false),
+                                  titlesData: FlTitlesData(
+                                    topTitles: const AxisTitles(
+                                        sideTitles:
+                                            SideTitles(showTitles: false)),
+                                    rightTitles: const AxisTitles(
+                                        sideTitles:
+                                            SideTitles(showTitles: false)),
+                                    // Show Left Titles for 0-100%
+                                    leftTitles: AxisTitles(
+                                      sideTitles: SideTitles(
+                                        showTitles: true,
+                                        reservedSize: 30,
+                                        getTitlesWidget: (value, meta) => Text(
+                                            '${value.toInt()}%',
+                                            style:
+                                                const TextStyle(fontSize: 10)),
+                                      ),
+                                    ),
+                                    bottomTitles: AxisTitles(
+                                      sideTitles: SideTitles(
+                                        showTitles: true,
+                                        getTitlesWidget: (value, meta) {
+                                          const months = [
+                                            'Jan',
+                                            'Feb',
+                                            'Mar',
+                                            'Apr',
+                                            'May',
+                                            'Jun',
+                                            'Jul',
+                                            'Aug',
+                                            'Sep',
+                                            'Oct',
+                                            'Nov',
+                                            'Dec'
+                                          ];
+                                          int index = value.toInt() - 1;
+                                          if (index >= 0 && index < 12) {
+                                            // Show only every 2nd month to avoid crowding on mobile
+                                            return Text(months[index],
+                                                style: const TextStyle(
+                                                    fontSize: 10));
+                                          }
+                                          return const SizedBox();
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  borderData: FlBorderData(show: false),
+                                  minX: 1,
+                                  maxX: 12,
+                                  minY: 0,
+                                  maxY: 100, // Y-axis is now 0% to 100%
+                                  lineBarsData: [
+                                    LineChartBarData(
+                                      spots: _generateYearlySpots(),
+                                      isCurved: true,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                      barWidth: 4,
+                                      isStrokeCapRound: true,
+                                      dotData: const FlDotData(
+                                          show:
+                                              false), // Clean look for 12 points
+                                      belowBarData: BarAreaData(
+                                        show: true,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary
+                                            .withValues(alpha: 0.1),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  // const Divider(),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                ],
-              ),
-            ],
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    // const Divider(),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

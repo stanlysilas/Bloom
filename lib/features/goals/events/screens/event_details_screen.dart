@@ -1,4 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:bloom/core/responsive/dimensions.dart';
 import 'package:bloom/services/audio/audio_manager.dart';
 import 'package:bloom/core/widgets/delete_confirmation_dialog.dart';
 import 'package:bloom/services/firebase/notification.dart';
@@ -171,88 +172,97 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           ),
         ],
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Name of the event
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14.0),
-            child: Text(
-              widget.eventName,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
-            ),
-          ),
-          const SizedBox(
-            height: 12,
-          ),
-          // Event dates and time
-          widget.eventEndDateTime != null &&
-                  widget.eventEndDateTime != widget.eventStartDateTime
-              ? Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "From ${DateFormat('EE dd LLL, yyyy h:mm a').format(widget.eventStartDateTime)}",
-                        style: TextStyle(color: Colors.grey[700]),
-                      ),
-                      Text(
-                        "to ${DateFormat('EE dd LLL, yyyy h:mm a').format(widget.eventEndDateTime!)}",
-                        style: TextStyle(color: Colors.grey[700]),
-                      ),
-                    ],
-                  ),
-                )
-              : Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                  child: Column(
-                    children: [
-                      Text(
-                        DateFormat('EEEE dd LLL, yyyy h:mm a')
-                            .format(widget.eventStartDateTime),
-                        style: TextStyle(color: Colors.grey[700]),
-                      ),
-                    ],
-                  ),
+      body: Align(
+        alignment: Alignment.center,
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width > mobileWidth
+              ? 650
+              : null,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Name of the event
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                child: Text(
+                  widget.eventName,
+                  style:
+                      const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                 ),
-          const Divider(),
-          // Event color code
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Color Code',
+              ),
+              const SizedBox(
+                height: 12,
+              ),
+              // Event dates and time
+              widget.eventEndDateTime != null &&
+                      widget.eventEndDateTime != widget.eventStartDateTime
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "From ${DateFormat('EE dd LLL, yyyy h:mm a').format(widget.eventStartDateTime)}",
+                            style: TextStyle(color: Colors.grey[700]),
+                          ),
+                          Text(
+                            "to ${DateFormat('EE dd LLL, yyyy h:mm a').format(widget.eventEndDateTime!)}",
+                            style: TextStyle(color: Colors.grey[700]),
+                          ),
+                        ],
+                      ),
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                      child: Column(
+                        children: [
+                          Text(
+                            DateFormat('EEEE dd LLL, yyyy h:mm a')
+                                .format(widget.eventStartDateTime),
+                            style: TextStyle(color: Colors.grey[700]),
+                          ),
+                        ],
+                      ),
+                    ),
+              const Divider(),
+              // Event color code
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Color Code',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                    Container(
+                      height: 15,
+                      width: 15,
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(100),
+                          color: widget.eventColorCode),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(),
+              // Event notes
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                child: const Text(
+                  'Notes',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
-                Container(
-                  height: 15,
-                  width: 15,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(100),
-                      color: widget.eventColorCode),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                child: Text(
+                  widget.eventNotes,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const Divider(),
-          // Event notes
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14.0),
-            child: const Text(
-              'Notes',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14.0),
-            child: Text(
-              widget.eventNotes,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

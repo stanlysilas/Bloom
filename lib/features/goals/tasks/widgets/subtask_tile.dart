@@ -1,61 +1,32 @@
 // ignore_for_file: must_be_immutable
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:bloom/models/task_model.dart';
 import 'package:bloom/services/firebase/notification.dart';
 import 'package:bloom/features/goals/tasks/screens/subtask_details_screen.dart';
+import 'package:bloom/services/firebase/task_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 
-class SubTaskTile extends StatefulWidget {
-  bool isCompleted;
-  final String taskTitle;
-  final String taskNotes;
-  final String mainTaskId;
-  final String subTaskId;
-  final int taskUniqueId;
-  final DateTime taskDateTime;
-  final DateTime addedOn;
-  final int priorityLevel;
-  final String priorityLevelString;
-  final String taskMode;
+class SubTaskTile extends StatelessWidget {
+  final TaskModel subTaskModel;
   final EdgeInsetsGeometry? innerPadding;
+  final BoxDecoration? decoration;
   SubTaskTile({
     super.key,
-    required this.taskTitle,
-    required this.taskNotes,
-    required this.isCompleted,
-    required this.mainTaskId,
-    required this.subTaskId,
-    required this.taskUniqueId,
-    required this.taskDateTime,
-    required this.priorityLevel,
-    required this.priorityLevelString,
-    required this.addedOn,
-    required this.taskMode,
+    required this.subTaskModel,
     this.innerPadding,
+    this.decoration,
   });
 
-  @override
-  State<SubTaskTile> createState() => _SubTaskTileState();
-}
-
-class _SubTaskTileState extends State<SubTaskTile> {
   final String userId = FirebaseAuth.instance.currentUser!.uid;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final now = DateTime.now();
-  final player = AudioPlayer(playerId: 'task_audio_id');
 
-  DocumentReference get _documentReference => _firestore
-      .collection('users')
-      .doc(userId)
-      .collection('tasks')
-      .doc(widget.mainTaskId)
-      .collection('subTasks')
-      .doc(widget.subTaskId);
+  final now = DateTime.now();
+
+  final player = AudioPlayer(playerId: 'task_audio_id');
 
   Future<void> updateTask(
       DocumentReference? documentReference, bool newValue) async {
@@ -64,8 +35,28 @@ class _SubTaskTileState extends State<SubTaskTile> {
     } else {}
   }
 
+  bool _isOverdue(TaskModel task) {
+    final now = DateTime.now();
+    return task.dateTime.isBefore(now) && !task.isCompleted;
+  }
+
+  Color _priorityColor(BuildContext context) {
+    switch (subTaskModel.priorityLevel) {
+      case 1:
+        return Colors.red;
+      case 2:
+        return Colors.amber;
+      case 3:
+      default:
+        return Colors.blue;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isOverdue = _isOverdue(subTaskModel);
+    final color = _priorityColor(context);
+
     return Slidable(
       endActionPane: ActionPane(
         motion: const ScrollMotion(),
@@ -81,11 +72,12 @@ class _SubTaskTileState extends State<SubTaskTile> {
                     .collection('users')
                     .doc(user?.uid)
                     .collection('tasks')
-                    .doc(widget.mainTaskId)
+                    .doc(subTaskModel.parentId)
                     .collection('subTasks')
-                    .doc(widget.subTaskId)
+                    .doc(subTaskModel.objectId)
                     .delete();
-                NotificationService.cancelNotification(widget.taskUniqueId);
+                NotificationService.cancelNotification(
+                    subTaskModel.uniqueNotificationId ?? 0);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     margin: const EdgeInsets.all(6),
@@ -98,7 +90,7 @@ class _SubTaskTileState extends State<SubTaskTile> {
                       children: [
                         Text('Deleted: '),
                         Text(
-                          widget.taskTitle,
+                          subTaskModel.name,
                           style: TextStyle(fontWeight: FontWeight.bold),
                           overflow: TextOverflow.ellipsis,
                         )
@@ -124,83 +116,68 @@ class _SubTaskTileState extends State<SubTaskTile> {
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => SubTaskDetailsScreen(
-              isCompleted: widget.isCompleted,
-              taskTitle: widget.taskTitle,
-              taskNotes: widget.taskNotes,
-              mainTaskId: widget.mainTaskId,
-              subtaskId: widget.subTaskId,
-              taskUniqueId: widget.taskUniqueId,
-              taskDateTime: widget.taskDateTime,
-              priorityLevel: widget.priorityLevel,
-              addedOn: widget.addedOn,
-              priorityLevelString: widget.priorityLevelString,
-              taskMode: widget.taskMode,
+              subTaskModel: subTaskModel,
             ),
           ),
         ),
-        child: Padding(
-          padding: widget.innerPadding ?? const EdgeInsets.all(0),
+        child: Container(
+          padding: innerPadding ?? EdgeInsets.zero,
+          decoration: decoration,
           child: Row(
             children: [
               // Checkbox for the task
               Checkbox(
-                value: widget.isCompleted,
-                onChanged: (newValue) async {
-                  setState(() {
-                    // Delay the task removal
-                    Future.delayed(const Duration(milliseconds: 1000),
-                        () async {
-                      final updateData = {'isCompleted': newValue};
-                      updateTask(
-                          _documentReference, updateData['isCompleted']!);
+                value: subTaskModel.isCompleted,
+                onChanged: (value) async {
+                  if (value == null) return;
+                  debugPrint("Subtask parent path: ${subTaskModel.parentPath}");
 
-                      if (newValue == true) {
-                        player.setVolume(1);
-                        await player
-                            .play(AssetSource('audio/task_completed.mp3'));
-                        NotificationService.cancelNotification(
-                            widget.taskUniqueId);
-                      }
-                    });
-                    widget.isCompleted =
-                        newValue!; // Update local state (optional)
-                  });
-                  if (widget.isCompleted) {
-                    // Generate a date from the task date
-                    final taskCompletedDate = DateTime(
-                        widget.taskDateTime.year,
-                        widget.taskDateTime.month,
-                        widget.taskDateTime.day,
-                        0,
-                        0,
-                        0);
-                    // Save the reference to only the date of this task in a streaks collections in users collection
-                    await FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(userId)
-                        .collection('streaks')
-                        .doc('streaks')
-                        .set({
-                      'tasksCompletedDates':
-                          FieldValue.arrayUnion([taskCompletedDate]),
-                    }, SetOptions(merge: true));
-                  }
+                  TaskService.toggleNode(
+                      task: subTaskModel,
+                      path: subTaskModel.parentPath,
+                      isCompleted: value);
+                  // setState(() {
+                  //   // Delay the task removal
+                  //   Future.delayed(const Duration(milliseconds: 1000),
+                  //       () async {
+                  //     final updateData = {'isCompleted': newValue};
+                  //     updateTask(
+                  //         _documentReference, updateData['isCompleted']!);
+
+                  //     if (newValue == true) {
+                  //       player.setVolume(1);
+                  //       await player
+                  //           .play(AssetSource('audio/task_completed.mp3'));
+                  //       NotificationService.cancelNotification(
+                  //           widget.taskUniqueId);
+                  //     }
+                  //   });
+                  //   widget.isCompleted =
+                  //       newValue!; // Update local state (optional)
+                  // });
+                  // if (widget.isCompleted) {
+                  //   // Generate a date from the task date
+                  //   final taskCompletedDate = DateTime(
+                  //       widget.taskDateTime.year,
+                  //       widget.taskDateTime.month,
+                  //       widget.taskDateTime.day,
+                  //       0,
+                  //       0,
+                  //       0);
+                  //   // Save the reference to only the date of this task in a streaks collections in users collection
+                  //   await FirebaseFirestore.instance
+                  //       .collection('users')
+                  //       .doc(userId)
+                  //       .collection('streaks')
+                  //       .doc('streaks')
+                  //       .set({
+                  //     'tasksCompletedDates':
+                  //         FieldValue.arrayUnion([taskCompletedDate]),
+                  //   }, SetOptions(merge: true));
+                  // }
                 },
-                side: BorderSide(
-                    color: widget.priorityLevel == 0
-                        ? Theme.of(context).iconTheme.color!
-                        : widget.priorityLevel == 1
-                            ? Colors.red
-                            : widget.priorityLevel == 2
-                                ? Colors.amber
-                                : Colors.blue),
-                activeColor: widget.priorityLevel == 0
-                    ? Theme.of(context).iconTheme.color
-                    : widget.priorityLevel == 1
-                        ? Colors.red
-                        : widget.priorityLevel == 2
-                            ? Colors.amber
-                            : Colors.blue,
+                side: BorderSide(color: color),
+                activeColor: color,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(4)),
               ),
@@ -212,30 +189,20 @@ class _SubTaskTileState extends State<SubTaskTile> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.taskTitle,
+                      subTaskModel.name,
                       maxLines: 1,
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 18,
                         overflow: TextOverflow.ellipsis,
-                        decoration: widget.isCompleted
+                        decoration: subTaskModel.isCompleted
                             ? TextDecoration.lineThrough
                             : TextDecoration.none,
                         decorationStyle: TextDecorationStyle.solid,
                         decorationThickness: 3,
                       ),
                     ),
-                    widget.taskDateTime.isBefore(
-                              DateTime(
-                                now.year,
-                                now.month,
-                                now.day,
-                                now.hour,
-                                now.minute - 1,
-                                now.second,
-                              ),
-                            ) &&
-                            widget.isCompleted == false
+                    isOverdue
                         ? const Text(
                             'Overdue',
                             style: TextStyle(
@@ -248,46 +215,26 @@ class _SubTaskTileState extends State<SubTaskTile> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  widget.taskDateTime.isBefore(
-                            DateTime(
-                              now.year,
-                              now.month,
-                              now.day,
-                              now.hour,
-                              now.minute - 1,
-                              now.second,
-                            ),
-                          ) &&
-                          widget.isCompleted == false
+                  isOverdue
                       ? Text(
-                          DateFormat.MEd().format(widget.taskDateTime),
+                          DateFormat.MEd().format(subTaskModel.dateTime),
                           style: const TextStyle(
                               color: Colors.red, fontWeight: FontWeight.w500),
                         )
                       : Text(
-                          DateFormat.MEd().format(widget.taskDateTime),
+                          DateFormat.MEd().format(subTaskModel.dateTime),
                           style: const TextStyle(fontWeight: FontWeight.w500),
                         ),
-                  widget.taskDateTime.isBefore(
-                            DateTime(
-                              now.year,
-                              now.month,
-                              now.day,
-                              now.hour,
-                              now.minute - 1,
-                              now.second,
-                            ),
-                          ) &&
-                          widget.isCompleted == false
+                  isOverdue
                       ? Text(
-                          DateFormat('h:mm a').format(widget.taskDateTime),
+                          DateFormat('h:mm a').format(subTaskModel.dateTime),
                           maxLines: 1,
                           style: const TextStyle(
                               color: Colors.red, fontWeight: FontWeight.w500),
                           overflow: TextOverflow.ellipsis,
                         )
                       : Text(
-                          DateFormat('h:mm a').format(widget.taskDateTime),
+                          DateFormat('h:mm a').format(subTaskModel.dateTime),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -297,6 +244,6 @@ class _SubTaskTileState extends State<SubTaskTile> {
           ),
         ),
       ),
-    ).animate().fade(delay: const Duration(milliseconds: 50));
+    );
   }
 }

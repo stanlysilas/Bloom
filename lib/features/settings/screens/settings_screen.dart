@@ -8,7 +8,7 @@ import 'package:feedback/feedback.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+// import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -21,7 +21,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   // late String font;
-  late BannerAd bannerAd;
+  // late BannerAd bannerAd;
   bool isAdLoaded = false;
   bool isHTML = false;
   final user = FirebaseAuth.instance.currentUser;
@@ -94,31 +94,31 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
 // Banner ADs initialization method
-  void initBannerAd() {
-    bannerAd = BannerAd(
-      size: AdSize.banner,
-      adUnitId: "ca-app-pub-5607290715305671/5550335450",
-      listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          setState(() {
-            isAdLoaded = true;
-          });
-        },
-        onAdFailedToLoad: (ad, error) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              margin: const EdgeInsets.all(6),
-              behavior: SnackBarBehavior.floating,
-              showCloseIcon: true,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              content: Text('Failed to load the Ad. ${error.message}')));
-        },
-      ),
-      request: const AdRequest(),
-    );
+  // void initBannerAd() {
+  //   bannerAd = BannerAd(
+  //     size: AdSize.banner,
+  //     adUnitId: "ca-app-pub-5607290715305671/5550335450",
+  //     listener: BannerAdListener(
+  //       onAdLoaded: (ad) {
+  //         setState(() {
+  //           isAdLoaded = true;
+  //         });
+  //       },
+  //       onAdFailedToLoad: (ad, error) {
+  //         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+  //             margin: const EdgeInsets.all(6),
+  //             behavior: SnackBarBehavior.floating,
+  //             showCloseIcon: true,
+  //             shape: RoundedRectangleBorder(
+  //                 borderRadius: BorderRadius.circular(12)),
+  //             content: Text('Failed to load the Ad. ${error.message}')));
+  //       },
+  //     ),
+  //     request: const AdRequest(),
+  //   );
 
-    bannerAd.load();
-  }
+  //   bannerAd.load();
+  // }
 
   Future<void> launchPrivacyPolicyUrl() async {
     if (!await launchUrl(privacyPolicyUri,
@@ -313,15 +313,6 @@ class _SettingsPageState extends State<SettingsPage> {
           ],
         ),
       ),
-      bottomNavigationBar:
-          // Display and AD in between the events tile and tasks tile (testing)
-          isAdLoaded
-              ? SizedBox(
-                  height: bannerAd.size.height.toDouble(),
-                  width: bannerAd.size.width.toDouble(),
-                  child: Center(child: AdWidget(ad: bannerAd)),
-                )
-              : const SizedBox(),
     );
   }
 }

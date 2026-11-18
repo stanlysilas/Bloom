@@ -3,14 +3,14 @@ import "dart:async";
 import "package:bloom/core/responsive/desktop_body.dart";
 import "package:bloom/core/responsive/responsive_layout.dart";
 import "package:bloom/features/auth/signup_screen.dart";
-import "package:bloom/features/home/widgets/show_updates_dialog.dart";
+// import "package:bloom/features/home/widgets/show_updates_dialog.dart";
 import "package:bloom/core/utils/loading_animation.dart";
 import "package:bloom/core/responsive/mobile_body.dart";
 import "package:bloom/features/onboarding/onboarding_screen.dart";
 import "package:bloom/core/widgets/custom_title_bar.dart";
 import "package:bloom/services/app/app_data_service.dart";
 import "package:bloom/services/app/update_service.dart";
-import "package:bloom/services/firebase/notification.dart";
+// import "package:bloom/services/firebase/notification.dart";
 import "package:bloom/services/network/network_service.dart";
 import "package:firebase_auth/firebase_auth.dart";
 import "package:flutter/foundation.dart";
@@ -55,25 +55,25 @@ class _AuthenticateUserState extends State<AuthenticateUser> {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final isUpdateAvailable = await updateService.updateAvailable();
+      // final isUpdateAvailable = await updateService.updateAvailable();
       final appData = await appDataService.fetchAppData();
 
       if (appData == null) return;
 
-      final updateCollectionId =
-          "${appData.latestAndroidVersion}+${appData.buildNumberAndroid}";
+      // final updateCollectionId =
+      //     "${appData.latestAndroidVersion}+${appData.buildNumberAndroid}";
 
-      if (showHome == true && FirebaseAuth.instance.currentUser != null) {
-        await NotificationService.resyncActionNotifications();
-        if (isUpdateAvailable == true) {
-          await showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (_) =>
-                UpdatesDialog(updatesCollectionId: updateCollectionId),
-          );
-        }
-      }
+      // if (showHome == true && FirebaseAuth.instance.currentUser != null) {
+      //   await NotificationService.resyncActionNotifications();
+      //   if (isUpdateAvailable == true) {
+      //     await showDialog(
+      //       context: context,
+      //       barrierDismissible: false,
+      //       builder: (_) =>
+      //           UpdatesDialog(updatesCollectionId: updateCollectionId),
+      //     );
+      //   }
+      // }
     });
   }
 

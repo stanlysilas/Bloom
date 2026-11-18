@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class TaskModel extends ActionObjectModel {
   final int? priorityLevel;
   final String? priorityLevelString;
+  final List<String> parentPath;
 
   TaskModel({
     required String objectId,
@@ -19,6 +20,7 @@ class TaskModel extends ActionObjectModel {
     List<String>? groups,
     this.priorityLevel = 3,
     this.priorityLevelString = 'Low',
+    this.parentPath = const [],
   }) : super(
           actionObjectType: ActionObjectType.task,
           objectId: objectId,
@@ -32,7 +34,7 @@ class TaskModel extends ActionObjectModel {
           groups: groups,
         );
 
-  factory TaskModel.fromFirestore(Map<String, dynamic> data) {
+  factory TaskModel.fromFirestore(Map<String, dynamic> data, List<String>? parentPath) {
     final priority = data['priorityLevel'] ?? 3;
 
     return TaskModel(
@@ -48,6 +50,7 @@ class TaskModel extends ActionObjectModel {
       groups: ((data['taskGroups'] ?? data['groups']) as List?)?.cast<String>(),
       priorityLevel: priority,
       priorityLevelString: _resolvePriorityLevel(priority),
+      parentPath: parentPath ?? const [],
     );
   }
 

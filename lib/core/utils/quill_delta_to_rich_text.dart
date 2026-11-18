@@ -10,7 +10,8 @@ RichText quillDeltaToRichText(
   final textStyle = TextStyle(
       color: colors.inverseSurface,
       fontFamily: 'Nunito',
-      fontFamilyFallback: ['AppleEmoji']);
+      // fontFamilyFallback: ['AppleEmoji']
+      );
 
   if (delta.length == 1 && delta.first.value == '\n') {
     return RichText(

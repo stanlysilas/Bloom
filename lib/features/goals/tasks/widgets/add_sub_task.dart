@@ -92,7 +92,7 @@ class AddSubTaskModalState extends State<AddSubTaskModal> {
         .doc(userId)
         .collection('tasks')
         .doc(widget.mainTaskId)
-        .collection('subTasks');
+        .collection('tasks');
     // Generate document id for subTask
     final String subTaskId = subTasksCollection.doc().id;
     uniqueId = DateTime.now().millisecondsSinceEpoch.remainder(100000);

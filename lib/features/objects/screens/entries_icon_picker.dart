@@ -1,3 +1,4 @@
+import 'package:bloom/core/responsive/dimensions.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 
@@ -45,53 +46,65 @@ class _EntriesIconPickerState extends State<EntriesIconPicker> {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                child: EmojiPicker(
-                  textEditingController: searchEmojisController,
-                  config: Config(
-                    checkPlatformCompatibility: true,
-                    emojiTextStyle: TextStyle(
-                        fontFamily: 'Nunito',
-                        fontFamilyFallback: ['AppleEmoji']),
-                    emojiViewConfig: EmojiViewConfig(
-                        noRecents: Text('Recently selected emojis appear here'),
-                        replaceEmojiOnLimitExceed: true,
-                        columns: 8,
-                        verticalSpacing: 4,
-                        horizontalSpacing: 4,
-                        backgroundColor: Theme.of(context).colorScheme.surface),
-                    viewOrderConfig: const ViewOrderConfig(
-                      top: EmojiPickerItem.searchBar,
-                      middle: EmojiPickerItem.emojiView,
-                      bottom: EmojiPickerItem.categoryBar,
+        child: Align(
+          alignment: Alignment.center,
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width > mobileWidth ? 650 : null,
+            child: Column(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                    child: EmojiPicker(
+                      textEditingController: searchEmojisController,
+                      config: Config(
+                        checkPlatformCompatibility: true,
+                        emojiTextStyle: TextStyle(
+                            fontFamily: 'Nunito',
+                            // fontFamilyFallback: ['AppleEmoji']
+                            ),
+                        emojiViewConfig: EmojiViewConfig(
+                            noRecents:
+                                Text('Recently selected emojis appear here'),
+                            replaceEmojiOnLimitExceed: true,
+                            columns: 8,
+                            verticalSpacing: 4,
+                            horizontalSpacing: 4,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.surface),
+                        viewOrderConfig: const ViewOrderConfig(
+                          top: EmojiPickerItem.searchBar,
+                          middle: EmojiPickerItem.emojiView,
+                          bottom: EmojiPickerItem.categoryBar,
+                        ),
+                        searchViewConfig: SearchViewConfig(
+                            hintText: 'Search',
+                            buttonIconColor:
+                                Theme.of(context).colorScheme.onSurface,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.surface),
+                        categoryViewConfig: CategoryViewConfig(
+                            backgroundColor:
+                                Theme.of(context).colorScheme.surface,
+                            indicatorColor:
+                                Theme.of(context).colorScheme.primary,
+                            iconColorSelected:
+                                Theme.of(context).colorScheme.primary),
+                        bottomActionBarConfig: BottomActionBarConfig(
+                            showBackspaceButton: false,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.surfaceContainer,
+                            buttonColor: Theme.of(context).colorScheme.primary),
+                      ),
+                      onEmojiSelected: (category, emoji) {
+                        Navigator.pop(context, emoji.emoji);
+                      },
                     ),
-                    searchViewConfig: SearchViewConfig(
-                        hintText: 'Search',
-                        buttonIconColor:
-                            Theme.of(context).colorScheme.onSurface,
-                        backgroundColor: Theme.of(context).colorScheme.surface),
-                    categoryViewConfig: CategoryViewConfig(
-                        backgroundColor: Theme.of(context).colorScheme.surface,
-                        indicatorColor: Theme.of(context).colorScheme.primary,
-                        iconColorSelected:
-                            Theme.of(context).colorScheme.primary),
-                    bottomActionBarConfig: BottomActionBarConfig(
-                        showBackspaceButton: false,
-                        backgroundColor:
-                            Theme.of(context).colorScheme.surfaceContainer,
-                        buttonColor: Theme.of(context).colorScheme.primary),
                   ),
-                  onEmojiSelected: (category, emoji) {
-                    Navigator.pop(context, emoji.emoji);
-                  },
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

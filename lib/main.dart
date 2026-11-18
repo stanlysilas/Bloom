@@ -16,7 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:timezone/data/latest.dart' as tz;
+// import 'package:timezone/data/latest.dart' as tz;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +26,7 @@ Future<void> main() async {
   runApp(const BloomApp());
 
   // Non-critical async initializations (run after UI shows)
-  unawaited(_postInitTasks());
+  // unawaited(_postInitTasks());
 
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.windows) {
     doWhenWindowReady(() {
@@ -38,12 +38,12 @@ Future<void> main() async {
   }
 }
 
-Future<void> _postInitTasks() async {
-  await Future.wait([
-    Future(() => tz.initializeTimeZones()),
-    NotificationService.checkForUpdates(),
-  ]);
-}
+// Future<void> _postInitTasks() async {
+//   await Future.wait([
+//     Future(() => tz.initializeTimeZones()),
+//     NotificationService.checkForUpdates(),
+//   ]);
+// }
 
 class BloomApp extends StatefulWidget {
   const BloomApp({super.key});

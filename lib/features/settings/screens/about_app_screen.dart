@@ -7,7 +7,7 @@ import 'package:bloom/core/responsive/dimensions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+// import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -23,7 +23,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
   String currentVersion = 'default';
   String newVersion = '';
   late int buildNumberAndroid = 0;
-  late BannerAd bannerAd;
+  // late BannerAd bannerAd;
   bool isAdLoaded = false;
   bool? isUpdateAvailable;
   String status = 'unknown';
@@ -85,26 +85,26 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
   }
 
 // Banner ADs initialization method
-  void initBannerAd() {
-    bannerAd = BannerAd(
-      size: AdSize.banner,
-      adUnitId: "ca-app-pub-5607290715305671/4045682095",
-      listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          setState(() {
-            isAdLoaded = true;
-          });
-        },
-        onAdFailedToLoad: (ad, error) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text('Failed to load the add. ${error.message}')));
-        },
-      ),
-      request: const AdRequest(),
-    );
+  // void initBannerAd() {
+  //   bannerAd = BannerAd(
+  //     size: AdSize.banner,
+  //     adUnitId: "ca-app-pub-5607290715305671/4045682095",
+  //     listener: BannerAdListener(
+  //       onAdLoaded: (ad) {
+  //         setState(() {
+  //           isAdLoaded = true;
+  //         });
+  //       },
+  //       onAdFailedToLoad: (ad, error) {
+  //         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+  //             content: Text('Failed to load the add. ${error.message}')));
+  //       },
+  //     ),
+  //     request: const AdRequest(),
+  //   );
 
-    bannerAd.load();
-  }
+  //   bannerAd.load();
+  // }
 
   // Check for updates method
   void checkForUpdates() async {
@@ -251,227 +251,214 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
             style: TextStyle(
                 fontFamily: 'ClashGrotesk', fontWeight: FontWeight.w500)),
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: MediaQuery.of(context).size.width < mobileWidth
-              ? const EdgeInsets.all(0)
-              : const EdgeInsets.symmetric(horizontal: 120),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 14),
-                // About App section
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 14),
-                  padding: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainer,
-                      borderRadius: BorderRadius.circular(24)),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Icon of Bloom
-                      Container(
-                        padding: EdgeInsets.all(8),
+      body: SizedBox(
+        width: MediaQuery.of(context).size.width > mobileWidth ? 650 : null,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 14),
+              // About App section
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 14),
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(24)),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Icon of Bloom
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .secondaryContainer,
+                          borderRadius: BorderRadius.circular(16)),
+                      child: Image.asset(
+                        'assets/icons/default_app_icon_png.png',
+                        scale: 16,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Name, version and channel of Bloom
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Name of Bloom
+                        Text(
+                          'Bloom - Productive',
+                          style: TextStyle(
+                              fontFamily: 'ClashGrotesk',
+                              fontSize: 20,
+                              fontWeight: FontWeight.w400),
+                        ),
+                        // Version+BuildNumber
+                        Text("Version $currentVersion"),
+                        // Channel of the app update
+                        // Text(!kIsWeb ? 'Beta Channel' : 'Web Client'),
+                        // Stable or which beta iteration
+                        Text("Channel: $status"),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              // ChangeLog Block
+              FutureBuilder<List<ChangelogModel>>(
+                future: fetchChangelog(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Container(
+                        width: double.maxFinite,
+                        margin: EdgeInsets.symmetric(horizontal: 14),
+                        padding: EdgeInsets.all(14),
                         decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
                             color: Theme.of(context)
                                 .colorScheme
-                                .secondaryContainer,
-                            borderRadius: BorderRadius.circular(16)),
-                        child: Image.asset(
-                          'assets/icons/default_app_icon_png.png',
-                          scale: 16,
+                                .surfaceContainer),
+                        alignment: Alignment.center,
+                        child: CircularProgressIndicator(year2023: false));
+                  } else if (snapshot.hasError) {
+                    print(snapshot.error);
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text(
+                          "Couldn't load changelog. Please try again later.",
+                          textAlign: TextAlign.center,
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      // Name, version and channel of Bloom
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Name of Bloom
-                          Text(
-                            'Bloom - Productive',
-                            style: TextStyle(
-                                fontFamily: 'ClashGrotesk',
-                                fontSize: 20,
-                                fontWeight: FontWeight.w400),
-                          ),
-                          // Version+BuildNumber
-                          Text("Version $currentVersion"),
-                          // Channel of the app update
-                          // Text(!kIsWeb ? 'Beta Channel' : 'Web Client'),
-                          // Stable or which beta iteration
-                          Text("Channel: $status"),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // ChangeLog Block
-                FutureBuilder<List<ChangelogModel>>(
-                  future: fetchChangelog(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Container(
-                          width: double.maxFinite,
-                          margin: EdgeInsets.symmetric(horizontal: 14),
-                          padding: EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(24),
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainer),
-                          alignment: Alignment.center,
-                          child: CircularProgressIndicator(year2023: false));
-                    } else if (snapshot.hasError) {
-                      print(snapshot.error);
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: Text(
-                            "Couldn't load changelog. Please try again later.",
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      );
-                    }
-
-                    final changelogs = snapshot.data ?? [];
-                    final currentVersionLog = changelogs.firstWhere(
-                      (log) => log.version == currentVersion,
-                      orElse: () => ChangelogModel(
-                        version: currentVersion,
-                        title: "No changelog available",
-                        date: "",
-                        highlights: [],
-                        notes: "",
                       ),
                     );
-                    return Container(
-                      width: double.maxFinite,
-                      margin: const EdgeInsets.symmetric(horizontal: 14),
-                      padding: const EdgeInsets.all(14.0),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainer,
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Title
-                          Text(
-                            currentVersionLog.title,
-                            style: TextStyle(
-                              fontFamily: 'ClashGrotesk',
-                              fontWeight: FontWeight.w400,
-                              fontSize: 20,
-                            ),
+                  }
+      
+                  final changelogs = snapshot.data ?? [];
+                  final currentVersionLog = changelogs.firstWhere(
+                    (log) => log.version == currentVersion,
+                    orElse: () => ChangelogModel(
+                      version: currentVersion,
+                      title: "No changelog available",
+                      date: "",
+                      highlights: [],
+                      notes: "",
+                    ),
+                  );
+                  return Container(
+                    width: double.maxFinite,
+                    margin: const EdgeInsets.symmetric(horizontal: 14),
+                    padding: const EdgeInsets.all(14.0),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainer,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Title
+                        Text(
+                          currentVersionLog.title,
+                          style: TextStyle(
+                            fontFamily: 'ClashGrotesk',
+                            fontWeight: FontWeight.w400,
+                            fontSize: 20,
                           ),
-                          const SizedBox(height: 8),
-
-                          // Version + Date
-                          currentVersionLog.date.isNotEmpty
-                              ? Text("Released on ${currentVersionLog.date}")
-                              : Text("Changelog unavailable for this version"),
+                        ),
+                        const SizedBox(height: 8),
+      
+                        // Version + Date
+                        currentVersionLog.date.isNotEmpty
+                            ? Text("Released on ${currentVersionLog.date}")
+                            : Text(
+                                "Changelog unavailable for this version"),
+                        const SizedBox(height: 12),
+                        // Highlights (bullet points)
+                        if (currentVersionLog.highlights.isNotEmpty)
+                          ...currentVersionLog.highlights
+                              .map((item) => Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 2.0),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Text("• "),
+                                        Expanded(child: Text(item)),
+                                      ],
+                                    ),
+                                  )),
+                        // Notes section
+                        if (currentVersionLog.notes.isNotEmpty) ...[
                           const SizedBox(height: 12),
-                          // Highlights (bullet points)
-                          if (currentVersionLog.highlights.isNotEmpty)
-                            ...currentVersionLog.highlights
-                                .map((item) => Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 2.0),
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          const Text("• "),
-                                          Expanded(child: Text(item)),
-                                        ],
-                                      ),
-                                    )),
-                          // Notes section
-                          if (currentVersionLog.notes.isNotEmpty) ...[
-                            const SizedBox(height: 12),
-                            Text(
-                              "Notes",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w600, fontSize: 16),
-                            ),
-                            Text(currentVersionLog.notes),
-                          ],
+                          Text(
+                            "Notes",
+                            style: TextStyle(
+                                fontWeight: FontWeight.w600, fontSize: 16),
+                          ),
+                          Text(currentVersionLog.notes),
                         ],
+                      ],
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              // Check for updates button for Android
+              kIsWeb == false
+                  ? BloomMaterialListTile(
+                      borderRadius: BorderRadius.circular(24),
+                      icon: const Icon(Icons.download),
+                      label: isUpdateAvailable == true
+                          ? 'Download Update'
+                          : 'Check for Updates',
+                      subLabel: isUpdateAvailable == true
+                          ? "Version $newVersion is live now!"
+                          : 'You are on the latest version',
+                      showTag: isUpdateAvailable,
+                      tagIcon: const Icon(
+                        Icons.new_releases,
+                        size: 14,
                       ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-                // Check for updates button for Android
-                kIsWeb == false
-                    ? BloomMaterialListTile(
-                        borderRadius: BorderRadius.circular(24),
-                        icon: const Icon(Icons.download),
-                        label: isUpdateAvailable == true
-                            ? 'Download Update'
-                            : 'Check for Updates',
-                        subLabel: isUpdateAvailable == true
-                            ? "Version $newVersion is live now!"
-                            : 'You are on the latest version',
-                        showTag: isUpdateAvailable,
-                        tagIcon: const Icon(
-                          Icons.new_releases,
-                          size: 14,
-                        ),
-                        tagLabel: 'Update available',
-                        innerPadding: const EdgeInsets.all(12),
-                        onTap: checkForUpdates,
-                      )
-                    : BloomMaterialListTile(
-                        borderRadius: BorderRadius.circular(24),
-                        icon: const Icon(Icons.download),
-                        label: "Download Android APK",
-                        subLabel:
-                            'Download and use the Android version for the full experience',
-                        // showTag: isUpdateAvailable,
-                        // tagIcon: const Icon(
-                        //   Icons.new_releases,
-                        //   size: 14,
-                        // ),
-                        // tagLabel: 'Update available',
-                        innerPadding: const EdgeInsets.all(12),
-                        onTap: launchDownloadAndroidApkUrl,
-                      ),
-                const SizedBox(height: 16),
-                // GitHub repo Button
-                BloomMaterialListTile(
-                  borderRadius: BorderRadius.circular(24),
-                  icon: const Icon(Icons.open_in_browser),
-                  label: 'View on GitHub',
-                  subLabel: 'Visit the GitHub repository for Bloom',
-                  // showTag: isUpdateAvailable,
-                  // tagIcon: const Icon(
-                  //   Icons.new_releases,
-                  //   size: 14,
-                  // ),
-                  // tagLabel: 'Update available',
-                  innerPadding: const EdgeInsets.all(12),
-                  onTap: launchVisitGitHubRepoUrl,
-                )
-              ],
-            ),
+                      tagLabel: 'Update available',
+                      innerPadding: const EdgeInsets.all(12),
+                      onTap: checkForUpdates,
+                    )
+                  : BloomMaterialListTile(
+                      borderRadius: BorderRadius.circular(24),
+                      icon: const Icon(Icons.download),
+                      label: "Download Android APK",
+                      subLabel:
+                          'Download and use the Android version for the full experience',
+                      // showTag: isUpdateAvailable,
+                      // tagIcon: const Icon(
+                      //   Icons.new_releases,
+                      //   size: 14,
+                      // ),
+                      // tagLabel: 'Update available',
+                      innerPadding: const EdgeInsets.all(12),
+                      onTap: launchDownloadAndroidApkUrl,
+                    ),
+              const SizedBox(height: 16),
+              // GitHub repo Button
+              BloomMaterialListTile(
+                borderRadius: BorderRadius.circular(24),
+                icon: const Icon(Icons.open_in_browser),
+                label: 'View on GitHub',
+                subLabel: 'Visit the GitHub repository for Bloom',
+                // showTag: isUpdateAvailable,
+                // tagIcon: const Icon(
+                //   Icons.new_releases,
+                //   size: 14,
+                // ),
+                // tagLabel: 'Update available',
+                innerPadding: const EdgeInsets.all(12),
+                onTap: launchVisitGitHubRepoUrl,
+              )
+            ],
           ),
         ),
       ),
-      bottomNavigationBar:
-          // Display and AD in between the events tile and tasks tile (testing)
-          isAdLoaded
-              ? SizedBox(
-                  height: bannerAd.size.height.toDouble(),
-                  width: bannerAd.size.width.toDouble(),
-                  child: Center(child: AdWidget(ad: bannerAd)),
-                )
-              : const SizedBox(),
     );
   }
 }
